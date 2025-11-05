@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block title %}Gestion des trajets{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+  <h1 class="text-success mb-4">Trajets proposés</h1>
+
+  <table class="table table-hover align-middle shadow-sm">
+    <thead class="table-success">
+      <tr>
+        <th>ID</th>
+        <th>Départ</th>
+        <th>Arrivée</th>
+        <th>Date</th>
+        <th>Conducteur</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for trajet in trajets %}
+        <tr>
+          <td>{{ trajet.id }}</td>
+          <td>{{ trajet.villeDepart }}</td>
+          <td>{{ trajet.villeArrivee }}</td>
+          <td>{{ trajet.dateDepart ? trajet.dateDepart|date('d/m/Y H:i') : '-' }}</td>
+          <td>{{ trajet.conducteur ? trajet.conducteur.email : '—' }}</td>
+        </tr>
+      {% else %}
+        <tr><td colspan="5" class="text-center text-muted">Aucun trajet enregistré</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes trajets - EcoRide{% endblock %}
+
+{% block body %}
+<section class="hero-section hero-profil d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3">Mes trajets</h2>
+    <h2 class="hero-tagline mb-4">Retrouve tous les trajets que tu as proposés</h2>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container">
+    {% if trajets is empty %}
+      <div class="text-center py-5">
+        <h4 class="text-muted">Tu n’as encore proposé aucun trajet.</h4>
+        <a href="{{ path('app_proposer_trajet') }}" class="btn btn-ecoride mt-3 px-4">Proposer un trajet</a>
+      </div>
+    {% else %}
+      <div class="row g-4">
+        {% for trajet in trajets %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 rounded-4 p-3 h-100">
+              <div class="card-body">
+                <h5 class="fw-bold text-success mb-3">
+                  {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+                </h5>
+                <p class="mb-1"><i class="bi bi-calendar-event me-2"></i>
+                  {{ trajet.dateDepart|date('d/m/Y H:i') }}
+                </p>
+                <p class="mb-1"><i class="bi bi-people me-2"></i>
+                  {{ trajet.placesDisponibles }} place(s) disponible(s)
+                </p>
+                <p class="mb-1"><i class="bi bi-cash-coin me-2"></i>
+                  {{ trajet.prix }} €
+                </p>
+                <p class="text-muted mt-2 mb-0 small">
+                  {{ trajet.typeVehicule }} • {{ trajet.energie }}
+                </p>
+              </div>
+              {% if trajet.commentaire %}
+                <div class="card-footer bg-light text-muted small">
+                  {{ trajet.commentaire }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

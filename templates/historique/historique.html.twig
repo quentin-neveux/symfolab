@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Historique - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-historique text-center text-white">
+  <div class="container">
+    <h1 class="hero-title">Historique</h1>
+    <p class="hero-tagline">Vos trajets passés et terminés</p>
+  </div>
+</section>
+
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="card shadow-sm rounded-4 border-0">
+      <div class="card-body">
+        <h3 class="mb-4 text-success fw-bold">Trajets passés</h3>
+
+        <table class="table table-hover align-middle">
+          <thead class="table-success">
+            <tr>
+              <th>Départ</th>
+              <th>Arrivée</th>
+              <th>Date</th>
+              <th>Prix</th>
+              <th>Statut</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for trajet in historiques %}
+              <tr>
+                <td>{{ trajet.villeDepart }}</td>
+                <td>{{ trajet.villeArrivee }}</td>
+                <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
+                <td>{{ trajet.prix }} €</td>
+                <td>
+                  <span class="badge bg-secondary">Terminé</span>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                  Aucun trajet terminé pour le moment.
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

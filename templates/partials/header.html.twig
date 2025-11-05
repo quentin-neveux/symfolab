@@ -1,0 +1,84 @@
+{# ============================================================
+   HEADER - NAVBAR ECORIDE (version Symfony)
+   Fidèle à la V2 : design, comportement et logique
+   ============================================================ #}
+
+<nav class="navbar navbar-expand-lg sticky-top navbar-dark ecoride-navbar shadow-sm">
+  <div class="container d-flex align-items-center">
+
+    <!-- LOGO ECORIDE -->
+    <a class="navbar-brand d-flex align-items-center text-decoration-none navbar-brand-link" href="{{ path('app_home') }}">
+      <h2 class="mb-0 fw-semibold">EcoRide</h2>
+    </a>
+
+    <!-- BURGER (mobile) -->
+    <button class="navbar-toggler ms-auto" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- LIENS DE NAVIGATION -->
+    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+      <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+
+        {% if app.user %}
+          {# === UTILISATEUR CONNECTÉ === #}
+          <li class="nav-item dropdown mx-3">
+
+            <a class="nav-link dropdown-toggle d-flex align-items-center btn btn-outline-success rounded-pill px-3"
+               href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+
+              {# Avatar avec initiales #}
+              {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+              <span class="user-avatar me-2">{{ initials }}</span>
+
+              
+
+              {% if 'ROLE_ADMIN' in app.user.roles %}
+                <span class="badge bg-success ms-2">Admin</span>
+              {% endif %}
+            </a>
+
+            <ul class="dropdown-menu shadow text-dark" aria-labelledby="userDropdown">
+              <li><a class="dropdown-item" href="{{ path('app_profil') }}"><i class="bi bi-person me-2"></i>Mon profil</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_mes_trajets') }}"><i class="bi bi-car-front me-2"></i>Mes trajets</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_proposer_trajet') }}"><i class="bi bi-map me-2"></i>Proposer un trajet</a></li>
+              <li><a class="dropdown-item" href="{{ path('app_historique') }}"><i class="bi bi-clock-history me-2"></i>Mon historique</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="{{ path('app_logout') }}"><i class="bi bi-box-arrow-right me-2"></i>Déconnexion</a></li>
+            </ul>
+          </li>
+
+        {% else %}
+          {# === UTILISATEUR NON CONNECTÉ === #}
+          <li class="nav-item mx-3">
+            <a href="{{ path('app_covoiturer') }}"
+               class="nav-link {% if app.request.pathinfo starts with '/covoiturer' %}active text-success{% else %}text-white{% endif %}">
+              Rechercher un trajet
+            </a>
+          </li>
+
+          <li class="nav-item mx-3">
+            <a href="{{ path('app_inscription') }}"
+               class="nav-link {% if app.request.pathinfo starts with '/inscription' %}active text-success{% else %}text-white{% endif %}">
+              Inscription
+            </a>
+          </li>
+
+          <li class="nav-item mx-3">
+            <a href="{{ path('app_connexion') }}"
+               class="nav-link {% if app.request.pathinfo starts with '/connexion' %}active text-success{% else %}text-white{% endif %}">
+              Connexion
+            </a>
+          </li>
+        {% endif %}
+
+      </ul>
+    </div>
+  </div>
+</nav>
+
+{# ============================================================
+   FIN DU HEADER - NAVBAR ECORIDE
+   ============================================================ #}

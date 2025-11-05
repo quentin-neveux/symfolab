@@ -1,0 +1,75 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - EcoRide{% endblock %}
+
+{% block body %}
+<!-- === HERO CONNEXION === -->
+<section class="hero-section hero-connexion d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3">Connexion</h2>
+    <h2 class="hero-tagline mb-4">Ravis de vous revoir sur EcoRide</h2>
+  </div>
+</section>
+
+<!-- === FORMULAIRE DE CONNEXION === -->
+<section class="connexion-section py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
+
+          <!-- Titre -->
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-success">Se connecter</h2>
+            <p class="text-muted">Accédez à votre espace personnel</p>
+          </div>
+
+          <form method="post" action="{{ path('app_connexion') }}" class="needs-validation" novalidate>
+            {% if error %}
+              <div class="alert alert-danger text-center rounded-pill py-2">
+                {{ error.messageKey|trans(error.messageData, 'security') }}
+              </div>
+            {% endif %}
+
+            <div class="mb-3">
+              <label for="inputEmail" class="form-label">Adresse e-mail</label>
+              <input type="email"
+                     id="inputEmail"
+                     name="email"
+                     class="form-control rounded-pill px-3 py-2"
+                     value="{{ last_username }}"
+                     placeholder="exemple@domaine.fr"
+                     autocomplete="email"
+                     required
+                     autofocus>
+            </div>
+
+            <div class="mb-3">
+              <label for="inputPassword" class="form-label">Mot de passe</label>
+              <input type="password"
+                     id="inputPassword"
+                     name="password"
+                     class="form-control rounded-pill px-3 py-2"
+                     placeholder="••••••••"
+                     autocomplete="current-password"
+                     required>
+            </div>
+
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+            <button type="submit" class="btn btn-ecoride w-100 mt-3">Se connecter</button>
+
+            <div class="text-center mt-4">
+              <p class="text-muted mb-0">
+                Pas encore de compte ?
+                <a href="{{ path('app_inscription') }}" class="fw-semibold text-success">Inscrivez-vous</a>
+              </p>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

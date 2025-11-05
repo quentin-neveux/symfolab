@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil - EcoRide{% endblock %}
+
+{% block body %}
+<section class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      {# === SOUS-MENU PROFIL (À propos / Compte) === #}
+      {% include 'profil/_profil_header.html.twig' %}
+
+      <!-- === EN-TÊTE PROFIL === -->
+      <div class="profile-header d-flex align-items-center p-4 rounded shadow-sm mb-4 bg-white">
+        <div class="me-4">
+          {% if app.user.photo %}
+            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}" 
+                 alt="Photo de profil" 
+                 class="rounded-circle shadow-sm" 
+                 width="100" height="100">
+          {% else %}
+            <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm">
+              {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+              <span>{{ initials }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <div>
+          <h3 class="mb-1">{{ app.user.prenom }} {{ app.user.nom }}</h3>
+          <span class="badge bg-success">Confirmé</span>
+          <p class="text-muted mb-0">Membre depuis {{ app.user.createdAt|date('Y') }}</p>
+        </div>
+      </div>
+
+      <!-- === FIABILITÉ ET CONTACT === -->
+      <div class="p-4 rounded shadow-sm mb-4 bg-white">
+        <h5 class="mb-3">Votre fiabilité en covoiturage</h5>
+        <p class="text-muted mb-0">
+          <i class="bi bi-check-circle text-success me-2"></i>
+          N’annule jamais de réservation en tant que passager
+        </p>
+
+        <hr>
+
+        <h5 class="mb-3">Vérifiez votre profil</h5>
+        <ul class="list-unstyled mb-0">
+          <li><i class="bi bi-envelope text-primary me-2"></i>{{ app.user.email }}</li>
+          {% if app.user.telephone %}
+            <li><i class="bi bi-telephone text-primary me-2"></i>{{ app.user.telephone }}</li>
+          {% else %}
+            <li class="text-muted small"><i class="bi bi-telephone text-muted me-2"></i>Aucun numéro enregistré</li>
+          {% endif %}
+        </ul>
+      </div>
+
+      <!-- === À PROPOS DE VOUS === -->
+      <div class="p-4 rounded shadow-sm mb-4 bg-white">
+        <h5 class="mb-3">À propos de vous</h5>
+
+        <ul class="list-unstyled mb-3">
+          <li><i class="bi bi-music-note-beamed text-success me-2"></i> Musique tout le long 🎵</li>
+          <li><i class="bi bi-cup-hot text-success me-2"></i> Les pauses café sont toujours les bienvenues ☕</li>
+          <li><i class="bi bi-heart text-success me-2"></i> J’adore les animaux 🐾</li>
+        </ul>
+
+        <a href="#" class="small text-decoration-none">✏️ Modifier mes préférences de voyage</a>
+      </div>
+
+      <!-- === VÉHICULES === -->
+      <div class="p-4 rounded shadow-sm bg-white">
+        <h5 class="mb-3">Véhicules</h5>
+        {% if app.user.voitures is defined and app.user.voitures|length > 0 %}
+          <ul class="list-unstyled mb-0">
+            {% for voiture in app.user.voitures %}
+              <li class="mb-2">
+                <i class="bi bi-car-front text-success me-2"></i>
+                {{ voiture.marque }} {{ voiture.modele }} – {{ voiture.couleur }}
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <a href="#" class="small text-decoration-none">➕ Ajouter un véhicule</a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}

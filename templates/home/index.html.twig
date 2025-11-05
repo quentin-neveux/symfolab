@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}EcoRide - Covoiturage écologique{% endblock %}
+
+{% block body %}
+<!-- === SECTION HERO HOME === -->
+<section class="hero-home d-flex align-items-center text-center text-white position-relative">
+  <!-- Calque visuel géré en CSS avec ::before -->
+
+  <div class="container position-relative" style="z-index: 5; pointer-events: auto;">
+    <!-- TITRES -->
+    <h1 class="hero-title-ecoride mb-3">EcoRide</h1>
+    <h2 class="hero-tagline-ecoride mb-4">Changeons d’air, pas de Terre</h2>
+    <p class="lead mb-4">Trouvez ou proposez un trajet éco-responsable, simple et rapide.</p>
+
+    <!-- 🔍 BARRE DE RECHERCHE -->
+    <form id="search-form" class="eco-searchbar mx-auto" action="/recherche" method="get">
+      <div class="row g-0 align-items-center justify-content-center">
+
+        <!-- Départ -->
+        <div class="col-md-3 eco-search-field rounded-start d-flex align-items-center bg-white px-3">
+          <i class="fa-solid fa-location-dot me-2 text-success"></i>
+          <input type="text"
+                 id="ville_depart"
+                 name="ville_depart"
+                 placeholder="Départ"
+                 required
+                 class="form-control border-0 bg-transparent text-dark">
+        </div>
+
+        <!-- Arrivée -->
+        <div class="col-md-3 eco-search-field d-flex align-items-center bg-white px-3">
+          <i class="fa-solid fa-location-arrow me-2 text-success"></i>
+          <input type="text"
+                 id="ville_arrivee"
+                 name="ville_arrivee"
+                 placeholder="Arrivée"
+                 class="form-control border-0 bg-transparent text-dark">
+        </div>
+
+        <!-- Date -->
+        <div class="col-md-3 eco-search-field d-flex align-items-center bg-white px-3">
+          <i class="fa-regular fa-calendar me-2 text-success"></i>
+          <input type="date"
+                 id="date_depart"
+                 name="date_depart"
+                 class="form-control border-0 bg-transparent text-dark">
+        </div>
+
+        <!-- Bouton -->
+        <div class="col-auto">
+          <button type="submit"
+                  class="btn btn-success rounded-end px-4 py-2 d-flex align-items-center">
+            <i class="bi bi-search me-2"></i> Rechercher
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+
+
+<!-- === SECTION VALEURS === -->
+<section class="values text-center py-5">
+  <div class="container">
+    <h2 class="fw-semibold mb-5">Pourquoi choisir EcoRide ?</h2>
+
+    <div class="row gy-4 justify-content-center">
+      <div class="col-md-4">
+        <i class="bi bi-globe2 value-icon"></i>
+        <h5>Respect de la planète</h5>
+        <p>Chaque trajet partagé, c’est une voiture de moins sur la route et des émissions réduites.</p>
+      </div>
+
+      <div class="col-md-4">
+        <i class="bi bi-people-fill value-icon"></i>
+        <h5>Communauté solidaire</h5>
+        <p>Des conducteurs et passagers qui partagent les mêmes valeurs d’entraide et de confiance.</p>
+      </div>
+
+      <div class="col-md-4">
+        <i class="bi bi-wallet2 value-icon"></i>
+        <h5>Économies partagées</h5>
+        <p>Un trajet moins cher pour les passagers et des frais réduits pour les conducteurs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

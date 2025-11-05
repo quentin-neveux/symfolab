@@ -1,0 +1,108 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Proposer un trajet - EcoRide{% endblock %}
+
+{% block body %}
+<section class="hero-section hero-proposer d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3">Proposer un trajet</h2>
+    <h2 class="hero-tagline mb-4">Partage ta route, réduis ton empreinte</h2>
+  </div>
+</section>
+
+<section class="proposer-section py-5 bg-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
+
+          <!-- 🟢 Titre du formulaire -->
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-success">Créer ton trajet</h2>
+            <p class="text-muted">
+              Indique les détails de ton voyage pour aider d'autres passagers à te rejoindre
+            </p>
+          </div>
+
+          {{ form_start(form) }}
+          <div class="row g-3">
+
+            <!-- Ville de départ -->
+            <div class="col-md-6">
+              {{ form_row(form.villeDepart, {
+                label: 'Ville de départ',
+                attr: { placeholder: 'Ex : Lyon', class: 'form-control rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Ville d’arrivée -->
+            <div class="col-md-6">
+              {{ form_row(form.villeArrivee, {
+                label: 'Ville d’arrivée',
+                attr: { placeholder: 'Ex : Grenoble', class: 'form-control rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Date et heure de départ -->
+            <div class="col-12">
+              {{ form_row(form.dateDepart, {
+                label: 'Date et heure de départ',
+                attr: { class: 'form-control rounded-pill px-3 py-2 text-center' }
+              }) }}
+            </div>
+
+            <!-- Type de véhicule -->
+            <div class="col-md-6">
+              {{ form_row(form.typeVehicule, {
+                label: 'Type de véhicule',
+                attr: { placeholder: 'Ex : Berline, SUV…', class: 'form-control rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Prix -->
+            <div class="col-md-6">
+              {{ form_row(form.prix, {
+                label: 'Prix par passager (€)',
+                attr: { placeholder: 'Ex : 12.50', class: 'form-control rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Places disponibles -->
+            <div class="col-md-6">
+              {{ form_row(form.placesDisponibles, {
+                label: 'Places disponibles',
+                attr: { class: 'form-control rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Énergie -->
+            <div class="col-md-6">
+              {{ form_row(form.energie, {
+                label: 'Énergie',
+                attr: { class: 'form-select rounded-pill px-3 py-2' }
+              }) }}
+            </div>
+
+            <!-- Commentaire -->
+            <div class="col-12">
+              {{ form_row(form.commentaire, {
+                label: 'Commentaire (optionnel)',
+                attr: { placeholder: 'Infos pratiques, pause café, bagages…', class: 'form-control px-3 py-2' }
+              }) }}
+            </div>
+
+          </div>
+
+          <!-- Bouton -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-ecoride w-100">Publier mon trajet</button>
+          </div>
+
+          {{ form_end(form) }}
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

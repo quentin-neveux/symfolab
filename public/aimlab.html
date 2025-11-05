@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shoot le climatosceptique</title>
+  <style>
+    :root {
+      --eco-green: #2a7a0b;
+      --eco-lightgreen: #47b951;
+      --eco-bg: #f5f0e6;
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: var(--eco-bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: crosshair;
+      font-family: "Poppins", sans-serif;
+      color: var(--eco-green);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: var(--eco-green);
+      text-align: center;
+    }
+
+    #game {
+      position: relative;
+      width: 800px;
+      height: 500px;
+      background: #ffffff;
+      border: 4px solid var(--eco-lightgreen);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    #target {
+      position: absolute;
+      width: 120px;
+      height: auto;
+      object-fit: contain;
+      user-select: none;
+      pointer-events: auto;
+      cursor: crosshair;
+      transition: filter 0.1s ease;
+    }
+
+    #target.hit {
+      filter: brightness(0) saturate(100%) invert(20%) sepia(100%)
+              saturate(6000%) hue-rotate(-10deg)
+              brightness(250%) contrast(180%);
+    }
+
+    #score {
+      margin-top: 15px;
+      font-weight: 600;
+      color: var(--eco-green);
+    }
+
+    .flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 0, 0, 0.15);
+      animation: flashAnim 0.15s ease;
+      pointer-events: none;
+    }
+
+    @keyframes flashAnim {
+      from { opacity: 0.6; }
+      to { opacity: 0; }
+    }
+
+    /* === Bouton Rejouer === */
+    #retry-btn {
+      display: none;
+      margin-top: 20px;
+      margin-bottom: 20px;
+      padding: 10px 25px;
+      background: var(--eco-lightgreen);
+      color: white;
+      font-weight: 600;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    #retry-btn:hover {
+      background: var(--eco-green);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Shoot le climatosceptique</h1>
+
+  <div id="game">
+    <img id="target" src="assets/images/trump.png" alt="Cible">
+  </div>
+
+  <div id="score">Clics : 0 / 10</div>
+  <button id="retry-btn">Rejouer</button>
+
+  <audio id="hit-sound" src="assets/sound/hit-sound.wav" preload="auto"></audio>
+
+  <script>
+    // ============================================================
+    // LOGIQUE DU JEU
+    // ============================================================
+
+    const game = document.getElementById('game');
+    const target = document.getElementById('target');
+    const scoreDisplay = document.getElementById('score');
+    const hitSound = document.getElementById('hit-sound');
+    const retryBtn = document.getElementById('retry-btn');
+
+    const totalTargets = 10;
+    let clicks = 0;
+    let times = [];
+    let startTime = null;
+
+    function randomPosition() {
+      const gameRect = game.getBoundingClientRect();
+      const maxX = gameRect.width - target.width;
+      const maxY = gameRect.height - target.height;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      target.style.left = `${x}px`;
+      target.style.top = `${y}px`;
+    }
+
+    function nextTarget() {
+      randomPosition();
+      startTime = performance.now();
+    }
+
+    function endGame() {
+      target.style.display = 'none';
+      const avg = times.reduce((a, b) => a + b) / times.length;
+      scoreDisplay.textContent = `Bien joué, mais tu peux mieux faire: ${avg.toFixed(0)} ms par Trump shooté !`;
+      retryBtn.style.display = 'inline-block';
+    }
+
+    target.addEventListener('click', () => {
+      target.classList.add('hit');
+      hitSound.currentTime = 0;
+      hitSound.play();
+
+      const flash = document.createElement('div');
+      flash.classList.add('flash');
+      game.appendChild(flash);
+      setTimeout(() => flash.remove(), 150);
+
+      const reactionTime = performance.now() - startTime;
+      times.push(reactionTime);
+      clicks++;
+
+      if (clicks < totalTargets) {
+        scoreDisplay.textContent = `Clics : ${clicks} / ${totalTargets}`;
+        randomPosition();
+        startTime = performance.now();
+      } else {
+        endGame();
+      }
+
+      setTimeout(() => target.classList.remove('hit'), 80);
+    });
+
+    retryBtn.addEventListener('click', () => {
+      // Réinitialisation du jeu
+      clicks = 0;
+      times = [];
+      scoreDisplay.textContent = `Clics : 0 / ${totalTargets}`;
+      target.style.display = 'block';
+      retryBtn.style.display = 'none';
+      nextTarget();
+    });
+
+    nextTarget();
+  </script>
+</body>
+</html>

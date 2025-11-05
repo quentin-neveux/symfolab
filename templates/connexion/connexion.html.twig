@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - EcoRide{% endblock %}
+
+{% block body %}
+
+<!-- HERO -->
+<section class="hero-section hero-connexion d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3">Connexion</h2>
+    <h2 class="hero-tagline mb-4">Accédez à votre compte EcoRide</h2>
+  </div>
+</section>
+
+<!-- FORMULAIRE DE CONNEXION -->
+<section class="connexion-section py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6 col-lg-5">
+        <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-success">Connexion</h2>
+            <p class="text-muted">Accédez à votre compte EcoRide</p>
+          </div>
+
+          <form method="post" action="{{ path('app_connexion') }}">
+            <div class="mb-3">
+              <label for="email" class="form-label">Adresse e-mail</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-control"
+                placeholder="exemple@email.com"
+                required
+              >
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Mot de passe</label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-control"
+                placeholder="••••••••"
+                required
+              >
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="remember_me">
+                <label class="form-check-label" for="rememberMe">
+                  Se souvenir de moi
+                </label>
+              </div>
+              <a href="#" class="text-decoration-none small text-success">
+                Mot de passe oublié ?
+              </a>
+            </div>
+
+            <button type="submit" class="btn btn-ecoride w-100">Se connecter</button>
+
+            <div class="text-center mt-3">
+              <p class="text-center mt-3 mb-0 form-link">
+                Pas encore de compte ?
+                <a href="{{ path('app_inscription') }}">Inscrivez-vous</a>
+              </p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

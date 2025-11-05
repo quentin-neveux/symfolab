@@ -1,0 +1,16 @@
+<div class="profile-subnav mb-4">
+  <ul class="nav justify-content-center">
+    <li class="nav-item">
+      <a class="nav-link {% if app.request.attributes.get('_route') == 'app_profil' %}active{% endif %}"
+         href="{{ path('app_profil') }}">
+         À propos de vous
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if app.request.attributes.get('_route') == 'app_profil_compte' %}active{% endif %}"
+         href="{{ path('app_profil_compte') }}">
+         Compte
+      </a>
+    </li>
+  </ul>
+</div>

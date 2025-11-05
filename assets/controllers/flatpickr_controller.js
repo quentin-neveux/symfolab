@@ -1,19 +1,12 @@
-import './bootstrap.js';
-import './styles/app.css';
-
+import { Controller } from '@hotwired/stimulus';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Petit délai pour s'assurer que le DOM Symfony est chargé
-  setTimeout(() => {
-    const pickers = document.querySelectorAll('.datetimepicker');
-    if (!pickers.length) {
-      console.warn("⚠️ Aucun champ .datetimepicker trouvé !");
-      return;
-    }
+export default class extends Controller {
+  connect() {
+    console.log("📅 Flatpickr Stimulus connecté sur :", this.element);
 
-    flatpickr(pickers, {
+    flatpickr(this.element, {
       enableTime: true,
       dateFormat: "d/m/Y H:i",
       time_24hr: true,
@@ -32,7 +25,5 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       },
     });
-
-    console.log("✅ Flatpickr attaché sur", pickers.length, "champ(s).");
-  }, 300); // léger délai pour être sûr que le formulaire est injecté
-});
+  }
+}

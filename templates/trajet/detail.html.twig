@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détail du trajet - EcoRide{% endblock %}
+
+{% block body %}
+<section class="hero-section hero-recherche d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3">Détail du trajet</h2>
+    <p class="hero-tagline mb-4">Consulte toutes les informations avant de réserver</p>
+  </div>
+</section>
+
+<section class="py-5 bg-light">
+  <div class="container d-flex justify-content-center">
+    <div class="card border-0 shadow-sm rounded-4 p-4" style="max-width:600px;background:#fffdf8;">
+      <div class="card-body">
+        <h4 class="text-success fw-bold mb-3">
+          {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+        </h4>
+        <p><i class="bi bi-calendar"></i> {{ trajet.dateDepart|date('d/m/Y') }}</p>
+        <p><i class="bi bi-clock"></i> {{ trajet.dateDepart|date('H:i') }}</p>
+        <p><i class="bi bi-people"></i> {{ trajet.placesDisponibles }} place(s)</p>
+        <p><i class="bi bi-cash"></i> {{ trajet.prix }} €</p>
+
+        {% if trajet.typeVehicule %}
+          <p class="small text-muted">{{ trajet.typeVehicule }} • {{ trajet.energie }}</p>
+        {% endif %}
+        {% if trajet.commentaire %}
+          <p class="fst-italic text-secondary">{{ trajet.commentaire }}</p>
+        {% endif %}
+
+        <hr>
+
+        <h5 class="text-success fw-bold mt-4">Détail du conducteur</h5>
+        {% if trajet.conducteur %}
+          <p class="mb-0"><i class="bi bi-person-circle"></i> {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}</p>
+          {% if trajet.conducteur.telephone %}
+            <p><i class="bi bi-telephone"></i> {{ trajet.conducteur.telephone }}</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted">Conducteur non renseigné.</p>
+        {% endif %}
+
+        <hr>
+
+        <h5 class="text-success fw-bold mt-4">Procéder au paiement</h5>
+        {% if app.user %}
+          <a href="#" class="btn btn-ecoride w-100 mt-2">Payer et réserver</a>
+        {% else %}
+        <div class="d-grid gap-2 mt-3">
+            <a href="{{ path('app_connexion') }}" class="btn btn-ecoride">Se connecter</a>
+            <a href="#" class="btn btn-ecoride-outline">Réserver en invité</a>
+        </div> 
+
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
