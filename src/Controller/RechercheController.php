@@ -35,8 +35,9 @@ class RechercheController extends AbstractController
         }
 
         if ($dateDepart) {
-            $qb->andWhere('DATE(t.dateDepart) = :dateDepart')
-               ->setParameter('dateDepart', new \DateTime($dateDepart));
+            $qb->andWhere('t.dateDepart BETWEEN :start AND :end')
+                ->setParameter('start', (new \DateTime($dateDepart))->setTime(0, 0, 0))
+                ->setParameter('end', (new \DateTime($dateDepart))->setTime(23, 59, 59));
         }
 
         $qb->orderBy('t.dateDepart', 'ASC');

@@ -1,0 +1,195 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conseils & actualités - EcoRide{% endblock %}
+
+{% block body %}
+
+<!-- ===============================================
+     SECTION 1 — INTRODUCTION
+================================================ -->
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h1 class="fw-bold text-success mb-3">Conseils & actualités</h1>
+    <p class="lead mx-auto" style="max-width: 800px;">
+      Découvrez nos articles, astuces et initiatives pour rendre vos trajets
+      plus écologiques, plus économiques et plus conviviaux.
+    </p>
+    <p class="text-dark">
+      Dernière mise à jour : 06 novembre 2025
+    </p>
+  </div>
+</section>
+
+<!-- ===============================================
+     SECTION 2 — ASTUCES ÉCO-CONDUITE
+================================================ -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Texte -->
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="fw-semibold text-success mb-4">Adoptez une éco-conduite</h2>
+        <p class="mb-3">
+          L’éco-conduite, c’est l’art de conduire malin : vous préservez votre portefeuille et la planète.
+          Une conduite souple, une vitesse adaptée, et un entretien régulier de votre véhicule
+          réduisent vos émissions tout en améliorant la sécurité.
+        </p>
+        <ul class="list-unstyled mb-4">
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Gonflez vos pneus tous les mois</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Anticipez les freinages</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Voyagez léger</li>
+          <li><i class="bi bi-check-circle-fill text-success me-2"></i> Coupez le moteur à l’arrêt</li>
+        </ul>
+        <div class="alert alert-success py-2 px-3 small shadow-sm">
+          <strong>Astuce :</strong> une conduite douce peut réduire la consommation jusqu’à 15 %.
+        </div>
+      </div>
+
+      <!-- Image -->
+      <div class="col-lg-6 text-center">
+        <img src="{{ asset('assets/images/ecoride_drive.jpg') }}" alt="Eco-conduite" class="img-fluid rounded-4 shadow">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===============================================
+     SECTION 3 — IMPACT DU COVOITURAGE
+================================================ -->
+<section class="py-5 bg-ecoride text-light position-relative">
+  <div class="container">
+    <div class="row align-items-center flex-lg-row-reverse">
+      <!-- Texte -->
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="fw-semibold mb-4">L’impact du covoiturage</h2>
+        <p class="text-dark mb-3">
+          Partager un trajet, c’est réduire de <strong>40 % à 50 % les émissions</strong> par passager.
+          Si chaque conducteur covoiturait une fois par semaine, les émissions de transport
+          chuteraient de près de 15 millions de tonnes par an en Europe.
+        </p>
+        <p class="text-dark mb-3">
+          Ensemble, nous pouvons rendre la mobilité plus humaine et plus responsable.
+        </p>
+        <div class="alert alert-light mt-3 py-2 px-3 small text-dark">
+          <strong>Le saviez-vous ?</strong> 3 passagers dans une voiture = ⅓ des émissions d’un trajet solo.
+        </div>
+      </div>
+
+      <!-- Image -->
+      <div class="col-lg-6 text-center">
+        <img src="{{ asset('assets/images/ecoride_covoiturage.jpg') }}" alt="Impact du covoiturage" class="img-fluid rounded-4 shadow">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===============================================
+     SECTION 4 — ACTUALITÉS DE LA MOBILITÉ
+================================================ -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row align-items-center">
+      <!-- Texte -->
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="fw-semibold text-success mb-4">Mobilité durable : les dernières avancées</h2>
+
+        <article class="mb-4">
+          <h5 class="text-secondary">Des parkings gratuits pour le covoiturage</h5>
+          <p>
+            De plus en plus de communes françaises favorisent les trajets partagés.
+            Certains parkings sont désormais gratuits pour les conducteurs inscrits sur EcoRide.
+          </p>
+        </article>
+
+        <article class="mb-4">
+          <h5 class="text-secondary">Des bornes électriques sur les itinéraires EcoRide</h5>
+          <p>
+            D’ici 2026, EcoRide testera des arrêts recharge sur trajets longue distance.
+            Objectif : faciliter la transition vers le véhicule électrique.
+          </p>
+        </article>
+
+        <article>
+          <h5 class="text-secondary">Le programme “EcoRide Plus”</h5>
+          <p>
+            Chaque trajet vous rapporte des points à échanger contre des réductions ou des arbres plantés.
+          </p>
+        </article>
+      </div>
+
+      <!-- Image -->
+      <div class="col-lg-6 text-center">
+        <img src="{{ asset('assets/images/ecoride_news.jpg') }}" alt="Actualités mobilité durable" class="img-fluid rounded-4 shadow">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===============================================
+     SECTION 5 — ÉCO GESTES
+================================================ -->
+<section class="py-5 bg-white">
+  <div class="container">
+    <div class="row align-items-center flex-lg-row-reverse">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <h2 class="fw-semibold text-success mb-4">Les éco-gestes à adopter dès aujourd’hui</h2>
+        <ul class="list-unstyled">
+          <li><i class="bi bi-check2-circle text-success me-2"></i> Favorisez les trajets groupés</li>
+          <li><i class="bi bi-check2-circle text-success me-2"></i> Planifiez vos départs intelligemment</li>
+          <li><i class="bi bi-check2-circle text-success me-2"></i> Utilisez la climatisation avec modération</li>
+          <li><i class="bi bi-check2-circle text-success me-2"></i> Entretenez votre véhicule régulièrement</li>
+        </ul>
+        <div class="alert alert-success mt-3 py-2 px-3 small shadow-sm">
+          <strong>Astuce :</strong> Un filtre à air propre améliore le rendement moteur de 5 %.
+        </div>
+      </div>
+
+      <div class="col-lg-6 text-center">
+        <img src="{{ asset('assets/images/ecoride_green_tips.jpg') }}" alt="Éco gestes" class="img-fluid rounded-4 shadow">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===============================================
+     SECTION 6 — FAQ
+================================================ -->
+<section class="py-5 bg-ecoride text-light">
+  <div class="container">
+    <h2 class="fw-semibold mb-4 text-center">Foire aux questions</h2>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="p-4 bg-light text-dark rounded-4 h-100 shadow-sm">
+          <h5 class="fw-bold mb-2">Le covoiturage est-il rentable ?</h5>
+          <p class="mb-0">
+            Oui ! En moyenne, un conducteur économise jusqu’à <strong>100 € par mois</strong>.
+            C’est bon pour la planète et pour votre budget.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 bg-light text-dark rounded-4 h-100 shadow-sm">
+          <h5 class="fw-bold mb-2">Que faire si mon passager est en retard ?</h5>
+          <p class="mb-0">
+            La messagerie EcoRide vous permet de communiquer en direct
+            pour ajuster vos points de rendez-vous en toute sérénité.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="p-4 bg-light text-dark rounded-4 h-100 shadow-sm">
+          <h5 class="fw-bold mb-2">Et pour les longs trajets ?</h5>
+          <p class="mb-0">
+            EcoRide s’adapte ! De Lille à Marseille ou Paris à Barcelone,
+            nos covoitureurs partagent déjà la route sur de longues distances.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

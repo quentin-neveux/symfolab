@@ -15,6 +15,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordC
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\Security\Http\Util\TargetPathTrait;
+use Twig\Environment;
 
 class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 {
@@ -22,8 +23,13 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
     public const LOGIN_ROUTE = 'app_connexion';
 
-    public function __construct(private UrlGeneratorInterface $urlGenerator)
+    private UrlGeneratorInterface $urlGenerator;
+    private Environment $twig;
+
+    public function __construct(UrlGeneratorInterface $urlGenerator, Environment $twig)
     {
+        $this->urlGenerator = $urlGenerator;
+        $this->twig = $twig;
     }
 
     public function authenticate(Request $request): Passport
@@ -45,24 +51,29 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
     {
         $session = $request->getSession();
 
-        // ✅ Vérifie s’il existe une redirection enregistrée avant connexion
         if ($session->has('redirect_after_login')) {
             $url = $session->get('redirect_after_login');
             $session->remove('redirect_after_login');
             return new RedirectResponse($url);
         }
 
-        // 🔁 Sinon, on utilise la redirection Symfony standard (page protégée)
         if ($targetPath = $this->getTargetPath($session, $firewallName)) {
             return new RedirectResponse($targetPath);
         }
 
-        // 🚀 Fallback par défaut : profil utilisateur
         return new RedirectResponse($this->urlGenerator->generate('app_profil'));
     }
 
     protected function getLoginUrl(Request $request): string
     {
-        return $this->urlGenerator->generate(self::LOGIN_ROUTE);
+        return $this->urlGenerator->generate('app_connexion');
     }
+
+    // // 🔥 Cette méthode force Symfony à utiliser le bon template
+    // protected function renderLogin(Request $request, array $data = []): Response
+    // {
+    //     return new Response(
+    //         $this->twig->render('connexion/connexion.html.twig', $data)
+    //     );
+    // }
 }

@@ -11,30 +11,34 @@
       --eco-bg: #f5f0e6;
     }
 
-    body {
+    html, body {
       margin: 0;
-      height: 100vh;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* ✅ supprime la barre de défilement */
       background: var(--eco-bg);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      cursor: crosshair;
+      justify-content: flex-start;
       font-family: "Poppins", sans-serif;
       color: var(--eco-green);
+      cursor: crosshair;
+      box-sizing: border-box;
     }
 
     h1 {
       font-size: 1.8rem;
-      margin-bottom: 10px;
+      margin: 15px 0;
       color: var(--eco-green);
       text-align: center;
+      font-weight: 700;
     }
 
     #game {
       position: relative;
-      width: 800px;
-      height: 500px;
+      width: 750px;
+      height: 450px;
       background: #ffffff;
       border: 4px solid var(--eco-lightgreen);
       border-radius: 20px;
@@ -65,24 +69,11 @@
       color: var(--eco-green);
     }
 
-    .flash {
-      position: absolute;
-      inset: 0;
-      background: rgba(255, 0, 0, 0.15);
-      animation: flashAnim 0.15s ease;
-      pointer-events: none;
-    }
-
-    @keyframes flashAnim {
-      from { opacity: 0.6; }
-      to { opacity: 0; }
-    }
-
     /* === Bouton Rejouer === */
     #retry-btn {
       display: none;
-      margin-top: 20px;
-      margin-bottom: 20px;
+      margin-top: 18px;
+      margin-bottom: 10px;
       padding: 10px 25px;
       background: var(--eco-lightgreen);
       color: white;
@@ -98,11 +89,29 @@
     #retry-btn:hover {
       background: var(--eco-green);
     }
+
+    /* === Effet flash au tir === */
+    .flash {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 0, 0, 0.15);
+      animation: flashAnim 0.15s ease;
+      pointer-events: none;
+    }
+
+    @keyframes flashAnim {
+      from { opacity: 0.6; }
+      to { opacity: 0; }
+    }
+
   </style>
 </head>
 <body>
 
-  <h1>Shoot le climatosceptique</h1>
+  <h1>Shoot the climatosceptique</h1>
+  <p class="description text-black" style="color: #000; text-align: center; font-style: italic;">
+    Ce mini jeu n'a pas pour but de promouvoir la violence, mais plutôt de sensibiliser sur le climat, en se divertissant tout en apprenant.
+  </p>
 
   <div id="game">
     <img id="target" src="assets/images/trump.png" alt="Cible">
@@ -118,75 +127,93 @@
     // LOGIQUE DU JEU
     // ============================================================
 
-    const game = document.getElementById('game');
-    const target = document.getElementById('target');
-    const scoreDisplay = document.getElementById('score');
-    const hitSound = document.getElementById('hit-sound');
-    const retryBtn = document.getElementById('retry-btn');
+  const game = document.getElementById('game');
+  const target = document.getElementById('target');
+  target.draggable = false; // ✅ empêche toute tentative de "drag"
+  const scoreDisplay = document.getElementById('score');
+  const hitSound = document.getElementById('hit-sound');
+  const retryBtn = document.getElementById('retry-btn');
 
-    const totalTargets = 10;
-    let clicks = 0;
-    let times = [];
-    let startTime = null;
+  const totalTargets = 10;
+  let clicks = 0;
+  let times = [];
+  let startTime = null;
+  let gameStarted = false; // ✅ nouveau flag
 
-    function randomPosition() {
-      const gameRect = game.getBoundingClientRect();
-      const maxX = gameRect.width - target.width;
-      const maxY = gameRect.height - target.height;
-      const x = Math.random() * maxX;
-      const y = Math.random() * maxY;
-      target.style.left = `${x}px`;
-      target.style.top = `${y}px`;
+  // --- Position aléatoire ---
+  function randomPosition() {
+    const gameRect = game.getBoundingClientRect();
+    const maxX = gameRect.width - target.width;
+    const maxY = gameRect.height - target.height;
+    const x = Math.random() * maxX;
+    const y = Math.random() * maxY;
+    target.style.left = `${x}px`;
+    target.style.top = `${y}px`;
+  }
+
+  // --- Prochaine cible ---
+  function nextTarget() {
+    randomPosition();
+  }
+
+  // --- Fin du jeu ---
+  function endGame() {
+    target.style.display = 'none';
+    const avg = times.reduce((a, b) => a + b) / times.length;
+    scoreDisplay.textContent = `Bien joué ! Temps moyen : ${avg.toFixed(0)} ms par cible.`;
+    retryBtn.style.display = 'inline-block';
+  }
+
+  // --- Clic sur la cible ---
+  target.addEventListener('click', () => {
+    // Démarrage du jeu au premier tir
+    if (!gameStarted) {
+      gameStarted = true;
+      startTime = performance.now(); // le chrono commence ici
     }
 
-    function nextTarget() {
-      randomPosition();
-      startTime = performance.now();
-    }
+    // Effet visuel et sonore
+    target.classList.add('hit');
+    hitSound.currentTime = 0;
+    hitSound.play();
 
-    function endGame() {
-      target.style.display = 'none';
-      const avg = times.reduce((a, b) => a + b) / times.length;
-      scoreDisplay.textContent = `Bien joué, mais tu peux mieux faire: ${avg.toFixed(0)} ms par Trump shooté !`;
-      retryBtn.style.display = 'inline-block';
-    }
+    const flash = document.createElement('div');
+    flash.classList.add('flash');
+    game.appendChild(flash);
+    setTimeout(() => flash.remove(), 150);
 
-    target.addEventListener('click', () => {
-      target.classList.add('hit');
-      hitSound.currentTime = 0;
-      hitSound.play();
-
-      const flash = document.createElement('div');
-      flash.classList.add('flash');
-      game.appendChild(flash);
-      setTimeout(() => flash.remove(), 150);
-
+    // Si ce n’est pas le premier clic, on calcule le temps de réaction
+    if (clicks > 0) {
       const reactionTime = performance.now() - startTime;
       times.push(reactionTime);
-      clicks++;
+    }
 
-      if (clicks < totalTargets) {
-        scoreDisplay.textContent = `Clics : ${clicks} / ${totalTargets}`;
-        randomPosition();
-        startTime = performance.now();
-      } else {
-        endGame();
-      }
+    clicks++;
 
-      setTimeout(() => target.classList.remove('hit'), 80);
-    });
+    if (clicks < totalTargets) {
+      scoreDisplay.textContent = `Clics : ${clicks} / ${totalTargets}`;
+      randomPosition();
+      startTime = performance.now(); // redémarre le chrono à chaque nouvelle cible
+    } else {
+      endGame();
+    }
 
-    retryBtn.addEventListener('click', () => {
-      // Réinitialisation du jeu
-      clicks = 0;
-      times = [];
-      scoreDisplay.textContent = `Clics : 0 / ${totalTargets}`;
-      target.style.display = 'block';
-      retryBtn.style.display = 'none';
-      nextTarget();
-    });
+    setTimeout(() => target.classList.remove('hit'), 80);
+  });
 
+  // --- Réinitialisation ---
+  retryBtn.addEventListener('click', () => {
+    clicks = 0;
+    times = [];
+    gameStarted = false; // ✅ reset du flag
+    scoreDisplay.textContent = `Clics : 0 / ${totalTargets}`;
+    target.style.display = 'block';
+    retryBtn.style.display = 'none';
     nextTarget();
-  </script>
+  });
+
+  nextTarget();
+</script>
+
 </body>
 </html>

@@ -1,52 +1,69 @@
 {# ============================================================
-   FOOTER ECORIDE — version Symfony + Easter Egg Aim Trainer
-   Fidèle à la V2 : minimaliste, élégant, responsive
-   ============================================================ #}
+   FOOTER ECORIDE — version enrichie type "Funix"
+   Minimaliste, informatif et cohérent avec la charte EcoRide
+============================================================ #}
 
-<footer class="footer-ecoride mt-auto py-4">
+<footer class="footer-ecoride mt-auto py-5 text-light">
   <div class="container">
-    <div class="row align-items-center justify-content-between text-center text-md-start">
-      
-      <!-- Bloc gauche : logo + texte -->
-      <div class="col-md-6 mb-3 mb-md-0">
-        <h5 class="footer-brand mb-2">
-          <a href="{{ path('app_home') }}" class="text-decoration-none">EcoRide</a>
+    <div class="row gy-4 justify-content-between">
+
+      <!-- === Bloc 1 : Logo + phrase éthique === -->
+      <div class="col-md-4 text-center text-md-start">
+        <h5 class="footer-brand fw-bold mb-2">
+          <a href="{{ path('app_home') }}" class="text-decoration-none text-light">EcoRide</a>
         </h5>
-        <hr class="footer-divider d-md-none">
-        <p class="small mb-0 text-light opacity-75">
-          © 2025 <span class="">EcoRide</span> — Quentin Neveux<br>
+        <p class="small mb-2 opacity-75 fst-italic">Changeons d’air, pas de Terre.</p>
+        <p class="small mb-0 opacity-75">
+          © 2025 EcoRide — Quentin Neveux<br>
           Tous droits réservés.
         </p>
       </div>
 
-      <!-- Bloc droit : réseaux sociaux + bouton -->
-      <div class="col-md-6 text-center text-md-end">
-        <div class="d-flex flex-column flex-md-row align-items-center justify-content-center justify-content-md-end gap-3">
-
-          <!-- Bouton contact -->
-          <a href="{{ path('app_contact') }}" class="btn btn-contact-footer px-3 py-2">
-            Contactez-nous !
-          </a>
-
-          <!-- Icônes sociales + secret -->
-          <div class="d-flex justify-content-center justify-content-md-end align-items-center gap-3">
-            <a href="#" class="social-link" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="social-link" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
-            <a href="#" class="social-link" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
-            <a href="#" class="social-link" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
-
-            {# 🌿 Logo secret EcoRide : Easter Egg Aim Trainer #}
-            <img src="{{ asset('assets/images/eco-leaf.png') }}"
-                 id="eco-secret-logo"
-                 alt="Eco secret"
-                 title="🌿"
-                 width="22"
-                 height="22"
-            />
-          </div>
-
-        </div>
+      <!-- === Bloc 2 : Liens utiles === -->
+      <div class="col-md-4 text-center">
+        <h6 class="fw-bold text-uppercase mb-3">Liens utiles</h6>
+        <ul class="list-unstyled mb-0">
+          <li><a href="{{ path('app_home') }}" class="footer-link">Accueil</a></li>
+          <a href="{{ path('app_proposer_trajet') }}" class="footer-link">Proposer un trajet</a>
+          <li><a href="{{ path('app_recherche') }}" class="footer-link">Rechercher un trajet</a></li>
+          <li><a href="{{ path('app_inscription') }}" class="footer-link">Créer un compte</a></li>
+          <li><a href="{{ path('app_contact') }}" class="footer-link">Contact</a></li>
+        </ul>
       </div>
+
+      <!-- === Bloc 3 : Contact / Réseaux sociaux === -->
+      <div class="col-md-4 text-center text-md-end">
+        <h6 class="fw-bold text-uppercase mb-3">Restons connectés</h6>
+
+        <div class="d-flex justify-content-center justify-content-md-end align-items-center gap-3 mb-3">
+          <a href="https://linktr.ee/EcoRide.Covoiturage.Ecologique" class="social-link" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+          <a href="https://linktr.ee/EcoRide.Covoiturage.Ecologique" class="social-link" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="https://linktr.ee/EcoRide.Covoiturage.Ecologique" class="social-link" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+          <a href="https://linktr.ee/EcoRide.Covoiturage.Ecologique" class="social-link" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+
+          {# 🌿 Logo secret EcoRide : Easter Egg Aim Trainer #}
+          <img src="{{ asset('assets/images/eco-target.png') }}"
+               id="eco-secret-logo"
+               alt="Eco secret"
+               width="25"
+               height="25"
+               class="ms-1"/>
+        </div>
+
+        {# <a href="{{ path('app_contact') }}" class="btn btn-contact-footer px-3 py-2 mt-2">
+          Contactez-nous
+        </a> #}
+      </div>
+
+    </div>
+
+    <!-- Ligne fine séparatrice -->
+    <hr class="mt-5 mb-3 opacity-25">
+
+    <!-- === Mentions légales / politique === -->
+    <div class="text-center small opacity-50">
+      <a href="{{ path('app_mentions_legales') }}" class="footer-link me-3">Mentions légales</a>
+      <a href="{{ path('app_confidentialite') }}" class="footer-link">Politique de confidentialité</a>
     </div>
   </div>
 </footer>
@@ -60,27 +77,29 @@
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const leaf = document.getElementById('eco-secret-logo');
-    const popup = document.getElementById('aimlab-popup');
-    const closeBtn = document.getElementById('close-popup');
-    const iframe = popup ? popup.querySelector('iframe') : null;
+document.addEventListener("DOMContentLoaded", () => {
+  const leaf = document.getElementById("eco-secret-logo");
+  const popup = document.getElementById("aimlab-popup");
+  const closeBtn = document.getElementById("close-popup");
+  const iframe = popup ? popup.querySelector("iframe") : null;
 
-    if (leaf && popup && closeBtn && iframe) {
-      // 👉 Ouvrir la popup
-      leaf.addEventListener('click', (e) => {
-        e.preventDefault();
-        // Recharge à chaque ouverture pour éviter le cache navigateur
-        iframe.src = '/aimlab.html?reload=' + new Date().getTime();
-        popup.style.display = 'flex';
-      });
+  if (leaf && popup && closeBtn && iframe) {
+    // ouverture
+    leaf.addEventListener("click", (e) => {
+      e.preventDefault();
 
-      // ❌ Fermer la popup + reset complet du jeu
-      closeBtn.addEventListener('click', () => {
-        popup.style.display = 'none';
-        // Supprime la source de l'iframe (purge mémoire et cache)
-        iframe.src = 'about:blank';
-      });
-    }
-  });
+      // chemin corrigé pour Symfony (fichier placé dans /public/)
+      iframe.src = "{{ asset('aimlab.html') }}?v=" + Date.now();
+
+      popup.style.display = "flex";
+    });
+
+    // fermeture + purge du cache du jeu
+    closeBtn.addEventListener("click", () => {
+      popup.style.display = "none";
+      iframe.src = "about:blank"; // vide tout
+    });
+  }
+});
 </script>
+

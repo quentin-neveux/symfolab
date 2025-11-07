@@ -5,38 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="EcoRide est une plateforme de covoiturage écologique, simple et responsable. Changeons d’air, pas de Terre.">
     <meta name="author" content="Quentin Neveux">
+
     <title>{% block title %}EcoRide - Covoiturage écologique{% endblock %}</title>
 
     <!-- ===========================================================
-         FAVICON & META
+         FAVICON
          =========================================================== -->
-    <link rel="icon" type="image/png" href="{{ asset('/assets/images/ecorideLogoGris.png') }}">
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/ecorideLogoGris.png') }}">
 
     <!-- ===========================================================
          POLICES & ICONES
          =========================================================== -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <!-- 🟢 Police principale : Merriweather -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- 🟢 Icônes Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- ===========================================================
-         FEUILLES DE STYLE BOOTSTRAP
+         BOOTSTRAP CSS
          =========================================================== -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
 
     <!-- ===========================================================
-         THÈME GLOBAL ECORIDE
+         VARIABLES GLOBALES DU THÈME ECORIDE
          =========================================================== -->
     <style>
       :root {
+        /* 🎨 Palette de couleurs EcoRide */
         --eco-primary:   #1b3f15;
         --eco-secondary: #3f753f;
         --eco-accent:    #ffc77e;
         --eco-dark:      #0f240c;
         --eco-light:     #f5f0e6;
 
-        --font-title: "Poppins", sans-serif;
-        --font-body:  "Roboto", sans-serif;
+        /* 🔤 Polices */
+        --font-title: "Merriweather", serif;
+        --font-body:  "Merriweather", serif;
 
+        /* 🎨 Variables Bootstrap réutilisées */
         --bs-primary:   var(--eco-primary);
         --bs-secondary: var(--eco-secondary);
         --bs-success:   var(--eco-secondary);
@@ -50,29 +59,75 @@
         --bs-body-color: var(--eco-dark);
         --bs-body-font-family: var(--font-body);
       }
+
+      /* ================================
+         STYLES GÉNÉRAUX DU SITE
+         ================================ */
+      body {
+        font-family: var(--font-body);
+        color: var(--bs-body-color);
+        line-height: 1.6;
+        background-color: var(--bs-body-bg);
+        overflow-x: hidden;
+      }
+
+      h1, h2, h3, h4, h5 {
+        font-family: var(--font-title);
+        font-weight: 700;
+        color: var(--eco-primary);
+      }
+
+      a {
+        color: var(--eco-secondary);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--eco-accent);
+      }
+
+      /* Pour lisibilité globale sur fonds foncés */
+      .text-eco-light { color: var(--eco-light); }
+      .text-eco-dark { color: var(--eco-dark); }
     </style>
 
     <!-- ===========================================================
-         STYLES ECO RIDE
+         STYLES ECORIDE GLOBAUX
          =========================================================== -->
     <link rel="stylesheet" href="{{ asset('assets/css/styles.css') }}">
+
+    {# Bloc extensible pour les styles spécifiques à chaque page #}
     {% block stylesheets %}{% endblock %}
   </head>
 
   <body>
+    <!-- ===========================================================
+         HEADER GLOBAL
+         =========================================================== -->
     {% include 'partials/header.html.twig' %}
-    {% block body %}{% endblock %}
+
+    <!-- ===========================================================
+         CONTENU PRINCIPAL
+         =========================================================== -->
+    <main class="main-content">
+      {% block body %}{% endblock %}
+    </main>
+
+    <!-- ===========================================================
+         FOOTER GLOBAL
+         =========================================================== -->
     {% include 'partials/footer.html.twig' %}
 
     <!-- ===========================================================
-         JS GLOBAL
+         JAVASCRIPT GLOBAUX
          =========================================================== -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
 
-    {% block javascripts %}
-        {{ importmap('app') }}
-    {% endblock %}
+    <script src="{{ asset('assets/js/app.js') }}" defer></script>
+
+    {# Bloc extensible pour les scripts additionnels de page #}
+    {% block javascripts %}{% endblock %}
   </body>
 </html>

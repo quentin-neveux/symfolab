@@ -5,10 +5,10 @@
 {% block body %}
 
 <!-- HERO -->
-<section class="hero-section hero-connexion d-flex align-items-center text-center text-white position-relative">
-  <div class="container">
-    <h2 class="hero-title mb-3">Connexion</h2>
-    <h2 class="hero-tagline mb-4">Accédez à votre compte EcoRide</h2>
+<section class="hero-section hero-connexion d-flex align-items-center text-center position-relative">
+   <div class="container">
+    <h2 class="hero-title mb-3 text-white">Connexion</h2>
+    <h2 class="hero-tagline mb-4 text-white">Accédez à votre compte EcoRide</h2>
   </div>
 </section>
 
@@ -19,7 +19,7 @@
       <div class="col-md-6 col-lg-5">
         <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
           <div class="text-center mb-4">
-            <h2 class="fw-bold text-success">Connexion</h2>
+            <h2 class="fw-bold" style="color: #7dcf91;">Connexion</h2>
             <p class="text-muted">Accédez à votre compte EcoRide</p>
           </div>
 
@@ -47,6 +47,9 @@
                 required
               >
             </div>
+
+            <!-- ✅ CSRF token obligatoire pour authentification -->
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
             <div class="d-flex justify-content-between align-items-center mb-3">
               <div class="form-check">
