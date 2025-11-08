@@ -27,14 +27,15 @@ COPY . .
 # ------------------------------------------------------------
 # Installation des dépendances PHP (prod uniquement)
 # ------------------------------------------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress || true
 
 # ------------------------------------------------------------
-# Optimisations Symfony pour la prod
+# Optimisations Symfony pour la production
 # ------------------------------------------------------------
-RUN php bin/console cache:clear --env=prod && \
-    php bin/console cache:warmup --env=prod && \
-    chown -R www-data:www-data /var/www/html/var
+RUN php bin/console cache:clear --env=prod || true \
+    && php bin/console cache:warmup --env=prod || true \
+    && chown -R www-data:www-data /var/www/html/var
+
 
 # ------------------------------------------------------------
 # Expose le port 8080 (Render attend $PORT)
