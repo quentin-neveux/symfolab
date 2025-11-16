@@ -1,16 +1,21 @@
 <div class="profile-subnav mb-4">
   <ul class="nav justify-content-center">
+
+    {# Tab 1 : À propos (page principale) #}
     <li class="nav-item">
       <a class="nav-link {% if app.request.attributes.get('_route') == 'app_profil' %}active{% endif %}"
          href="{{ path('app_profil') }}">
          À propos de vous
       </a>
     </li>
+
+    {# Tab 2 : Compte (sécurité / préférences globales) #}
     <li class="nav-item">
       <a class="nav-link {% if app.request.attributes.get('_route') == 'app_profil_compte' %}active{% endif %}"
          href="{{ path('app_profil_compte') }}">
          Compte
       </a>
     </li>
+
   </ul>
 </div>

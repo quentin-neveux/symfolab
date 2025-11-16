@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Page introuvable - 404{% endblock %}
+
+{% block body %}
+
+<section class="hero-404 d-flex align-items-center text-center text-white position-relative">
+    <div class="container position-relative" style="z-index: 5;">
+        <h1 class="lead mb-4">La page que vous cherchez n'existe pas.</h1>
+
+        <a href="{{ path('app_home') }}" class="btn btn-ecoride btn-lg rounded-pill px-4">
+            Retour à l'accueil
+        </a>
+    </div>
+</section>
+
+{% endblock %}

@@ -17,13 +17,18 @@ security:
     main:
       lazy: true
       provider: app_user_provider
+
+      # ✅ Un SEUL authenticator (le tien)
       custom_authenticators:
         - App\Security\LoginFormAuthenticator
+
+      # ✅ Point d'entrée obligatoire quand on a un authenticator custom
+      entry_point: App\Security\LoginFormAuthenticator
 
       logout:
         path: app_logout
         target: app_home
 
   access_control:
-    - { path: ^/admin, roles: ROLE_ADMIN }
     - { path: ^/profil, roles: ROLE_USER }
+    - { path: ^/admin, roles: ROLE_ADMIN }

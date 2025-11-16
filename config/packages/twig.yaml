@@ -1,5 +1,9 @@
 twig:
-    file_name_pattern: '*.twig'
+    default_path: '%kernel.project_dir%/templates'
+
+    form_themes:
+        - 'forms/ecoride_forms.html.twig'
+
 
 when@test:
     twig:

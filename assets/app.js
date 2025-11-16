@@ -13,6 +13,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    
+
     flatpickr(pickers, {
       enableTime: true,
       dateFormat: "d/m/Y H:i",

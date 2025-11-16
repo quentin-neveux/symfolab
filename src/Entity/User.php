@@ -39,6 +39,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
 
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $dateNaissance = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $bio = null;
+
+    // --- Préférences de voyage ---
+    #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
+    private string $musique = 'indifferent';
+
+    #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
+    private string $discussion = 'indifferent';
+
+    #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
+    private string $animaux = 'indifferent';
+
+    #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
+    private string $pausesCafe = 'indifferent';
+
+    #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
+    private string $fumeur = 'indifferent';
+
     #[ORM\Column]
     private array $roles = [];
 
@@ -55,26 +77,68 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->trajets = new ArrayCollection();
     }
 
+    // ====== GETTERS / SETTERS =======
+
     public function getId(): ?int { return $this->id; }
+
     public function getPrenom(): ?string { return $this->prenom; }
     public function setPrenom(string $prenom): self { $this->prenom = ucfirst(trim($prenom)); return $this; }
+
     public function getNom(): ?string { return $this->nom; }
     public function setNom(string $nom): self { $this->nom = strtoupper(trim($nom)); return $this; }
+
     public function getEmail(): ?string { return $this->email; }
     public function setEmail(string $email): self { $this->email = strtolower(trim($email)); return $this; }
+
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
     public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
+
     public function getPhoto(): ?string { return $this->photo; }
     public function setPhoto(?string $photo): self { $this->photo = $photo; return $this; }
+
     public function getTelephone(): ?string { return $this->telephone; }
     public function setTelephone(?string $telephone): self { $this->telephone = $telephone; return $this; }
-    public function getRoles(): array { $roles = $this->roles; if (!in_array('ROLE_USER', $roles, true)) $roles[] = 'ROLE_USER'; return array_unique($roles); }
+
+    public function getDateNaissance(): ?\DateTimeInterface { return $this->dateNaissance; }
+    public function setDateNaissance(?\DateTimeInterface $dateNaissance): self { $this->dateNaissance = $dateNaissance; return $this; }
+
+    public function getBio(): ?string { return $this->bio; }
+    public function setBio(?string $bio): self { $this->bio = $bio; return $this; }
+
+    // --- Préférences voyage ---
+    public function getMusique(): string { return $this->musique; }
+    public function setMusique(string $musique): self { $this->musique = $musique; return $this; }
+
+    public function getDiscussion(): string { return $this->discussion; }
+    public function setDiscussion(string $discussion): self { $this->discussion = $discussion; return $this; }
+
+    public function getAnimaux(): string { return $this->animaux; }
+    public function setAnimaux(string $animaux): self { $this->animaux = $animaux; return $this; }
+
+    public function getPausesCafe(): string { return $this->pausesCafe; }
+    public function setPausesCafe(string $pausesCafe): self { $this->pausesCafe = $pausesCafe; return $this; }
+
+    public function getFumeur(): string { return $this->fumeur; }
+    public function setFumeur(string $fumeur): self { $this->fumeur = $fumeur; return $this; }
+
+    // --- Sécurité ---
+    public function getRoles(): array
+    {
+        $roles = $this->roles;
+        if (!in_array('ROLE_USER', $roles, true)) $roles[] = 'ROLE_USER';
+        return array_unique($roles);
+    }
+
     public function setRoles(array $roles): self { $this->roles = $roles; return $this; }
+
     public function getPassword(): ?string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
+
     public function getUserIdentifier(): string { return (string) $this->email; }
+
     public function eraseCredentials(): void {}
 
+    // --- Serialization sécurité ---
     public function __serialize(): array
     {
         $data = (array) $this;
@@ -82,6 +146,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $data;
     }
 
+    // --- Trajets ---
     public function getTrajets(): Collection
     {
         return $this->trajets;

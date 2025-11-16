@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-section hero-recherche d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3 text-white">Paiement</h2>
+    <p class="hero-tagline mb-4">Finalise ta réservation en toute sécurité</p>
+  </div>
+</section>
+
+<section class="py-5 bg-ecoride-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+
+        <div class="ecoride-form bg-white shadow p-4 rounded-4">
+
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-eco-primary">Paiement de votre trajet</h2>
+            <p class="text-muted">
+              Merci {{ app.user.prenom ?? app.user.email }},<br>
+              vérifie les infos avant de confirmer.
+            </p>
+          </div>
+
+          <form method="post" class="eco-form">
+
+            <!-- NOM TITULAIRE -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Nom du titulaire</label>
+              <input type="text"
+                     name="card_name"
+                     class="eco-input"
+                     placeholder="Nom et prénom"
+                     required>
+            </div>
+
+            <!-- NUMÉRO DE CARTE -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Numéro de carte</label>
+              <input type="text"
+                     name="card_number"
+                     class="eco-input"
+                     placeholder="1234 5678 9012 3456"
+                     required>
+            </div>
+
+            <!-- EXP + CVC -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Expiration</label>
+                <input type="text"
+                       name="expiry"
+                       class="eco-input"
+                       placeholder="MM/AA"
+                       required>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">CVC</label>
+                <input type="text"
+                       name="cvc"
+                       class="eco-input"
+                       placeholder="123"
+                       required>
+              </div>
+            </div>
+
+            <!-- BOUTON -->
+            <button type="submit"
+                    class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-3">
+              Confirmer le paiement 💳
+            </button>
+          </form>
+
+          <div class="text-center mt-4">
+            <a href="{{ path('payment') }}" class="small text-success text-decoration-none">
+              ← Retour à l'accueil
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

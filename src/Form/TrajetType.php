@@ -8,7 +8,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -47,9 +47,8 @@ class TrajetType extends AbstractType
                     'class' => 'form-control'
                 ],
             ])
-            ->add('prix', MoneyType::class, [
-                'label' => 'Prix par passager (€)',
-                'currency' => 'EUR',
+            ->add('prix', NumberType::class, [
+                'label' => 'Prix par passager',
                 'attr' => [
                     'placeholder' => 'Ex : 12.50',
                     'class' => 'form-control'
@@ -59,7 +58,7 @@ class TrajetType extends AbstractType
                 'label' => 'Places disponibles',
                 'attr' => [
                     'min' => 1,
-                    'max' => 8,
+                    'max' => 4,
                     'class' => 'form-control'
                 ],
             ])

@@ -61,11 +61,15 @@
 
             <!-- Prix -->
             <div class="col-md-6">
-              {{ form_row(form.prix, {
-                label: 'Prix par passager (€)',
-                attr: { placeholder: 'Ex : 12.50', class: 'form-control rounded-pill px-3 py-2' }
-              }) }}
+              <label class="form-label">Prix par passager</label>
+              <div class="input-group">
+                {{ form_widget(form.prix, {
+                  attr: { class: 'form-control rounded-start-pill px-3 py-2', placeholder: 'Ex : 12.50' }
+                }) }}
+                <span class="input-group-text rounded-end-pill">€</span>
+              </div>
             </div>
+
 
             <!-- Places disponibles -->
             <div class="col-md-6">

@@ -7,19 +7,36 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      {# === SOUS-MENU PROFIL (À propos / Compte) === #}
+      {# Sous-menu #}
       {% include 'profil/_profil_header.html.twig' %}
 
-      <!-- === EN-TÊTE PROFIL === -->
+      {# Boutons côte à côte #}
+      <div class="d-flex justify-content-center align-items-center gap-3 mt-4 mb-5">
+        {% if 'ROLE_ADMIN' in app.user.roles %}
+          <a href="{{ path('admin_dashboard') }}" class="btn btn-success rounded-pill px-4 py-2">
+            Dashboard Admin
+          </a>
+        {% endif %}
+
+        <a href="{{ path('app_profil_edit') }}" class="btn btn-ecoride px-4 py-2">
+          Modifier mon profil
+        </a>
+      </div>
+
+      {# =============================
+         En-tête Profil : Photo + Nom
+         ============================= #}
       <div class="profile-header d-flex align-items-center p-4 rounded shadow-sm mb-4 bg-white">
+
         <div class="me-4">
           {% if app.user.photo %}
-            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}" 
-                 alt="Photo de profil" 
-                 class="rounded-circle shadow-sm" 
-                 width="100" height="100">
+            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
+                 class="rounded-circle shadow-sm"
+                 alt="Photo de profil"
+                 width="110" height="110">
           {% else %}
-            <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm">
+            <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                 style="width:110px;height:110px;font-size:2rem;">
               {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
               <span>{{ initials }}</span>
             </div>
@@ -28,63 +45,98 @@
 
         <div>
           <h3 class="mb-1">{{ app.user.prenom }} {{ app.user.nom }}</h3>
-          <span class="badge bg-success">Confirmé</span>
-          <p class="text-muted mb-0">Membre depuis {{ app.user.createdAt|date('Y') }}</p>
+          <span class="badge bg-success">Compte confirmé</span>
+          <p class="text-muted mb-0">
+            Membre depuis {{ app.user.createdAt|date('Y') }}
+          </p>
         </div>
+
       </div>
 
-      <!-- === FIABILITÉ ET CONTACT === -->
-      <div class="p-4 rounded shadow-sm mb-4 bg-white">
-        <h5 class="mb-3">Votre fiabilité en covoiturage</h5>
-        <p class="text-muted mb-0">
-          <i class="bi bi-check-circle text-success me-2"></i>
-          N’annule jamais de réservation en tant que passager
-        </p>
 
-        <hr>
+      {# =============================
+         Informations personnelles
+         ============================= #}
+      <div class="bg-white p-4 rounded shadow-sm mb-4">
+        <h5 class="mb-3">Informations personnelles</h5>
 
-        <h5 class="mb-3">Vérifiez votre profil</h5>
         <ul class="list-unstyled mb-0">
-          <li><i class="bi bi-envelope text-primary me-2"></i>{{ app.user.email }}</li>
-          {% if app.user.telephone %}
-            <li><i class="bi bi-telephone text-primary me-2"></i>{{ app.user.telephone }}</li>
-          {% else %}
-            <li class="text-muted small"><i class="bi bi-telephone text-muted me-2"></i>Aucun numéro enregistré</li>
-          {% endif %}
+          <li class="mb-2">
+            <i class="bi bi-envelope text-primary me-2"></i>{{ app.user.email }}
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-telephone text-primary me-2"></i>
+            {{ app.user.telephone ?? 'Aucun numéro enregistré' }}
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-calendar text-primary me-2"></i>
+            {% if app.user.dateNaissance %}
+              {{ app.user.dateNaissance|date('d/m/Y') }}
+            {% else %}
+              <span class="text-muted small">Date de naissance non renseignée</span>
+            {% endif %}
+          </li>
         </ul>
+
       </div>
 
-      <!-- === À PROPOS DE VOUS === -->
-      <div class="p-4 rounded shadow-sm mb-4 bg-white">
+
+      {# =============================
+         À propos / Bio
+         ============================= #}
+      <div class="bg-white p-4 rounded shadow-sm mb-4">
         <h5 class="mb-3">À propos de vous</h5>
 
-        <ul class="list-unstyled mb-3">
-          <li><i class="bi bi-music-note-beamed text-success me-2"></i> Musique tout le long 🎵</li>
-          <li><i class="bi bi-cup-hot text-success me-2"></i> Les pauses café sont toujours les bienvenues ☕</li>
-          <li><i class="bi bi-heart text-success me-2"></i> J’adore les animaux 🐾</li>
-        </ul>
-
-        <a href="#" class="small text-decoration-none">✏️ Modifier mes préférences de voyage</a>
-      </div>
-
-      <!-- === VÉHICULES === -->
-      <div class="p-4 rounded shadow-sm bg-white">
-        <h5 class="mb-3">Véhicules</h5>
-        {% if app.user.voitures is defined and app.user.voitures|length > 0 %}
-          <ul class="list-unstyled mb-0">
-            {% for voiture in app.user.voitures %}
-              <li class="mb-2">
-                <i class="bi bi-car-front text-success me-2"></i>
-                {{ voiture.marque }} {{ voiture.modele }} – {{ voiture.couleur }}
-              </li>
-            {% endfor %}
-          </ul>
+        {% if app.user.bio %}
+          <p class="mb-0">{{ app.user.bio }}</p>
         {% else %}
-          <a href="#" class="small text-decoration-none">➕ Ajouter un véhicule</a>
+          <p class="text-muted small mb-0">Aucune biographie renseignée.</p>
         {% endif %}
       </div>
+
+
+      {# =============================
+         Préférences de voyage
+         ============================= #}
+      <div class="bg-white p-4 rounded shadow-sm mb-4">
+        <h5 class="mb-3">Vos préférences de voyage</h5>
+
+        <ul class="list-unstyled">
+
+          <li class="mb-2">
+            <i class="bi bi-music-note-beamed text-success me-2"></i>
+            Musique : <strong>{{ app.user.musique|capitalize }}</strong>
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-chat-dots text-success me-2"></i>
+            Discussion : <strong>{{ app.user.discussion|capitalize }}</strong>
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-heart text-success me-2"></i>
+            Animaux : <strong>{{ app.user.animaux|capitalize }}</strong>
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-cup-hot text-success me-2"></i>
+            Pauses café : <strong>{{ app.user.pausesCafe|capitalize }}</strong>
+          </li>
+
+          <li class="mb-2">
+            <i class="bi bi-wind text-success me-2"></i>
+            Fumeur : <strong>{{ app.user.fumeur|capitalize }}</strong>
+          </li>
+
+        </ul>
+
+      </div>
+
 
     </div>
   </div>
 </section>
+
 {% endblock %}

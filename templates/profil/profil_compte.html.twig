@@ -3,75 +3,100 @@
 {% block title %}Mon compte - EcoRide{% endblock %}
 
 {% block body %}
+
 <section class="container my-5">
+
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      {# === SOUS-MENU PROFIL === #}
+      {# Sous-menu #}
       {% include 'profil/_profil_header.html.twig' %}
 
-      <!-- === EN-TÊTE COMPTE === -->
+      {# En-tête #}
       <div class="bg-white rounded shadow-sm p-4 mb-4">
-        <h3 class="mb-3">Paramètres du compte</h3>
-        <p class="text-muted small mb-0">
-          Gérez ici vos informations personnelles, la sécurité et vos préférences de paiement.
-        </p>
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h3 class="mb-1">Paramètres du compte</h3>
+            <p class="text-muted small mb-0">
+              Gérez vos informations personnelles, votre sécurité et votre accès au compte.
+            </p>
+          </div>
+          <div class="ms-3">
+            <a href="{{ path('app_profil_edit') }}" class="btn btn-ecoride rounded-pill px-4">
+              Modifier mon profil
+            </a>
+          </div>
+        </div>
       </div>
 
-      <!-- === SECTIONS DU COMPTE === -->
-      <div class="bg-white rounded shadow-sm p-3">
+      
+
+      {# =============================
+         Informations de compte
+         ============================= #}
+      <div class="bg-white rounded shadow-sm p-4 mb-4">
+
+        <h5 class="mb-3">Informations personnelles</h5>
+
         <ul class="list-group list-group-flush">
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Préférences de communication</span>
-            <i class="bi bi-chevron-right text-muted"></i>
+            <span>Email</span>
+            <span class="text-muted">{{ app.user.email }}</span>
           </li>
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Téléphone</span>
+            {% if app.user.telephone %}
+              <span class="text-muted">{{ app.user.telephone }}</span>
+            {% else %}
+              <span class="text-muted small">Non renseigné</span>
+            {% endif %}
+          </li>
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Date de naissance</span>
+            {% if app.user.dateNaissance %}
+              <span class="text-muted">{{ app.user.dateNaissance|date('d/m/Y') }}</span>
+            {% else %}
+              <span class="text-muted small">Non renseignée</span>
+            {% endif %}
+          </li>
+
+        </ul>
+
+      </div>
+
+      {# =============================
+         Sécurité du compte
+         ============================= #}
+      <div class="bg-white rounded shadow-sm p-4 mb-4">
+
+        <h5 class="mb-3">Sécurité</h5>
+
+        <ul class="list-group list-group-flush">
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>Mot de passe</span>
-            <i class="bi bi-chevron-right text-muted"></i>
+            <a href="#" class="text-success small">Modifier</a>
           </li>
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Adresse postale</span>
-            <i class="bi bi-chevron-right text-muted"></i>
+            <span>Dernière modification</span>
+            <span class="text-muted small">Indisponible</span>
           </li>
 
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Modes de virement</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
-
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Modes de paiement</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
-
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Mon Stocken</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
-
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Paiements et remboursements</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
-
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Protection des données</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
-
-          <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Bons plans</span>
-            <i class="bi bi-chevron-right text-muted"></i>
-          </li>
         </ul>
+
       </div>
 
-      <!-- === ACTIONS COMPTE === -->
-      <div class="bg-white rounded shadow-sm p-4 mt-4">
-        <a href="{{ path('app_logout') }}" class="d-block text-danger mb-2 text-decoration-none">
+      {# =============================
+         Déconnexion & Suppression
+         ============================= #}
+      <div class="bg-white rounded shadow-sm p-4">
+
+        <a href="{{ path('app_logout') }}"
+           class="d-block text-danger fw-semibold text-decoration-none mb-2">
           <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
         </a>
 
@@ -82,5 +107,7 @@
 
     </div>
   </div>
+
 </section>
+
 {% endblock %}

@@ -12,36 +12,67 @@
 
 <section class="py-5 bg-light">
   <div class="container text-center">
+
     {% if trajets is empty %}
       <p class="text-muted">Aucun trajet trouvé pour cette recherche.</p>
+      <a href="{{ path('app_home') }}" class="btn btn-ecoride mt-3">Retour à la page d'accueil</a>
+
     {% else %}
+
       <div class="d-flex flex-wrap justify-content-center gap-4">
+
         {% for trajet in trajets %}
-          <div class="card border-0 shadow-sm rounded-4 p-4" style="background:#fffdf8; width:320px;">
+          <div class="card border-0 shadow-sm rounded-4 p-4"
+               style="background:#fffdf8; width:320px;">
+
             <div class="card-body text-start">
+
               <h5 class="text-success fw-bold mb-2">
                 {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
               </h5>
-              <p class="mb-1"><i class="bi bi-calendar"></i> {{ trajet.dateDepart|date('d/m/Y') }}</p>
-              <p class="mb-1"><i class="bi bi-clock"></i> {{ trajet.dateDepart|date('H:i') }}</p>
-              <p class="mb-1"><i class="bi bi-people"></i> {{ trajet.placesDisponibles }} place(s)</p>
-              <p class="mb-1"><i class="bi bi-cash"></i> {{ trajet.prix }} €</p>
-              <p class="small text-muted">{{ trajet.typeVehicule }} • {{ trajet.energie }}</p>
+
+              <p class="mb-1">
+                <i class="bi bi-calendar"></i> {{ trajet.dateDepart|date('d/m/Y') }}
+              </p>
+
+              <p class="mb-1">
+                <i class="bi bi-clock"></i> {{ trajet.dateDepart|date('H:i') }}
+              </p>
+
+              <p class="mb-1">
+                <i class="bi bi-people"></i> {{ trajet.placesDisponibles }} place(s)
+              </p>
+
+              <p class="mb-1">
+                <i class="bi bi-cash"></i> {{ trajet.prix }} €
+              </p>
+
+              <p class="small text-muted">
+                {{ trajet.typeVehicule }} • {{ trajet.energie }}
+              </p>
+
               {% if trajet.commentaire %}
-                <p class="small fst-italic mt-2 text-secondary">{{ trajet.commentaire }}</p>
+                <p class="small fst-italic mt-2 text-secondary">
+                  {{ trajet.commentaire }}
+                </p>
               {% endif %}
-              {% if not app.user %}
-                <div class="mt-3 text-center">
-                <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}" class="btn btn-ecoride w-100">
-                 Voir les détails
+
+              <!-- 🔥 BOUTON DÉTAIL POUR TOUT LE MONDE -->
+              <div class="mt-3 text-center">
+                <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                   class="btn btn-ecoride w-100">
+                  Voir les détails
                 </a>
-                </div>
-              {% endif %}
+              </div>
+
             </div>
           </div>
         {% endfor %}
+
       </div>
+
     {% endif %}
+
   </div>
 </section>
 {% endblock %}

@@ -3,80 +3,109 @@
 {% block title %}Inscription - EcoRide{% endblock %}
 
 {% block body %}
-<!-- HERO INSCRIPTION -->
+
+<!-- HERO -->
 <section class="hero-section hero-inscription d-flex align-items-center text-center text-white position-relative">
   <div class="container">
     <h2 class="hero-title mb-3 text-white">Inscription</h2>
-    <h2 class="hero-tagline mb-4 text-white">Rejoins la communauté EcoRide !</h2>
+    <p class="hero-tagline mb-4 text-white">Rejoins la communauté EcoRide !</p>
   </div>
 </section>
 
-<!-- FORMULAIRE D’INSCRIPTION -->
-<section class="connexion-section py-5">
+<!-- FORMULAIRE -->
+<section class="connexion-section py-5 bg-ecoride-light">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-md-8 col-lg-6">
-        <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
+
+        <div class="ecoride-form bg-white shadow p-4 rounded-4">
 
           <div class="text-center mb-4">
-            <h2 class="fw-bold text-success">Créer un compte</h2>
+            <h2 class="fw-bold text-eco-primary">Créer un compte</h2>
             <p class="text-muted">C’est rapide, gratuit et éco-responsable</p>
           </div>
 
           {{ form_start(registrationForm, { attr: { class: 'eco-form' } }) }}
           {{ form_errors(registrationForm) }}
 
-          <!-- Prénom -->
           {{ form_row(registrationForm.prenom, {
             row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: 'Ex : Jean' }
+            attr: { class: 'eco-input', placeholder: 'Ex : Jean' }
           }) }}
 
-          <!-- Nom -->
           {{ form_row(registrationForm.nom, {
             row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: 'Ex : Dupont' }
+            attr: { class: 'eco-input', placeholder: 'Ex : Dupont' }
           }) }}
 
-          <!-- Email principal -->
           {{ form_row(registrationForm.email.first, {
             row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: 'exemple@domaine.fr' }
+            attr: { class: 'eco-input', placeholder: 'exemple@domaine.fr' }
           }) }}
 
-          <!-- Confirmation email -->
           {{ form_row(registrationForm.email.second, {
             row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: 'Répétez votre adresse e-mail' }
+            attr: { class: 'eco-input', placeholder: 'Répétez votre adresse e-mail' }
           }) }}
 
-          <!-- Mot de passe -->
-          {{ form_row(registrationForm.plainPassword.first, {
-            row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: '••••••••' }
-          }) }}
+          <!-- MOT DE PASSE -->
+          <div class="mb-3 position-relative">
+            {{ form_label(registrationForm.plainPassword.first) }}
 
-          <!-- Confirmation mot de passe -->
-          {{ form_row(registrationForm.plainPassword.second, {
-            row_attr: { class: 'mb-3' },
-            attr: { class: 'form-control', placeholder: 'Répétez votre mot de passe' }
-          }) }}
+            <div class="eco-input-wrapper">
+              {{ form_widget(registrationForm.plainPassword.first, {
+                attr: {
+                  class: 'eco-input password-input',
+                  placeholder: '••••••••'
+                }
+              }) }}
 
-          <!-- Case conditions -->
+              <button type="button"
+                      class="toggle-password"
+                      data-target="{{ registrationForm.plainPassword.first.vars.id }}">
+                <i class="bi bi-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- CONFIRMATION -->
+          <div class="mb-3 position-relative">
+            {{ form_label(registrationForm.plainPassword.second) }}
+
+            <div class="eco-input-wrapper">
+              {{ form_widget(registrationForm.plainPassword.second, {
+                attr: {
+                  class: 'eco-input password-input',
+                  placeholder: 'Répétez votre mot de passe'
+                }
+              }) }}
+
+              <button type="button"
+                      class="toggle-password"
+                      data-target="{{ registrationForm.plainPassword.second.vars.id }}">
+                <i class="bi bi-eye-slash"></i>
+              </button>
+            </div>
+          </div>
+
           {{ form_row(registrationForm.agreeTerms, {
             row_attr: { class: 'mb-3 form-check' },
             label_attr: { class: 'form-check-label' },
             attr: { class: 'form-check-input' }
           }) }}
 
-          <!-- Bouton -->
-          <button type="submit" class="btn btn-ecoride w-100 mt-3">Créer mon compte</button>
+          <button type="submit"
+                  class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-3">
+            Créer mon compte
+          </button>
 
           {{ form_end(registrationForm) }}
 
         </div>
+
       </div>
     </div>
   </div>
 </section>
+
 {% endblock %}

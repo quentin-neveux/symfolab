@@ -1,33 +1,48 @@
 {% extends 'base.html.twig' %}
-{% block title %}Gestion des utilisateurs{% endblock %}
 
 {% block body %}
 <div class="container py-5">
-  <h1 class="text-success mb-4">Utilisateurs</h1>
+<div class="d-flex justify-content-center mb-4">
+    <a href="{{ path('admin_dashboard') }}" class="btn btn-ecoride rounded-pill px-4 py-2">
+        ⌫ Retour au Dashboard
+    </a>
+</div>
 
-  <table class="table table-hover align-middle shadow-sm">
-    <thead class="table-success">
-      <tr>
-        <th>ID</th>
-        <th>Email</th>
-        <th>Prénom</th>
-        <th>Nom</th>
-        <th>Rôles</th>
-      </tr>
-    </thead>
+  <h2 class="mb-4">Gestion des utilisateurs</h2>
+
+  <table class="table table-hover align-middle">
+    <thead>
+  <tr>
+    <th>{{ knp_pagination_sortable(users, 'ID', 'u.id') }}</th>
+    <th>{{ knp_pagination_sortable(users, 'Prénom', 'u.prenom') }}</th>
+    <th>{{ knp_pagination_sortable(users, 'Email', 'u.email') }}</th>
+    <th>Rôles</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+
+
     <tbody>
       {% for user in users %}
-        <tr>
-          <td>{{ user.id }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.prenom ?? '-' }}</td>
-          <td>{{ user.nom ?? '-' }}</td>
-          <td>{{ user.roles|join(', ') }}</td>
-        </tr>
-      {% else %}
-        <tr><td colspan="5" class="text-center text-muted">Aucun utilisateur enregistré</td></tr>
+      <tr>
+        <td>{{ user.id }}</td>
+        <td>{{ user.prenom ?? '-' }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.roles|join(', ') }}</td>
+        <td>
+          <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+          <a href="{{ path('admin_users_delete', {id: user.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>
+        </td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <!-- PAGINATION -->
+  <div class="d-flex justify-content-center mt-4">
+    {{ knp_pagination_render(users) }}
+  </div>
+
 </div>
 {% endblock %}
+

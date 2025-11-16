@@ -1,0 +1,84 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier un trajet - EcoRide{% endblock %}
+
+{% block body %}
+<!-- HERO -->
+<section class="hero-section hero-proposer d-flex align-items-center text-center position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3 text-white">Modifier un trajet</h2>
+  </div>
+</section>
+
+<section class="proposer-section py-5 bg-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+        <div class="card ecoride-form shadow p-4 rounded-4 position-relative">
+
+          <!-- 🟢 Titre du formulaire -->
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-success">
+              Modifier ton trajet
+              <br>
+              <span class="text-dark fs-5">
+                {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+                le {{ trajet.dateDepart|date('d/m/Y à H:i') }}
+              </span>
+            </h2>
+            <p class="text-muted mt-2">
+              Tu peux ajuster le prix, le nombre de places ou l’horaire.
+            </p>
+          </div>
+
+          {{ form_start(form) }}
+          <div class="row g-3">
+            <!-- Date du trajet non modifiable -->
+            <p class="text-muted">
+              Date du trajet : {{ trajet.dateDepart|date('d/m/Y') }}
+            </p>
+
+            <!-- Date et heure de départ -->
+            <div class="col-12">
+              {{ form_row(form.dateDepart, {
+               label: 'Nouvelle heure de départ',
+               attr: { class: 'form-control rounded-pill px-3 py-2 text-center' }
+              }) }}
+            </div>
+
+
+            <!-- Nombre de places -->
+            <div class="col-md-6">
+              {{ form_row(form.placesDisponibles, {
+                label: 'Places disponibles',
+                attr: { class: 'form-control rounded-pill px-3 py-2 text-center' }
+              }) }}
+            </div>
+
+            <!-- Prix -->
+            <div class="col-md-6">
+              {{ form_row(form.prix, {
+                label: 'Prix par passager',
+                attr: { placeholder: 'Ex : 12.50', class: 'form-control rounded-pill px-3 py-2 text-center' }
+              }) }}
+            </div>
+
+          </div>
+
+          <!-- Boutons -->
+          <div class="text-center mt-4">
+            <button type="submit" class="btn btn-ecoride w-100">
+              Enregistrer les modifications
+            </button>
+            <a href="{{ path('app_mes_trajets') }}" class="btn btn-eco-secondary w-100 mt-3">
+              ↩ Retour
+            </a>
+          </div>
+
+          {{ form_end(form) }}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

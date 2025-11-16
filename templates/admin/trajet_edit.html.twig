@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<div class="container py-5">
+  <h2 class="mb-4">Modifier trajet #{{ trajet.id }}</h2>
+
+  {{ form_start(form) }}
+    {{ form_widget(form) }}
+
+    <button class="btn btn-success mt-3">Enregistrer</button>
+  {{ form_end(form) }}
+
+</div>
+{% endblock %}
