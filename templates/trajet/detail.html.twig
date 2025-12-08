@@ -4,24 +4,30 @@
 
 {% block body %}
 
-<section class="hero-section hero-recherche d-flex align-items-center text-center text-white position-relative">
+{# ============================================================
+   HERO
+   ============================================================ #}
+<section class="hero-global hero-recherche d-flex align-items-center text-center text-white position-relative">
   <div class="container">
     <h2 class="hero-title text-white mb-3">Détail du trajet</h2>
-    <p class="hero-tagline mb-4">Consulte toutes les informations avant de réserver</p>
+    <p class="hero-tagline mb-4">Consulte toutes les informations importantes</p>
   </div>
 </section>
 
+
+{# ============================================================
+   CONTENU PRINCIPAL
+   ============================================================ #}
 <section class="py-5 bg-ecoride-light">
   <div class="container bg-ecoride-light py-5">
 
-    {# Bloc global commun aux deux colonnes #}
     <div class="bg-white rounded-4 shadow-sm p-4 p-md-5">
-
       <div class="row g-5 align-items-start">
 
-        {# ========================== #}
-        {#    COLONNE GAUCHE         #}
-        {# ========================== #}
+
+        {# ============================================================
+           COLONNE GAUCHE — Infos du trajet
+           ============================================================ #}
         <div class="col-lg-8">
 
           <h2 class="text-success fw-bold mb-4">
@@ -32,7 +38,10 @@
             <p><i class="bi bi-calendar2 text-success me-2"></i> {{ trajet.dateDepart|date('d/m/Y') }}</p>
             <p><i class="bi bi-clock text-success me-2"></i> {{ trajet.dateDepart|date('H:i') }}</p>
             <p><i class="bi bi-people text-success me-2"></i> {{ trajet.placesDisponibles }} place(s)</p>
-            <p><i class="bi bi-cash text-success me-2"></i> {{ trajet.prix }} € / pers</p>
+
+            <p><i class="bi bi-cash text-success me-2"></i>
+              {{ trajet.tokenCost }} tokens / pers
+            </p>
 
             {% if trajet.typeVehicule %}
               <p class="small text-muted mt-2">{{ trajet.typeVehicule }} • {{ trajet.energie }}</p>
@@ -45,6 +54,10 @@
 
           <hr class="my-4">
 
+
+          {# ============================================================
+             CONDUCTEUR
+             ============================================================ #}
           <h4 class="text-success fw-bold mb-3">Détail du conducteur</h4>
 
           {% if trajet.conducteur %}
@@ -53,55 +66,127 @@
               {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}
             </p>
 
-            {% if trajet.conducteur.telephone %}
-              {% set tel = trajet.conducteur.telephone|trim %}
-              <button class="btn btn-outline-success rounded-pill px-4 py-2 phone-mask__btn" data-phone="{{ tel }}">
-                <i class="bi bi-telephone me-2"></i>
-                Afficher le numéro
-              </button>
+            {% if averageRating %}
+              <div class="d-flex align-items-center mb-2">
+                <span class="fw-semibold me-2">{{ averageRating }}/5</span>
+                <span style="color:#f1c40f; font-size:1.3rem;">
+                  {% for i in 1..5 %}
+                    {% if i <= averageRating %}★{% else %}☆{% endif %}
+                  {% endfor %}
+                </span>
+              </div>
             {% else %}
-              <p class="text-muted fst-italic mb-0">Pas de téléphone renseigné</p>
+              <p class="text-muted fst-italic mb-3">Aucune note pour le moment.</p>
             {% endif %}
-          {% else %}
-            <p class="text-muted fst-italic mb-0">Conducteur non renseigné.</p>
-          {% endif %}
 
+            <div class="mt-3">
+              {% if trajet.conducteur.telephone %}
+                <button class="btn btn-outline-success rounded-pill px-4 py-2 phone-mask__btn"
+                        data-phone="{{ trajet.conducteur.telephone }}">
+                  <i class="bi bi-telephone me-2"></i>
+                  Afficher le numéro
+                </button>
+              {% else %}
+                <p class="text-muted fst-italic mb-0">Pas de téléphone renseigné</p>
+              {% endif %}
+            </div>
+          {% endif %}
         </div>
 
-        {# ========================== #}
-        {#    COLONNE DROITE         #}
-        {# ========================== #}
+
+
+        {# ============================================================
+           COLONNE DROITE — Gestion réservation / paiement / management
+           ============================================================ #}
+
+        {% set isConducteur = (app.user and trajet.conducteur and app.user.id == trajet.conducteur.id) %}
+        {% set isPassager = (reservation is not null) %}
+        {% set isPaid = (reservation and reservation.isPaid) %}
+
         <div class="col-lg-4">
 
           <h3 class="text-success fw-bold mb-3 text-lg-end text-center">
-            Réserver ce trajet
+            {% if isConducteur %}
+              Gestion du trajet
+            {% elseif isPassager %}
+              Vous êtes inscrit
+            {% else %}
+              Réserver ce trajet
+            {% endif %}
           </h3>
 
           <p class="text-muted small mb-4 text-lg-end text-center">
-            Connecte-toi ou réserve directement en invité.
+            {% if not app.user %}
+              Connecte-toi pour pouvoir réserver.
+            {% elseif isConducteur %}
+              Tu es le conducteur de ce trajet.
+            {% elseif isPassager %}
+              Participation enregistrée.
+            {% endif %}
           </p>
 
           <div class="d-grid gap-3">
-            {% if app.user %}
-              <a href="{{ path('payment') }}"
-                 class="btn btn-ecoride py-3 rounded-pill fw-semibold">
-                Procéder au paiement
+
+            {# ------------------------------------------------------------
+               1) Conducteur → Modifier trajet
+               ------------------------------------------------------------ #}
+            {% if isConducteur %}
+              <a href="{{ path('app_trajet_edit', { id: trajet.id }) }}"
+                 class="btn btn-success py-3 rounded-pill fw-semibold">
+                Modifier le trajet
               </a>
+
+
+            {# ------------------------------------------------------------
+               2) Passager → Annuler + Payer si non payé
+               ------------------------------------------------------------ #}
+            {% elseif isPassager %}
+
+              {# Bouton annuler #}
+              <a href="{{ path('trajet_annuler', { id: trajet.id }) }}"
+                 class="btn btn-outline-danger py-3 rounded-pill fw-semibold">
+                Annuler ma présence
+              </a>
+
+              {# Bouton payer maintenant (si pas encore payé) #}
+              {% if not isPaid %}
+                <a href="{{ path('payment_page', { id: trajet.id }) }}"
+                   class="btn btn-ecoride py-3 rounded-pill fw-semibold">
+                  Payer maintenant
+                </a>
+              {% else %}
+                <p class="text-success fw-bold text-center mt-2">Déjà payé ✔️</p>
+              {% endif %}
+
+
+            {# ------------------------------------------------------------
+               3) Utilisateur connecté → Peut réserver
+               ------------------------------------------------------------ #}
+            {% elseif app.user %}
+              <a href="{{ path('trajet_reserver', { id: trajet.id }) }}"
+                 class="btn btn-ecoride py-3 rounded-pill fw-semibold">
+                Réserver
+              </a>
+
+
+            {# ------------------------------------------------------------
+               4) Non connecté → Redirection connexion
+               ------------------------------------------------------------ #}
             {% else %}
               <a href="{{ path('app_connexion') }}"
                  class="btn btn-ecoride py-3 rounded-pill fw-semibold">
-                Se connecter et réserver
+                Se connecter
               </a>
             {% endif %}
           </div>
 
-        </div>
+        </div> {# FIN COLONNE DROITE #}
 
       </div>
-
     </div>
 
   </div>
 </section>
 
 {% endblock %}
+

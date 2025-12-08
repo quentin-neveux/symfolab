@@ -29,6 +29,7 @@
         <td>{{ user.prenom ?? '-' }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.roles|join(', ') }}</td>
+        <td>{{ user.tokens }}</td>
         <td>
           <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
           <a href="{{ path('admin_users_delete', {id: user.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>

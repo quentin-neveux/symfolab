@@ -10,3 +10,10 @@ php bin/console cache:clear
 
 # Relance le serveur sans TLS pour éviter les conflits
 symfony serve -d --no-tls
+
+# Migrations de la base de données
+php bin/console make:migration
+php bin/console doctrine:migrations:migrate
+
+# Cibler le Container PHP
+docker-compose exec php bash

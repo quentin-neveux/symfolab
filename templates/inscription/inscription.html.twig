@@ -5,7 +5,7 @@
 {% block body %}
 
 <!-- HERO -->
-<section class="hero-section hero-inscription d-flex align-items-center text-center text-white position-relative">
+<section class="hero-global hero-inscription d-flex align-items-center text-center text-white position-relative">
   <div class="container">
     <h2 class="hero-title mb-3 text-white">Inscription</h2>
     <p class="hero-tagline mb-4 text-white">Rejoins la communauté EcoRide !</p>
@@ -56,7 +56,7 @@
               {{ form_widget(registrationForm.plainPassword.first, {
                 attr: {
                   class: 'eco-input password-input',
-                  placeholder: '••••••••'
+                  placeholder: 'Entrez votre mot de passe'
                 }
               }) }}
 
@@ -68,7 +68,7 @@
             </div>
           </div>
 
-          <!-- CONFIRMATION -->
+          <!-- CONFIRMATION MOT DE PASSE -->
           <div class="mb-3 position-relative">
             {{ form_label(registrationForm.plainPassword.second) }}
 
@@ -94,10 +94,10 @@
             attr: { class: 'form-check-input' }
           }) }}
 
-          <button type="submit"
-                  class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-3">
-            Créer mon compte
+          <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn">
+            Créer un compte
           </button>
+
 
           {{ form_end(registrationForm) }}
 

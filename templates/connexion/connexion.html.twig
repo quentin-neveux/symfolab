@@ -5,7 +5,7 @@
 {% block body %}
 
 <!-- HERO -->
-<section class="hero-section hero-connexion d-flex align-items-center text-center position-relative">
+<section class="hero-global hero-connexion d-flex align-items-center text-center position-relative">
   <div class="container">
     <h2 class="hero-title text-white mb-3">Connexion</h2>
     <p class="hero-tagline text-white mb-4">Accédez à votre compte EcoRide</p>
@@ -50,7 +50,7 @@
                   id="password"
                   name="password"
                   class="eco-input password-input"
-                  placeholder="••••••••"
+                  placeholder="Entrez votre mot de passe"
                   required
                 >
 
@@ -77,11 +77,11 @@
               </a>
             </div>
 
-            <!-- BOUTON -->
-            <button type="submit"
-                    class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill">
+            <!-- BOUTON AVEC LOADER -->
+            <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn">
               Se connecter
             </button>
+
 
             <p class="text-center mt-4 mb-0 text-muted">
               Pas encore de compte ?

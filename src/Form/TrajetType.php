@@ -8,7 +8,6 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -20,50 +19,24 @@ class TrajetType extends AbstractType
         $builder
             ->add('villeDepart', TextType::class, [
                 'label' => 'Ville de départ',
-                'attr' => [
-                    'placeholder' => 'Ex : Lyon',
-                    'class' => 'form-control'
-                ],
             ])
             ->add('villeArrivee', TextType::class, [
                 'label' => 'Ville d’arrivée',
-                'attr' => [
-                    'placeholder' => 'Ex : Grenoble',
-                    'class' => 'form-control'
-                ],
             ])
             ->add('dateDepart', DateTimeType::class, [
                 'label' => 'Date et heure de départ',
                 'widget' => 'single_text',
-                'html5' => true,
-                'attr' => [
-                    'class' => 'form-control rounded-pill px-3 py-2 text-center',
-                ],
             ])
             ->add('typeVehicule', TextType::class, [
                 'label' => 'Type de véhicule',
-                'attr' => [
-                    'placeholder' => 'Ex : Berline, SUV…',
-                    'class' => 'form-control'
-                ],
-            ])
-            ->add('prix', NumberType::class, [
-                'label' => 'Prix par passager',
-                'attr' => [
-                    'placeholder' => 'Ex : 12.50',
-                    'class' => 'form-control'
-                ],
+                'required' => false,
             ])
             ->add('placesDisponibles', IntegerType::class, [
                 'label' => 'Places disponibles',
-                'attr' => [
-                    'min' => 1,
-                    'max' => 4,
-                    'class' => 'form-control'
-                ],
+                'attr' => ['min' => 1, 'max' => 4],
             ])
             ->add('energie', ChoiceType::class, [
-                'label' => 'Type d’énergie',
+                'label' => 'Énergie',
                 'choices' => [
                     'Essence' => 'Essence',
                     'Diesel' => 'Diesel',
@@ -71,17 +44,12 @@ class TrajetType extends AbstractType
                     'Électrique' => 'Électrique',
                 ],
                 'placeholder' => 'Choisis une énergie',
-                'attr' => ['class' => 'form-select'],
             ])
             ->add('commentaire', TextareaType::class, [
                 'label' => 'Commentaire (optionnel)',
                 'required' => false,
-                'attr' => [
-                    'placeholder' => 'Infos pratiques, pause café, bagages…',
-                    'rows' => 3,
-                    'class' => 'form-control'
-                ],
             ]);
+        // tokenCost → calcul automatique dans le controller, donc pas dans le form
     }
 
     public function configureOptions(OptionsResolver $resolver): void

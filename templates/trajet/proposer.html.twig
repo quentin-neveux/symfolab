@@ -3,8 +3,8 @@
 {% block title %}Proposer un trajet - EcoRide{% endblock %}
 
 {% block body %}
-<section class="hero-section hero-proposer d-flex align-items-center text-center text-white position-relative">
-<div class="container">
+<section class="hero-global hero-proposer d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
     <h2 class="hero-title mb-3 text-white">Proposer un trajet</h2>
     <h2 class="hero-tagline mb-4 text-white">Partage ta route, réduis ton empreinte</h2>
   </div>
@@ -29,18 +29,37 @@
 
             <!-- Ville de départ -->
             <div class="col-md-6">
-              {{ form_row(form.villeDepart, {
-                label: 'Ville de départ',
-                attr: { placeholder: 'Ex : Lyon', class: 'form-control rounded-pill px-3 py-2' }
-              }) }}
+                <div class="position-relative">
+
+                    {{ form_label(form.villeDepart, 'Ville de départ') }}
+                    {{ form_widget(form.villeDepart, {
+                        attr: {
+                            id: 'ville-depart',
+                            placeholder: 'Ex : Lyon',
+                            autocomplete: 'off',
+                            class: 'form-control rounded-pill px-3 py-2'
+                        }
+                    }) }}
+                    <ul id="ville-depart-list" class="autocomplete-list"></ul>
+                </div>
+                {{ form_errors(form.villeDepart) }}
             </div>
 
             <!-- Ville d’arrivée -->
             <div class="col-md-6">
-              {{ form_row(form.villeArrivee, {
-                label: 'Ville d’arrivée',
-                attr: { placeholder: 'Ex : Grenoble', class: 'form-control rounded-pill px-3 py-2' }
-              }) }}
+                <div class="position-relative">
+                    {{ form_label(form.villeArrivee, 'Ville d’arrivée') }}
+                    {{ form_widget(form.villeArrivee, {
+                        attr: {
+                            id: 'ville-arrivee',
+                            placeholder: 'Ex : Grenoble',
+                            autocomplete: 'off',
+                            class: 'form-control rounded-pill px-3 py-2'
+                        }
+                    }) }}
+                    <ul id="ville-arrivee-list" class="autocomplete-list"></ul>
+                </div>
+                {{ form_errors(form.villeArrivee) }}
             </div>
 
             <!-- Date et heure de départ -->
@@ -58,18 +77,6 @@
                 attr: { placeholder: 'Ex : Berline, SUV…', class: 'form-control rounded-pill px-3 py-2' }
               }) }}
             </div>
-
-            <!-- Prix -->
-            <div class="col-md-6">
-              <label class="form-label">Prix par passager</label>
-              <div class="input-group">
-                {{ form_widget(form.prix, {
-                  attr: { class: 'form-control rounded-start-pill px-3 py-2', placeholder: 'Ex : 12.50' }
-                }) }}
-                <span class="input-group-text rounded-end-pill">€</span>
-              </div>
-            </div>
-
 
             <!-- Places disponibles -->
             <div class="col-md-6">
@@ -93,6 +100,13 @@
                 label: 'Commentaire (optionnel)',
                 attr: { placeholder: 'Infos pratiques, pause café, bagages…', class: 'form-control px-3 py-2' }
               }) }}
+            </div>
+
+            <!-- Info tokens automatiques -->
+            <div class="col-12">
+              <p class="text-muted small">
+                💡 Le coût en tokens sera calculé automatiquement en fonction de la distance du trajet.
+              </p>
             </div>
 
           </div>

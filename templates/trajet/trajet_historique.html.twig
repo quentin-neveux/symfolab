@@ -1,0 +1,252 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes trajets - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-historique text-center text-white">
+  <div class="container">
+    <h2 class="hero-title mb-3 text-white">Mes trajets</h2>
+    <h2 class="hero-tagline mb-4 text-white">Trajets à venir, en cours et passés</h2>
+  </div>
+</section>
+
+<!-- BARRE DE RECHERCHE -->
+<form id="search-form" class="eco-searchbar mx-auto mb-4" action="{{ path('app_recherche') }}" method="get">
+  <input type="hidden" name="page" value="recherche">
+
+  <div class="eco-search-field">
+    <i class="bi bi-geo-alt text-success me-2"></i>
+    <input type="text" class="form-control" name="ville_depart" placeholder="Départ" required>
+  </div>
+  <div class="eco-search-field">
+    <i class="bi bi-flag text-success me-2"></i>
+    <input type="text" class="form-control" name="ville_arrivee" placeholder="Arrivée" required>
+  </div>
+  <div class="eco-search-field">
+    <i class="bi bi-calendar-event text-success me-2"></i>
+    <input type="date" class="form-control" name="date_depart">
+  </div>
+  <button type="submit" class="eco-search-btn">Rechercher</button>
+</form>
+
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="card shadow-sm rounded-4 border-0">
+      <div class="card-body">
+
+        {# ============================
+           Onglets / filtres
+           ============================ #}
+        <div class="d-flex justify-content-center mb-4">
+          <div class="btn-group" role="group">
+            <button class="btn btn-outline-success active" data-histo-tab="avenir">À venir</button>
+            <button class="btn btn-outline-success" data-histo-tab="encours">En cours</button>
+            <button class="btn btn-outline-success" data-histo-tab="passes">Passés</button>
+          </div>
+        </div>
+
+        {# ============================
+           SECTION : À VENIR
+           ============================ #}
+        <div class="historique-section" id="histo-avenir">
+          <h3 class="mb-4 text-success fw-bold">Trajets à venir</h3>
+
+          {% if trajetsAvenir is empty %}
+            <p class="text-muted text-center py-4">Aucun trajet à venir.</p>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-success">
+                  <tr>
+                    <th>Départ</th>
+                    <th>Arrivée</th>
+                    <th>Date</th>
+                    <th>Rôle</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in trajetsAvenir %}
+                    {% set trajet = item.trajet %}
+                    {% set role = item.role %}
+
+                    <tr class="trajet-clickable"
+                        data-href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                        style="cursor:pointer">
+                      <td>{{ trajet.villeDepart }}</td>
+                      <td>{{ trajet.villeArrivee }}</td>
+                      <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+
+                      <td>
+                        {% if role == 'conducteur' %}
+                          <span class="badge bg-primary">Conducteur</span>
+                        {% else %}
+                          <span class="badge bg-info text-dark">Passager</span>
+                        {% endif %}
+                      </td>
+
+                      <td class="text-center text-muted small">
+                        En attente de départ
+                      </td>
+                    </tr>
+
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+
+        {# ============================
+           SECTION : EN COURS
+           ============================ #}
+        <div class="historique-section d-none" id="histo-encours">
+          <h3 class="mb-4 text-success fw-bold">Trajets en cours</h3>
+
+          {% if trajetsEnCours is empty %}
+            <p class="text-muted text-center py-4">Aucun trajet en cours.</p>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-success">
+                  <tr>
+                    <th>Départ</th>
+                    <th>Arrivée</th>
+                    <th>Départ</th>
+                    <th>Arrivée prévue</th>
+                    <th>Rôle</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for item in trajetsEnCours %}
+                    {% set trajet = item.trajet %}
+                    {% set role = item.role %}
+                    {% set reservation = item.reservation %}
+
+                    <tr class="trajet-clickable"
+                        data-href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                        style="cursor:pointer">
+
+                      <td>{{ trajet.villeDepart }}</td>
+                      <td>{{ trajet.villeArrivee }}</td>
+                      <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+                      <td>{{ trajet.dateArrivee ? trajet.dateArrivee|date('d/m/Y H:i') : '-' }}</td>
+
+                      <td>
+                        {% if role == 'conducteur' %}
+                          <span class="badge bg-primary">Conducteur</span>
+                        {% else %}
+                          <span class="badge bg-info text-dark">Passager</span>
+                        {% endif %}
+                      </td>
+
+                      <td class="text-center">
+                        {% if role == 'conducteur' %}
+                          {% if not trajet.conducteurConfirmeFin %}
+                            <a href="{{ path('trajet_fin_conducteur', { id: trajet.id }) }}"
+                               class="btn btn-success btn-sm rounded-pill">Valider fin</a>
+                          {% else %}
+                            <span class="text-success fw-semibold d-block">✔ Validée</span>
+                          {% endif %}
+                        {% else %}
+                          {% if reservation and not reservation.passagerConfirmeFin %}
+                            <a href="{{ path('trajet_fin_passager', { id: trajet.id }) }}"
+                               class="btn btn-outline-success btn-sm rounded-pill">J’ai terminé</a>
+                          {% endif %}
+                        {% endif %}
+                      </td>
+
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+
+        {# ============================
+           SECTION : PASSÉS
+           ============================ #}
+        <div class="historique-section d-none" id="histo-passes">
+          <h3 class="mb-4 text-success fw-bold">Trajets passés</h3>
+
+          {% if trajetsPasses is empty %}
+            <p class="text-muted text-center py-4">Aucun trajet terminé.</p>
+          {% else %}
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-success">
+                  <tr>
+                    <th>Départ</th>
+                    <th>Arrivée</th>
+                    <th>Date</th>
+                    <th>Rôle</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for item in trajetsPasses %}
+                    {% set trajet = item.trajet %}
+                    {% set role = item.role %}
+                    {% set reservation = item.reservation %}
+
+                    <tr class="trajet-clickable"
+                        data-href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                        style="cursor:pointer">
+
+                      <td>{{ trajet.villeDepart }}</td>
+                      <td>{{ trajet.villeArrivee }}</td>
+                      <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+
+                      <td>
+                        {% if role == 'conducteur' %}
+                          <span class="badge bg-primary">Conducteur</span>
+                        {% else %}
+                          <span class="badge bg-info text-dark">Passager</span>
+                        {% endif %}
+                      </td>
+
+                      <td>
+                        {% if role == 'conducteur' %}
+                          {% if trajet.conducteurConfirmeFin %}
+                            <span class="badge bg-success">Terminé</span>
+                          {% else %}
+                            <span class="badge bg-warning text-dark">En attente conducteur</span>
+                          {% endif %}
+                        {% else %}
+                          {% if reservation.passagerConfirmeFin %}
+                            <span class="badge bg-success">Terminé</span>
+                          {% else %}
+                            <span class="badge bg-warning text-dark">En attente du passager</span>
+                          {% endif %}
+                        {% endif %}
+                      </td>
+
+                      <td class="text-center">
+                        {% if role == 'conducteur' %}
+                          {% if not trajet.conducteurConfirmeFin %}
+                            <a href="{{ path('trajet_fin_conducteur', { id: trajet.id }) }}"
+                               class="btn btn-success btn-sm rounded-pill">Valider fin</a>
+                          {% endif %}
+                        {% endif %}
+                      </td>
+
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -3,12 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use App\Repository\ReviewRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use App\Entity\Trajet;
+use App\Entity\AimlabScore;
+use App\Entity\Review;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -16,6 +20,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[UniqueEntity(fields: ['email'], message: 'Un compte existe déjà avec cet e-mail.')]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    // =========================================================
+    // 🧩 IDENTITÉ
+    // =========================================================
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -45,7 +53,20 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $bio = null;
 
-    // --- Préférences de voyage ---
+    // =========================================================
+    // 🧠 AIMLAB
+    // =========================================================
+
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $aimlabBestAvg = null;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: AimlabScore::class, orphanRemoval: true)]
+    private Collection $aimlabScores;
+
+    // =========================================================
+    // 🚗 PRÉFÉRENCES DE VOYAGE
+    // =========================================================
+
     #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
     private string $musique = 'indifferent';
 
@@ -61,23 +82,53 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 15, options: ["default" => "indifferent"])]
     private string $fumeur = 'indifferent';
 
+    // =========================================================
+    // 🔐 SÉCURITÉ
+    // =========================================================
+
     #[ORM\Column]
     private array $roles = [];
 
     #[ORM\Column]
     private ?string $password = null;
 
+    // =========================================================
+    // 💰 TOKENS
+    // =========================================================
+
+    #[ORM\Column(type: 'integer')]
+    private int $tokens = 100;
+
+    // =========================================================
+    // 🔗 RELATIONS
+    // =========================================================
+
     #[ORM\OneToMany(mappedBy: 'conducteur', targetEntity: Trajet::class)]
     private Collection $trajets;
+
+    #[ORM\OneToMany(mappedBy: 'author', targetEntity: Review::class, orphanRemoval: true)]
+    private Collection $reviewsGiven;
+
+    #[ORM\OneToMany(mappedBy: 'target', targetEntity: Review::class, orphanRemoval: true)]
+    private Collection $reviewsReceived;
+
+    // =========================================================
+    // 🔧 CONSTRUCTEUR
+    // =========================================================
 
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
         $this->roles = ['ROLE_USER'];
         $this->trajets = new ArrayCollection();
+        $this->aimlabScores = new ArrayCollection();
+        $this->reviewsGiven = new ArrayCollection();
+        $this->reviewsReceived = new ArrayCollection();
     }
 
-    // ====== GETTERS / SETTERS =======
+    // =========================================================
+    // 🌟 GETTERS & SETTERS
+    // =========================================================
 
     public function getId(): ?int { return $this->id; }
 
@@ -91,7 +142,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setEmail(string $email): self { $this->email = strtolower(trim($email)); return $this; }
 
     public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
-    public function setCreatedAt(\DateTimeImmutable $createdAt): self { $this->createdAt = $createdAt; return $this; }
 
     public function getPhoto(): ?string { return $this->photo; }
     public function setPhoto(?string $photo): self { $this->photo = $photo; return $this; }
@@ -105,7 +155,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getBio(): ?string { return $this->bio; }
     public function setBio(?string $bio): self { $this->bio = $bio; return $this; }
 
-    // --- Préférences voyage ---
+    // =========================================================
+    // 🎮 AIMLAB
+    // =========================================================
+
+    public function getAimlabBestAvg(): ?float { return $this->aimlabBestAvg; }
+    public function setAimlabBestAvg(?float $avg): self { $this->aimlabBestAvg = $avg; return $this; }
+
+    public function getAimlabScores(): Collection { return $this->aimlabScores; }
+
+    // =========================================================
+    // 🚗 PREFERENCES
+    // =========================================================
+
     public function getMusique(): string { return $this->musique; }
     public function setMusique(string $musique): self { $this->musique = $musique; return $this; }
 
@@ -121,7 +183,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getFumeur(): string { return $this->fumeur; }
     public function setFumeur(string $fumeur): self { $this->fumeur = $fumeur; return $this; }
 
-    // --- Sécurité ---
+    // =========================================================
+    // 🔐 SÉCURITÉ
+    // =========================================================
+
     public function getRoles(): array
     {
         $roles = $this->roles;
@@ -134,21 +199,72 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getPassword(): ?string { return $this->password; }
     public function setPassword(string $password): self { $this->password = $password; return $this; }
 
-    public function getUserIdentifier(): string { return (string) $this->email; }
+    public function getUserIdentifier(): string { return (string)$this->email; }
 
     public function eraseCredentials(): void {}
 
-    // --- Serialization sécurité ---
-    public function __serialize(): array
+    // =========================================================
+    // 💰 TOKENS
+    // =========================================================
+
+    public function getTokens(): int
     {
-        $data = (array) $this;
-        $data["\0" . self::class . "\0password"] = hash('crc32c', $this->password ?? '');
-        return $data;
+        return $this->tokens;
     }
 
-    // --- Trajets ---
-    public function getTrajets(): Collection
+    public function setTokens(int $tokens): self
     {
-        return $this->trajets;
+        $this->tokens = max(0, $tokens);
+        return $this;
+    }
+
+    public function addTokens(int $amount): self
+    {
+        $this->tokens += max(0, $amount);
+        return $this;
+    }
+
+    public function removeTokens(int $amount): self
+    {
+        $this->tokens -= max(0, $amount);
+        if ($this->tokens < 0) { $this->tokens = 0; }
+        return $this;
+    }
+
+    // =========================================================
+    // 🔗 RELATIONS
+    // =========================================================
+
+    public function getTrajets(): Collection { return $this->trajets; }
+
+    public function getReviewsReceived(): Collection { return $this->reviewsReceived; }
+
+    public function addReviewsReceived(Review $review): self
+    {
+        if (!$this->reviewsReceived->contains($review)) {
+            $this->reviewsReceived->add($review);
+            $review->setTarget($this);
+        }
+        return $this;
+    }
+
+    public function getReviewsGiven(): Collection { return $this->reviewsGiven; }
+
+    public function addReviewsGiven(Review $review): self
+    {
+        if (!$this->reviewsGiven->contains($review)) {
+            $this->reviewsGiven->add($review);
+            $review->setAuthor($this);
+        }
+        return $this;
+    }
+
+    // =========================================================
+    // ⭐ OUTIL FACULTATIF
+    // =========================================================
+
+    public function getAverageRating(ReviewRepository $repo): ?float
+    {
+        return $repo->getAverageRatingForUser($this->id);
     }
 }

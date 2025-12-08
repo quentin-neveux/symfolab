@@ -53,17 +53,18 @@
 
     <tbody>
       {% for trajet in trajets %}
-      <tr>
-        <td>{{ trajet.id }}</td>
-        <td>{{ trajet.villeDepart }}</td>
-        <td>{{ trajet.villeArrivee }}</td>
-        <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
-        <td>{{ trajet.conducteur.prenom ?? trajet.conducteur.email }}</td>
-        <td>
-          <a href="{{ path('admin_trajets_edit', {id: trajet.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-          <a href="{{ path('admin_trajets_delete', {id: trajet.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>
-        </td>
-      </tr>
+  <tr class="trajet-row" data-url="{{ path('app_trajet_detail', { id: trajet.id }) }}" style="cursor: pointer;">
+    <td>{{ trajet.id }}</td>
+    <td>{{ trajet.villeDepart }}</td>
+    <td>{{ trajet.villeArrivee }}</td>
+    <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+    <td>{{ trajet.conducteur.prenom ?? trajet.conducteur.email }}</td>
+    <td>
+        <a href="{{ path('admin_trajets_edit', {id: trajet.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+        <a href="{{ path('admin_trajets_delete', {id: trajet.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>
+    </td>
+  </tr>
+
 
       {% endfor %}
     </tbody>

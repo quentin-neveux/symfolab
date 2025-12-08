@@ -1,48 +1,44 @@
 # ============================================================
-# 🐘 DOCKERFILE POUR ECORIDE (Symfony + PHP 8.2)
+# 🐘 DOCKERFILE POUR SYMFONY (PHP-FPM 8.3)
 # ============================================================
 
-# Étape 1 : Base PHP-FPM avec extensions utiles à Symfony
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
 # ------------------------------------------------------------
-# Installation des dépendances système et extensions PHP
+# Extensions nécessaires à Symfony
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     git unzip libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    libonig-dev libxml2-dev libzip-dev zip curl \
+    libxml2-dev libzip-dev curl \
     && docker-php-ext-install intl pdo pdo_mysql zip opcache gd
 
 # ------------------------------------------------------------
-# Installation de Composer
+# Installation de Composer (copié depuis l’image officielle)
 # ------------------------------------------------------------
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # ------------------------------------------------------------
-# Copie du code Symfony dans le conteneur
+# Dossier de travail
 # ------------------------------------------------------------
 WORKDIR /var/www/html
+
+# ------------------------------------------------------------
+# Copie des fichiers (composer.json AVANT le reste = cache Docker)
+# ------------------------------------------------------------
+COPY composer.json composer.lock ./
+RUN composer install --no-interaction --no-progress --no-scripts
+
+# Maintenant on copie le reste du projet
 COPY . .
 
 # ------------------------------------------------------------
-# Installation des dépendances PHP (prod uniquement)
+# Fix des droits pour Symfony
 # ------------------------------------------------------------
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress || true
+RUN chown -R www-data:www-data var/ vendor/
 
 # ------------------------------------------------------------
-# Optimisations Symfony pour la production
+# PHP-FPM comme process principal
 # ------------------------------------------------------------
-RUN php bin/console cache:clear --env=prod || true \
-    && php bin/console cache:warmup --env=prod || true \
-    && chown -R www-data:www-data /var/www/html/var
+CMD ["php-fpm"]
 
-
-# ------------------------------------------------------------
-# Expose le port 8080 (Render attend $PORT)
-# ------------------------------------------------------------
-EXPOSE 8080
-
-# ------------------------------------------------------------
-# Commande de démarrage : PHP intégré
-# ------------------------------------------------------------
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+EXPOSE 9000

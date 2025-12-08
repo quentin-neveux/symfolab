@@ -15,8 +15,8 @@ use Symfony\Component\Routing\Attribute\Route;
 #[Route('/admin/trajets', name: 'admin_trajets_')]
 class AdminTrajetController extends AbstractController
 {
-    #[Route('/', name: 'list')]
-public function list(TrajetRepository $repo, Request $request, PaginatorInterface $paginator): Response
+    #[Route('/', name: 'index')]
+public function index(TrajetRepository $repo, Request $request, PaginatorInterface $paginator): Response
 {
     $depart      = $request->query->get('depart');
     $arrivee     = $request->query->get('arrivee');
@@ -74,31 +74,78 @@ public function list(TrajetRepository $repo, Request $request, PaginatorInterfac
     #[Route('/delete/{id}', name: 'delete')]
     public function delete(Trajet $trajet, EntityManagerInterface $em): Response
     {
-        $em->remove($trajet);
-        $em->flush();
+    // 🔍 Récupérer toutes les réservations associées au trajet
+    $reservations = $em->getRepository(\App\Entity\TrajetPassager::class)
+        ->findBy(['trajet' => $trajet]);
 
-        return $this->redirectToRoute('admin_trajets_list');
+    foreach ($reservations as $res) {
+
+        $user = $res->getPassager();
+
+        // 🌱 Remboursement si payé
+        if ($res->isPaid()) {
+            $user->setTokens($user->getTokens() + $trajet->getTokenCost());
+        }
+
+        // ❌ Suppression de la réservation
+        $em->remove($res);
     }
 
+    // ❌ Suppression du trajet lui-même
+    $em->remove($trajet);
+
+    // ✔️ Sauvegarde en BDD
+    $em->flush();
+
+    $this->addFlash('success', 'Trajet supprimé. Tous les passagers payés ont été remboursés.');
+
+    return $this->redirectToRoute('admin_trajets_index');
+    }
+
+
+
     #[Route('/delete-past', name: 'delete_past')]
-public function deletePast(TrajetRepository $repo, EntityManagerInterface $em): Response
-{
+    public function deletePast(TrajetRepository $repo, EntityManagerInterface $em): Response
+    {
     $now = new \DateTimeImmutable();
 
-    $qb = $repo->createQueryBuilder('t')
-        ->where('t.dateDepart < :now')
+    // Tous les trajets passés
+    $pastTrajets = $repo->createQueryBuilder('t')
+        ->where('t.dateArrivee < :now')
         ->setParameter('now', $now)
-        ->getQuery();
-
-    $pastTrajets = $qb->getResult();
+        ->getQuery()
+        ->getResult();
 
     foreach ($pastTrajets as $trajet) {
+
+        // 🔍 Récupération des réservations du trajet
+        $reservations = $em->getRepository(\App\Entity\TrajetPassager::class)
+            ->findBy(['trajet' => $trajet]);
+
+        foreach ($reservations as $res) {
+
+            $user = $res->getPassager();
+
+            // 🌱 Remboursement si payé
+            if ($res->isPaid()) {
+                $user->setTokens(
+                    $user->getTokens() + $trajet->getTokenCost()
+                );
+            }
+
+            // ❌ Suppression de la réservation
+            $em->remove($res);
+        }
+
+        // ❌ Suppression du trajet
         $em->remove($trajet);
     }
 
     $em->flush();
 
-    return $this->redirectToRoute('admin_trajets_list');
+    $this->addFlash('success', 'Les trajets passés ont été supprimés et les passagers payés remboursés.');
+    return $this->redirectToRoute('admin_trajets_index');
 }
+
 
 }

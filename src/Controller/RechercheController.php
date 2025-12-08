@@ -23,25 +23,30 @@ class RechercheController extends AbstractController
         }
 
         $qb = $em->getRepository(Trajet::class)->createQueryBuilder('t');
-
+            
+        // ❗ Ne montrer que les trajets futurs
+        $qb->andWhere('t.dateDepart > :now')
+           ->setParameter('now', new \DateTime());
+            
         if ($villeDepart) {
             $qb->andWhere('LOWER(t.villeDepart) LIKE LOWER(:villeDepart)')
                ->setParameter('villeDepart', "%$villeDepart%");
         }
-
+        
         if ($villeArrivee) {
             $qb->andWhere('LOWER(t.villeArrivee) LIKE LOWER(:villeArrivee)')
                ->setParameter('villeArrivee', "%$villeArrivee%");
         }
-
+        
         if ($dateDepart) {
             $qb->andWhere('t.dateDepart BETWEEN :start AND :end')
                 ->setParameter('start', (new \DateTime($dateDepart))->setTime(0, 0, 0))
                 ->setParameter('end', (new \DateTime($dateDepart))->setTime(23, 59, 59));
         }
-
+        
         $qb->orderBy('t.dateDepart', 'ASC');
         $trajets = $qb->getQuery()->getResult();
+
 
         return $this->render('recherche/index.html.twig', [
             'trajets' => $trajets,

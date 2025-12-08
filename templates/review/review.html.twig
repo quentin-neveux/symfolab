@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Noter {{ target.prenom }} - EcoRide{% endblock %}
+
+{% block body %}
+
+<!-- ============================================================
+     HERO
+=============================================================== -->
+<section class="hero-global hero-recherche d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3 text-white">Laisser un avis</h2>
+    <p class="hero-tagline mb-4">Partage ton ressenti sur le trajet</p>
+  </div>
+</section>
+
+<!-- ============================================================
+     REVIEW FORM
+=============================================================== -->
+<section class="py-5 bg-ecoride-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+
+        <div class="ecoride-form bg-white shadow p-4 rounded-4">
+
+          <!-- TARGET USER -->
+          <div class="text-center mb-4">
+            <div class="mb-2">
+              {% if target.photo %}
+                <img src="{{ asset('uploads/photos/' ~ target.photo) }}"
+                     class="rounded-circle shadow"
+                     style="width: 90px; height: 90px; object-fit: cover;">
+              {% else %}
+                <div class="rounded-circle bg-ecoride-light d-flex align-items-center justify-content-center mx-auto"
+                     style="width: 90px; height: 90px; font-size: 2rem;">
+                  👤
+                </div>
+              {% endif %}
+            </div>
+
+            <h3 class="fw-bold text-eco-primary">
+              {{ target.prenom }} {{ target.nom }}
+            </h3>
+            <p class="text-muted small">
+              Comment s'est passé votre trajet ensemble ?
+            </p>
+          </div>
+
+          <!-- FORMULAIRE -->
+          {{ form_start(form) }}
+
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Ta note</label>
+            <div class="d-flex justify-content-between">
+              {{ form_widget(form.rating) }}
+            </div>
+            <div class="form-error">{{ form_errors(form.rating) }}</div>
+          </div>
+
+          <div class="mb-3">
+            <label class="fw-semibold mb-2">Ton commentaire (optionnel)</label>
+            {{ form_widget(form.comment) }}
+            <div class="form-error">{{ form_errors(form.comment) }}</div>
+          </div>
+
+          <button type="submit"
+                  class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-3">
+            Envoyer l'avis ⭐
+          </button>
+
+          {{ form_end(form) }}
+
+          <div class="text-center mt-4">
+            <a href="{{ path('app_profil') }}" class="small text-success text-decoration-none">
+              ← Retour au profil
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

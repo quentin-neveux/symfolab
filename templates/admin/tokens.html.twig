@@ -1,0 +1,38 @@
+{% extends 'admin/base.html.twig' %}
+
+{% block body %}
+
+<h2 class="text-success mb-4 fw-bold">Ajouter des tokens</h2>
+
+<div class="card p-4 shadow-sm rounded-4">
+
+    <form action="{{ path('admin_tokens_add') }}" method="POST" class="row g-4">
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Utilisateur</label>
+            <select name="user" class="form-select rounded-pill py-2" required>
+                <option value="">Sélectionne un utilisateur</option>
+                {% for u in users %}
+                    <option value="{{ u.id }}">
+                        {{ u.prenom }} {{ u.nom }} – {{ u.email }} ({{ u.tokens }} tokens)
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Montant à ajouter</label>
+            <input type="number" name="amount" class="form-control rounded-pill py-2"
+                   min="1" required>
+        </div>
+
+        <div class="col-12 text-end">
+            <button class="btn btn-success rounded-pill px-5 py-3 fw-bold">
+                Ajouter les tokens
+            </button>
+        </div>
+    </form>
+
+</div>
+
+{% endblock %}

@@ -23,30 +23,116 @@
               <th>Départ</th>
               <th>Arrivée</th>
               <th>Date</th>
-              <th>Prix</th>
-              <th>Statut</th>
+              <th>Rôle</th>
+              <th>Status</th>
+              <th class="text-center">Action</th>
             </tr>
           </thead>
+
           <tbody>
-            {% for trajet in historiques %}
+
+            {% for item in historiques %}
+
+              {% set trajet = item.trajet %}
+              {% set role = item.role %} {# 'conducteur' ou 'passager' #}
+              {% set reservation = item.reservation %}
+
               <tr>
                 <td>{{ trajet.villeDepart }}</td>
                 <td>{{ trajet.villeArrivee }}</td>
                 <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
-                <td>{{ trajet.prix }} €</td>
+
+                <!-- Rôle -->
                 <td>
-                  <span class="badge bg-secondary">Terminé</span>
+                  {% if role == 'conducteur' %}
+                    <span class="badge bg-primary">Conducteur</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark">Passager</span>
+                  {% endif %}
                 </td>
+
+                <!-- Statut -->
+                <td>
+                  {% if role == 'conducteur' %}
+
+                    {% if trajet.conducteurConfirmeFin %}
+                      <span class="badge bg-success">Terminé</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">En attente conducteur</span>
+                    {% endif %}
+
+                  {% else %}
+
+                    {% if reservation.passagerConfirmeFin %}
+                      <span class="badge bg-success">Terminé</span>
+                    {% else %}
+                      <span class="badge bg-warning text-dark">En attente du trajet...</span>
+                    {% endif %}
+
+                  {% endif %}
+                </td>
+
+                <!-- ACTIONS -->
+                <td class="text-center">
+
+                  <!-- Bouton: conducteur valide fin -->
+                  {% if role == 'conducteur' %}
+
+                    {% if trajet.conducteurConfirmeFin == false %}
+                      <a href="{{ path('trajet_fin_conducteur', { id: trajet.id }) }}"
+                         class="btn btn-success btn-sm rounded-pill">
+                         Valider fin
+                      </a>
+
+                    {% else %}
+                      <span class="text-success fw-semibold">✔ Validé</span>
+                    {% endif %}
+
+                  {% endif %}
+
+                  <!-- Bouton: passager valide fin -->
+                  {% if role == 'passager' %}
+
+                    {% if reservation.passagerConfirmeFin == false %}
+                      <a href="{{ path('trajet_fin_passager', { id: trajet.id }) }}"
+                         class="btn btn-outline-success btn-sm rounded-pill">
+                         J’ai terminé
+                      </a>
+                    {% else %}
+                      <span class="text-success fw-semibold">✔ Validé</span>
+                    {% endif %}
+
+                  {% endif %}
+
+                  <!-- Notation : affichée UNIQUEMENT si conducteurConfirmeFin + passagerConfirmeFin -->
+                  {% if role == 'passager' %}
+                    {% if trajet.conducteurConfirmeFin and reservation.passagerConfirmeFin and reservation.isPaid and reservation.aDejaNote == false %}
+                      
+                      <a href="{{ path('app_review', { id: trajet.conducteur.id }) }}"
+                         class="btn btn-outline-primary btn-sm rounded-pill mt-2">
+                         Noter ⭐
+                      </a>
+
+                    {% elseif reservation.aDejaNote %}
+                      <p class="small text-muted mt-2">Déjà noté ✔</p>
+                    {% endif %}
+                  {% endif %}
+
+                </td>
+
               </tr>
+
             {% else %}
               <tr>
-                <td colspan="5" class="text-center text-muted py-4">
+                <td colspan="6" class="text-center text-muted py-4">
                   Aucun trajet terminé pour le moment.
                 </td>
               </tr>
             {% endfor %}
+
           </tbody>
         </table>
+
       </div>
     </div>
   </div>

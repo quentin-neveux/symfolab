@@ -24,34 +24,71 @@
       </div>
 
       {# =============================
-         En-tête Profil : Photo + Nom
-         ============================= #}
-      <div class="profile-header d-flex align-items-center p-4 rounded shadow-sm mb-4 bg-white">
+   En-tête Profil : Photo + Nom + Tokens
+   ============================= #}
+<div class="profile-header d-flex align-items-center p-4 rounded shadow-sm mb-4 bg-white">
 
-        <div class="me-4">
-          {% if app.user.photo %}
+    {# --- Avatar --- #}
+    <div class="me-4">
+        {% if app.user.photo %}
             <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
                  class="rounded-circle shadow-sm"
                  alt="Photo de profil"
                  width="110" height="110">
-          {% else %}
+        {% else %}
             <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                  style="width:110px;height:110px;font-size:2rem;">
               {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
               <span>{{ initials }}</span>
             </div>
-          {% endif %}
-        </div>
+        {% endif %}
+    </div>
 
-        <div>
-          <h3 class="mb-1">{{ app.user.prenom }} {{ app.user.nom }}</h3>
-          <span class="badge bg-success">Compte confirmé</span>
-          <p class="text-muted mb-0">
+    {# --- Nom + Statut --- #}
+    <div>
+        <h3 class="mb-1">{{ app.user.prenom }} {{ app.user.nom }}</h3>
+        <span class="badge bg-success">Compte confirmé</span>
+        <p class="text-muted mb-0">
             Membre depuis {{ app.user.createdAt|date('Y') }}
-          </p>
+        </p>
+    </div>
+
+    {# --- Note moyenne (si existante) --- #}
+    {% if averageRating %}
+        <div class="d-flex align-items-center ms-4">
+            <span class="fw-bold me-2">{{ averageRating }}/5</span>
+            <span style="color:#f1c40f;">
+                {% for i in 1..5 %}
+                    {% if i <= averageRating %}★{% else %}☆{% endif %}
+                {% endfor %}
+            </span>
+        </div>
+    {% endif %}
+
+    <div class="ms-auto">
+    <div class="d-flex align-items-center">
+
+        {# Icône tokens correctement centrée #}
+        <div class="d-flex align-items-center justify-content-center" style="height: 48px;">
+            <i class="bi bi-coin text-success fs-3"></i>
         </div>
 
-      </div>
+        <div class="ms-3 d-flex flex-column justify-content-center" style="line-height: 1.2;">
+            <span class="text-success fw-bold small">Tokens disponibles</span>
+            <span class="fs-5">
+                <strong class="text-primary">{{ app.user.tokens }}</strong>
+                <span class="text-muted small">tokens</span>
+            </span>
+        </div>
+
+    </div>
+</div>
+
+
+
+</div>
+
+
 
 
       {# =============================

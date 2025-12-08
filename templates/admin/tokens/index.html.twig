@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des Tokens{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="mb-4 text-success">Gestion des Tokens</h1>
+
+    <form method="get" action="{{ path('admin_tokens_index') }}" class="mb-4 d-flex gap-3">
+        <input 
+            type="text" 
+            name="search" 
+            class="form-control"
+            placeholder="Rechercher un utilisateur..."
+            value="{{ search }}"
+            style="max-width: 300px;"
+        >
+        <button class="btn btn-ecoride">Rechercher</button>
+        <a href="{{ path('admin_dashboard') }}" class="btn btn-ecoride">Retour au dashboard</a>
+        {% if search %}
+            <a href="{{ path('admin_tokens_index') }}" class="btn btn-outline-danger">Réinitialiser</a>
+        {% endif %}
+    </form>
+
+    <table class="table table-striped align-middle">
+        <thead class="table-success">
+            <tr>
+                <th>#</th>
+                <th>Email</th>
+                <th>Tokens actuels</th>
+                <th>Ajouter des tokens</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.email }}</td>
+                <td><strong>{{ user.tokens }}</strong></td>
+
+                <td>
+                    <form action="{{ path('admin_tokens_add', {id: user.id}) }}" method="POST" class="d-flex gap-2">
+                        <input
+                            type="number"
+                            name="amount"
+                            class="form-control"
+                            min="1"
+                            placeholder="Ex : 50"
+                            required
+                            style="max-width:120px"
+                        >
+                        <button class="btn btn-success">Ajouter</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4" class="text-center text-muted py-3">
+                    Aucun utilisateur trouvé.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock %}

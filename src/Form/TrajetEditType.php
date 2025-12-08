@@ -17,16 +17,17 @@ class TrajetEditType extends AbstractType
             ->add('dateDepart', TimeType::class, [
                 'widget' => 'single_text',
                 'label' => 'Nouvelle heure de départ',
-                'input' => 'datetime',
+                'input' => 'string',
+                'mapped' => false,
                 'html5' => true,
+                'required' => false,
             ])
+
             ->add('placesDisponibles', NumberType::class, [
                 'label' => 'Places disponibles',
-            ])
-            ->add('prix', NumberType::class, [
-                'label' => 'Prix par passager',
-                'scale' => 2,
             ]);
+            // NOTE : plus de champ "prix"
+            // NOTE : tokenCost est calculé automatiquement -> pas dans le formulaire
     }
 
     public function configureOptions(OptionsResolver $resolver): void

@@ -4,13 +4,19 @@
 
 {% block body %}
 
-<section class="hero-section hero-recherche d-flex align-items-center text-center text-white position-relative">
+<!-- ============================================================
+     HERO
+=============================================================== -->
+<section class="hero-global hero-paiement d-flex align-items-center text-center text-white position-relative">
   <div class="container">
-    <h2 class="hero-title mb-3 text-white">Paiement</h2>
-    <p class="hero-tagline mb-4">Finalise ta réservation en toute sécurité</p>
+    <h2 class="hero-title mb-3">Paiement</h2>
+    <p class="hero-tagline mb-4">Finalise ta réservation en toute simplicité</p>
   </div>
 </section>
 
+<!-- ============================================================
+     SECTION PAIEMENT TOKENS
+=============================================================== -->
 <section class="py-5 bg-ecoride-light">
   <div class="container">
     <div class="row justify-content-center">
@@ -18,66 +24,58 @@
 
         <div class="ecoride-form bg-white shadow p-4 rounded-4">
 
+          <!-- TITRE -->
           <div class="text-center mb-4">
-            <h2 class="fw-bold text-eco-primary">Paiement de votre trajet</h2>
+            <h2 class="fw-bold text-eco-primary">Paiement par Tokens</h2>
             <p class="text-muted">
               Merci {{ app.user.prenom ?? app.user.email }},<br>
-              vérifie les infos avant de confirmer.
+              vérifie les informations avant de confirmer.
             </p>
           </div>
 
-          <form method="post" class="eco-form">
+          <!-- INFOS TRAJET -->
+          <div class="mb-4 p-3 rounded-3 bg-light border">
+            <p class="mb-1">
+              <strong>Départ :</strong> {{ trajet.villeDepart }} — {{ trajet.pointDepart }}
+            </p>
+            <p class="mb-1">
+              <strong>Arrivée :</strong> {{ trajet.villeArrivee }} — {{ trajet.pointArrivee }}
+            </p>
+            <p class="mb-1">
+              <strong>Date :</strong> {{ trajet.dateDepart|date('d/m/Y H:i') }}
+            </p>
+            <p class="mb-0">
+              <strong>Coût :</strong>
+              <span class="text-eco-primary">{{ trajet.tokenCost }} tokens</span>
+            </p>
+          </div>
 
-            <!-- NOM TITULAIRE -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Nom du titulaire</label>
-              <input type="text"
-                     name="card_name"
-                     class="eco-input"
-                     placeholder="Nom et prénom"
-                     required>
-            </div>
+          <!-- SOLDE UTILISATEUR -->
+          <div class="alert alert-info text-center fw-semibold">
+            Solde actuel : <span class="text-success">{{ app.user.tokens }}</span> tokens
+          </div>
 
-            <!-- NUMÉRO DE CARTE -->
-            <div class="mb-3">
-              <label class="form-label fw-semibold">Numéro de carte</label>
-              <input type="text"
-                     name="card_number"
-                     class="eco-input"
-                     placeholder="1234 5678 9012 3456"
-                     required>
-            </div>
+          <!-- FORMULAIRE -->
+          <form method="post"
+                action="{{ path('payment_process', { id: trajet.id }) }}"
+                class="eco-form">
 
-            <!-- EXP + CVC -->
-            <div class="row">
-              <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">Expiration</label>
-                <input type="text"
-                       name="expiry"
-                       class="eco-input"
-                       placeholder="MM/AA"
-                       required>
+            {% if app.user.tokens >= trajet.tokenCost %}
+              <button type="submit"
+                      class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-2">
+                Payer avec mes Tokens 🌿
+              </button>
+            {% else %}
+              <div class="alert alert-danger text-center mt-3">
+                Solde insuffisant pour ce trajet.
               </div>
-
-              <div class="col-md-6 mb-3">
-                <label class="form-label fw-semibold">CVC</label>
-                <input type="text"
-                       name="cvc"
-                       class="eco-input"
-                       placeholder="123"
-                       required>
-              </div>
-            </div>
-
-            <!-- BOUTON -->
-            <button type="submit"
-                    class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill mt-3">
-              Confirmer le paiement 💳
-            </button>
+            {% endif %}
           </form>
 
+          <!-- RETOUR -->
           <div class="text-center mt-4">
-            <a href="{{ path('payment') }}" class="small text-success text-decoration-none">
+            <a href="{{ path('app_home') }}"
+               class="small text-success text-decoration-none">
               ← Retour à l'accueil
             </a>
           </div>

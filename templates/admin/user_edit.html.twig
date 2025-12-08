@@ -7,6 +7,19 @@
   {{ form_start(form) }}
     {{ form_widget(form) }}
 
+    <hr>
+
+    {# Champ perso pour ajouter des tokens #}
+    <label for="add_tokens" class="form-label fw-bold">Ajouter des tokens</label>
+    <input 
+      type="number" 
+      id="add_tokens" 
+      name="add_tokens" 
+      class="form-control mb-3" 
+      placeholder="Ex : 100"
+      min="1"
+    >
+
     <button class="btn btn-success mt-3">Enregistrer</button>
   {{ form_end(form) }}
 

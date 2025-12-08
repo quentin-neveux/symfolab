@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shoot le climatosceptique</title>
+
   <style>
     :root {
       --eco-green: #2a7a0b;
@@ -15,44 +16,52 @@
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow: hidden; /* ✅ supprime la barre de défilement */
       background: var(--eco-bg);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       font-family: "Poppins", sans-serif;
-      color: var(--eco-green);
       cursor: crosshair;
-      box-sizing: border-box;
     }
 
     h1 {
       font-size: 1.8rem;
-      margin: 15px 0;
+      margin-top: 15px;
+      font-weight: 700;
       color: var(--eco-green);
       text-align: center;
-      font-weight: 700;
+    }
+
+    .description {
+      color: #000;
+      text-align: center;
+      font-style: italic;
+      max-width: 650px;
+      margin-bottom: 15px;
+    }
+
+    #podium-default, #aimlab-top3 {
+      text-align: center;
+      margin-bottom: 12px;
+      color: var(--eco-green);
+      font-weight: 600;
     }
 
     #game {
       position: relative;
       width: 750px;
       height: 450px;
-      background: #ffffff;
       border: 4px solid var(--eco-lightgreen);
       border-radius: 20px;
+      background: #fff;
       overflow: hidden;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
     }
 
     #target {
       position: absolute;
       width: 120px;
-      height: auto;
-      object-fit: contain;
       user-select: none;
-      pointer-events: auto;
       cursor: crosshair;
       transition: filter 0.1s ease;
     }
@@ -64,156 +73,67 @@
     }
 
     #score {
-      margin-top: 15px;
+      margin-top: 10px;
       font-weight: 600;
       color: var(--eco-green);
     }
 
-    /* === Bouton Rejouer === */
     #retry-btn {
       display: none;
-      margin-top: 18px;
-      margin-bottom: 10px;
+      margin-top: 15px;
       padding: 10px 25px;
       background: var(--eco-lightgreen);
-      color: white;
+      color: #fff;
+      font-size: 1rem;
       font-weight: 600;
       border: none;
       border-radius: 12px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+      transition: 0.3s ease;
     }
 
     #retry-btn:hover {
       background: var(--eco-green);
     }
 
-    /* === Effet flash au tir === */
     .flash {
       position: absolute;
       inset: 0;
-      background: rgba(255, 0, 0, 0.15);
+      background: rgba(255,0,0,0.15);
       animation: flashAnim 0.15s ease;
       pointer-events: none;
     }
 
     @keyframes flashAnim {
       from { opacity: 0.6; }
-      to { opacity: 0; }
+      to   { opacity: 0; }
     }
-
   </style>
 </head>
+
 <body>
 
-  <h1>Shoot the climatosceptique</h1>
-  <p class="description text-black" style="color: #000; text-align: center; font-style: italic;">
-    Ce mini jeu n'a pas pour but de promouvoir la violence, mais plutôt de sensibiliser sur le climat, en se divertissant tout en apprenant.
+  <h1>Shoot le climatosceptique</h1>
+
+  <!-- ===== PODIUM DYNAMIQUE ===== -->
+  <div id="aimlab-top3">Chargement du classement...</div>
+
+  <!-- ===== DESCRIPTION ===== -->
+  <p class="description">
+    Ce mini jeu ne promeut aucunement la violence.<br>
+    Il sensibilise au climat en ajoutant une touche d’humour.
   </p>
 
+  <!-- ===== JEU ===== -->
   <div id="game">
     <img id="target" src="assets/images/trump.png" alt="Cible">
   </div>
 
-  <div id="score">Clics : 0 / 10</div>
-  <button id="retry-btn">Rejouer</button>
+  <div id="score" style="margin-bottom: 12px;">Clics : 0 / 10</div>
+  <button id="retry-btn" style="margin-bottom:20px;">Rejouer</button>
 
   <audio id="hit-sound" src="assets/sound/hit-sound.wav" preload="auto"></audio>
 
-  <script>
-    // ============================================================
-    // LOGIQUE DU JEU
-    // ============================================================
-
-  const game = document.getElementById('game');
-  const target = document.getElementById('target');
-  target.draggable = false; // ✅ empêche toute tentative de "drag"
-  const scoreDisplay = document.getElementById('score');
-  const hitSound = document.getElementById('hit-sound');
-  const retryBtn = document.getElementById('retry-btn');
-
-  const totalTargets = 10;
-  let clicks = 0;
-  let times = [];
-  let startTime = null;
-  let gameStarted = false; // ✅ nouveau flag
-
-  // --- Position aléatoire ---
-  function randomPosition() {
-    const gameRect = game.getBoundingClientRect();
-    const maxX = gameRect.width - target.width;
-    const maxY = gameRect.height - target.height;
-    const x = Math.random() * maxX;
-    const y = Math.random() * maxY;
-    target.style.left = `${x}px`;
-    target.style.top = `${y}px`;
-  }
-
-  // --- Prochaine cible ---
-  function nextTarget() {
-    randomPosition();
-  }
-
-  // --- Fin du jeu ---
-  function endGame() {
-    target.style.display = 'none';
-    const avg = times.reduce((a, b) => a + b) / times.length;
-    scoreDisplay.textContent = `Bien joué ! Temps moyen : ${avg.toFixed(0)} ms par cible.`;
-    retryBtn.style.display = 'inline-block';
-  }
-
-  // --- Clic sur la cible ---
-  target.addEventListener('click', () => {
-    // Démarrage du jeu au premier tir
-    if (!gameStarted) {
-      gameStarted = true;
-      startTime = performance.now(); // le chrono commence ici
-    }
-
-    // Effet visuel et sonore
-    target.classList.add('hit');
-    hitSound.currentTime = 0;
-    hitSound.play();
-
-    const flash = document.createElement('div');
-    flash.classList.add('flash');
-    game.appendChild(flash);
-    setTimeout(() => flash.remove(), 150);
-
-    // Si ce n’est pas le premier clic, on calcule le temps de réaction
-    if (clicks > 0) {
-      const reactionTime = performance.now() - startTime;
-      times.push(reactionTime);
-    }
-
-    clicks++;
-
-    if (clicks < totalTargets) {
-      scoreDisplay.textContent = `Clics : ${clicks} / ${totalTargets}`;
-      randomPosition();
-      startTime = performance.now(); // redémarre le chrono à chaque nouvelle cible
-    } else {
-      endGame();
-    }
-
-    setTimeout(() => target.classList.remove('hit'), 80);
-  });
-
-  // --- Réinitialisation ---
-  retryBtn.addEventListener('click', () => {
-    clicks = 0;
-    times = [];
-    gameStarted = false; // ✅ reset du flag
-    scoreDisplay.textContent = `Clics : 0 / ${totalTargets}`;
-    target.style.display = 'block';
-    retryBtn.style.display = 'none';
-    nextTarget();
-  });
-
-  nextTarget();
-</script>
-
+  <script src="assets/js/aimlab.js"></script>
 </body>
 </html>

@@ -1,0 +1,1647 @@
+@charset "UTF-8";
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* ============================================================
+   ECORIDE — Variables globales
+   ============================================================ */
+:root {
+  --eco-primary: #1b3f15;
+  --eco-secondary: #3f753f;
+  --eco-accent: #ffc77e;
+  --eco-dark: #0f240c;
+  --eco-light: #f5f0e6;
+  --font-title: "Poppins", sans-serif;
+  --font-body: "Roboto", sans-serif;
+  /* Sync Bootstrap */
+  --bs-primary: var(--eco-primary);
+  --bs-secondary: var(--eco-secondary);
+  --bs-success: var(--eco-secondary);
+  --bs-info: #a6d6a6;
+  --bs-warning: var(--eco-accent);
+  --bs-danger: #cc6a00;
+  --bs-dark: var(--eco-dark);
+  --bs-light: var(--eco-light);
+  --bs-body-bg: var(--eco-light);
+  --bs-body-color: var(--eco-dark);
+}
+
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Mixins réutilisables
+   ============================================================ */
+/* -------------------------
+   Composants EcoRide
+-------------------------- */
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — NAVBAR (Version PRO)
+   Structure, couleurs, boutons, burger, avatar
+   ============================================================ */
+/* ------------------------------------------------------------
+   STRUCTURE GLOBALE
+------------------------------------------------------------- */
+.ecoride-navbar {
+  background: var(--eco-dark);
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* LOGO */
+.ecoride-navbar .navbar-brand h2 {
+  font-family: var(--font-title);
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Couleurs internes */
+.ecoride-navbar .text-warning {
+  color: #f2c857 !important;
+}
+
+.ecoride-navbar .text-light {
+  color: #ffffff !important;
+}
+
+/* ------------------------------------------------------------
+   LIENS NAVBAR
+------------------------------------------------------------- */
+.ecoride-navbar .nav-link {
+  color: #f3f3f3 !important;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.ecoride-navbar .nav-link:hover {
+  color: #58c242 !important;
+}
+
+.ecoride-navbar .nav-link.active {
+  color: #f2c857 !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ------------------------------------------------------------
+   BOUTONS NAVBAR (Light + Solid)
+------------------------------------------------------------- */
+.btn-nav-light {
+  color: #ffffff;
+  background: none;
+  border-radius: 0.6rem;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  font-family: var(--font-title);
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+.btn-nav-light:hover {
+  background: rgba(10, 32, 5, 0.7);
+  box-shadow: inset 0 0 8px rgb(2, 15, 0), inset 0 0 3px rgb(2, 15, 0);
+  color: #ffbd66;
+}
+
+.btn-nav-solid {
+  color: #fff !important;
+  background: linear-gradient(180deg, #4aaf36 0%, #2d6b20 100%);
+  border-radius: 0.6rem;
+  padding: 0.45rem 1rem;
+  font-weight: 600;
+  font-family: var(--font-title);
+  text-decoration: none;
+  transition: all 0.15s ease-in-out;
+}
+.btn-nav-solid:hover {
+  background: linear-gradient(180deg, #59c242 0%, #285f1b 100%);
+}
+
+/* ------------------------------------------------------------
+   ALIGNEMENT DES BOUTONS (mobile)
+------------------------------------------------------------- */
+@media (max-width: 992px) {
+  .navbar-collapse {
+    text-align: center;
+  }
+  .navbar-collapse ul {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .navbar-collapse .nav-item-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+  }
+  .navbar-collapse .btn-nav-light,
+  .navbar-collapse .btn-nav-solid {
+    margin: 0;
+    padding: 0.5rem 1.2rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   BURGER MENU
+------------------------------------------------------------- */
+.ecoride-burger {
+  width: 40px;
+  height: 40px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.ecoride-burger:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.ecoride-burger:focus, .ecoride-burger:active {
+  outline: none;
+  box-shadow: none;
+}
+.ecoride-burger span {
+  position: absolute;
+  width: 22px;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+.ecoride-burger span:nth-child(1) {
+  transform: translateY(-6px);
+}
+.ecoride-burger span:nth-child(2) {
+  transform: translateY(0);
+}
+.ecoride-burger span:nth-child(3) {
+  transform: translateY(6px);
+}
+.ecoride-burger[aria-expanded=true] span:nth-child(1) {
+  transform: rotate(45deg);
+}
+.ecoride-burger[aria-expanded=true] span:nth-child(2) {
+  opacity: 0;
+}
+.ecoride-burger[aria-expanded=true] span:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+/* ------------------------------------------------------------
+   AVATAR UTILISATEUR
+------------------------------------------------------------- */
+.user-avatar-nav {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: var(--eco-secondary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Boutons (Version PRO)
+   Principaux / Variantes / Admin / Retour / Funix
+   ============================================================ */
+/* ------------------------------------------------------------
+   1. BOUTON PRINCIPAL ECORIDE
+------------------------------------------------------------- */
+.btn-ecoride {
+  background-color: var(--eco-primary);
+  border: none;
+  color: #fff;
+  font-weight: 400;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, box-shadow 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-ecoride:hover {
+  background-color: var(--eco-secondary);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.btn-ecoride:active {
+  background-color: #2a4f24;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Accent orange */
+.btn-ecoride-accent {
+  background-color: var(--eco-accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, box-shadow 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-ecoride-accent:hover {
+  background-color: #ffb955;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Outline */
+.btn-ecoride-outline {
+  border: 2px solid var(--eco-secondary);
+  color: var(--eco-secondary);
+  background: transparent;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, color, box-shadow 0.25s ease;
+}
+.btn-ecoride-outline:hover {
+  background-color: var(--eco-secondary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ------------------------------------------------------------
+   2. VARIANTES ROUGES / ORANGES
+------------------------------------------------------------- */
+.btn-ecoride-red,
+.btn-ecoride-orange {
+  border: none;
+  color: #fff !important;
+  font-weight: 400;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, box-shadow, transform 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+/* Rouge */
+.btn-ecoride-red {
+  background-color: #cc5f14;
+}
+.btn-ecoride-red:hover {
+  background-color: #ce8351;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+}
+.btn-ecoride-red:active {
+  background-color: #cc5f14;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+}
+
+/* Rouge outline */
+.btn-ecoride-red-outline {
+  background: transparent;
+  border: 2px solid #ce8351;
+  color: #fff !important;
+  font-weight: 600;
+  transition: background, color, box-shadow 0.25s ease;
+}
+.btn-ecoride-red-outline:hover {
+  background: #ce8351;
+  color: #fff !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+}
+
+/* ------------------------------------------------------------
+   3. BOUTON ADMIN : MODIFIER
+------------------------------------------------------------- */
+.btn-modify {
+  background: #0e3b0a;
+  color: white;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.45rem 1.1rem;
+  border: 2px solid var(--eco-success);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: background, transform, box-shadow 0.25s ease;
+}
+.btn-modify:hover {
+  background: var(--eco-success);
+  color: var(--bs-danger);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* ------------------------------------------------------------
+   4. BOUTON RETOUR
+------------------------------------------------------------- */
+.btn-nav-retour {
+  background-color: var(--eco-accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, box-shadow 0.25s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+.btn-nav-retour:hover {
+  background-color: #ffb955;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+.btn-nav-retour:active {
+  background-color: #2a4f24;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Outline Retour */
+.btn-nav-retour-outline {
+  border: 2px solid var(--eco-secondary);
+  color: var(--eco-secondary);
+  background: transparent;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  transition: background-color, color, box-shadow 0.25s ease;
+}
+.btn-nav-retour-outline:hover {
+  background-color: var(--eco-secondary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* ------------------------------------------------------------
+   5. BOUTONS SECONDAIRES : Accueil / Déconnexion
+------------------------------------------------------------- */
+.btn-back-home,
+.btn-logout {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: all 0.3s 0.25s ease;
+  background-color: transparent;
+  position: relative;
+}
+
+/* Retour */
+.btn-back-home {
+  color: var(--eco-secondary);
+}
+.btn-back-home:hover {
+  color: #fff;
+  background-color: var(--eco-secondary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+/* Déconnexion */
+.btn-logout {
+  color: #ff9f20;
+}
+.btn-logout:hover {
+  color: #fff;
+  background-color: #cc0000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* ------------------------------------------------------------
+   6. STYLE "FUNIX" — effet pressé / relief
+------------------------------------------------------------- */
+.btn-funix {
+  background: linear-gradient(180deg, #357a25 0%, #204b16 100%);
+  color: #fff;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.1s ease-in-out;
+}
+.btn-funix:hover {
+  transform: translateY(1px);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(180deg, #2e6d1f 0%, #153110 100%);
+}
+.btn-funix:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.35);
+  background: linear-gradient(180deg, #214a16 0%, #0d1c07 100%);
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Barre de recherche (Version PRO)
+   Structure, champs, icônes, bouton, responsive
+   ============================================================ */
+/* ------------------------------------------------------------
+   CONTENEUR PRINCIPAL
+------------------------------------------------------------- */
+/* ============================================================
+   SEARCHBAR DESKTOP — VERSION CLEAN
+=============================================================== */
+.eco-searchbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+
+  width: min(950px, 92%);
+  margin: 1rem auto 0;
+  padding: 0.3rem;
+
+  position: relative;
+  border-radius: 0;
+  overflow: visible;
+
+  transition: all 0.25s ease;
+}
+
+
+/* ============================================================
+   CHAMPS
+=============================================================== */
+.eco-search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  padding: 0 1.5rem;
+  height: 64px;
+
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+
+  transition: background 0.25s ease;
+}
+
+.eco-search-field:first-of-type {
+  border-radius: 2rem 0 0 2rem;
+}
+
+.eco-search-field:last-of-type {
+  border-right: none;
+  border-radius: 0;
+}
+
+/* Focus propre et uniforme */
+.eco-search-field:focus-within {
+  background: #f3fff4;
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+.eco-search-field i {
+  font-size: 1.3rem;
+  color: var(--eco-secondary);
+  margin-right: 12px;
+  opacity: 0.85;
+  transition: opacity 0.2s ease;
+}
+
+.eco-search-field:focus-within i {
+  opacity: 1;
+}
+
+
+/* ============================================================
+   INPUTS
+=============================================================== */
+.eco-searchbar .form-control {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: #222;
+
+  padding: 0.4rem 0;
+  font-size: 1.05rem;
+  font-family: var(--font-title);
+
+  box-shadow: none !important;
+}
+
+.eco-searchbar .form-control::placeholder {
+  color: #666;
+}
+
+.eco-searchbar .form-control:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+
+/* ============================================================
+   BOUTON RECHERCHER
+=============================================================== */
+.eco-search-btn {
+  background: linear-gradient(180deg, #2e6d1f 0%, #153110 100%);
+  color: #fff;
+
+  font-weight: 600;
+  font-family: var(--font-title);
+
+  min-height: 64px;
+
+  border: none;
+  outline: none;
+  border-radius: 0 2rem 2rem 0;
+  padding: 0 2.5rem;
+
+  margin-left: -1px;
+
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition: all 0.25s ease;
+}
+
+.eco-search-btn:hover {
+  background: linear-gradient(180deg, #3d852a 0%, #1d4b17 100%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
+
+.eco-search-btn:active {
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+
+/* ============================================================
+   MOBILE ( < 576px )
+=============================================================== */
+@media (max-width: 576px) {
+
+  .eco-searchbar {
+    flex-direction: column;
+
+    background: #fff;
+    border-radius: 1.6rem;
+    padding: 1.2rem 1.3rem;
+    margin-top: 1.5rem;
+
+    overflow: hidden; /* Corrige les coins carrés */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
+  }
+
+  .eco-search-field {
+    background: #fff !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+
+    padding: 0.8rem 0.3rem;
+    height: auto;
+
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .eco-search-field:last-of-type {
+    border-bottom: none !important;
+  }
+
+  .eco-search-btn {
+    width: 100%;
+    height: 52px;
+
+    margin-top: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Heros (Version PRO)
+   Structure globale, overlays, variantes, responsive
+   ============================================================ */
+/* ============================================================
+   🌄 HERO — VERSION ECORIDE CLEAN
+   (un seul système pour toutes les pages)
+============================================================ */
+
+/* ============================================================
+   HERO GLOBAL — STRUCTURE GÉNÉRALE
+============================================================ */
+.hero-global {
+  position: relative;
+  width: 100%;
+  min-height: 48vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  color: #fff;
+  text-align: center;
+  padding: 3rem 1rem;
+  overflow: visible !important;
+}
+
+/* Overlay foncé */
+.hero-global::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Contenu par-dessus */
+.hero-global > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* ============================================================
+   LOGO NAVBAR — GRADIENT
+============================================================ */
+.logo-ecoride {
+  font-family: var(--font-title);
+  font-weight: 700;
+  font-size: 2rem;
+  background: linear-gradient(90deg, #ffffff 0%, #ffd7a6 35%, #fa8a13 75%, #cc6a00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============================================================
+   TITRES + TAGLINES (DANS LE HERO)
+============================================================ */
+
+/* Grand titre EcoRide — massif, lisible */
+.hero-global .hero-title-ecoride {
+  font-family: var(--font-title);
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  font-size: clamp(3rem, 5vw, 4.6rem);
+  margin-bottom: 0.7rem;
+
+  background: linear-gradient(90deg, #ffffff 0%, #ffd7a6 35%, #fa8a13 75%, #cc6a00 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Tagline principale */
+.hero-global .hero-tagline-ecoride,
+.hero-global .hero-tagline-eco {
+  font-size: clamp(1.2rem, 1.8vw, 1.6rem);
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  margin-bottom: 1.4rem;
+}
+
+/* Variante blanche utilisée sur la home */
+.hero-global .hero-tagline-eco {
+  color: #fff !important;
+}
+
+/* ============================================================
+   VARIANTES DE PAGES — IMAGES
+============================================================ */
+.hero-home        { background-image: url("../assets/images/hero-home.webp"); }
+.hero-connexion   { background-image: url("../assets/images/hero-connexion.webp"); }
+.hero-inscription { background-image: url("../assets/images/hero-inscription.webp"); }
+.hero-recherche   { background-image: url("../assets/images/hero-recherche.webp"); }
+.hero-historique  { background-image: url("../assets/images/hero-historique.webp"); }
+.hero-profil      { background-image: url("../assets/images/hero-profil.webp"); }
+.hero-covoiturer  { background-image: url("../assets/images/hero-covoiturer.webp"); }
+.hero-presse      { background-image: url("../assets/images/hero-presse.webp"); }
+.hero-contact     { background-image: url("../assets/images/hero-contact.webp"); }
+.hero-proposer    { background-image: url("../assets/images/hero-proposer.webp"); }
+.hero-apropos     { background-image: url("../assets/images/hero-apropos.webp"); }
+.hero-404         { background-image: url("../assets/images/hero-404.webp"); }
+
+/* Dégradé bas du hero home */
+.hero-home::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 55%; /* plus haut = transition plus douce */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 5%,
+    rgba(255, 255, 255, 0.1) 10%,
+    rgba(255, 255, 255, 0.15) 15%,
+    rgba(255, 255, 255, 0.2) 20%,
+    rgba(255, 255, 255, 0.25) 25%,
+    rgba(255, 255, 255, 0.3) 30%,
+    rgba(255, 255, 255, 0.35) 35%,
+    rgba(255, 255, 255, 0.4) 40%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.55) 55%,
+    rgba(255, 255, 255, 0.6) 60%,
+    rgba(255, 255, 255, 0.65) 65%,
+    rgba(255, 255, 255, 0.7) 70%,
+    rgba(255, 255, 255, 0.75) 75%,
+    rgba(255, 255, 255, 0.8) 80%,
+    rgba(255, 255, 255, 0.85) 85%,
+    rgba(255, 255, 255, 0.9) 90%,
+    rgba(255, 255, 255, 0.95) 95%,
+    #ffffff 100%
+  );
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Padding spécifique home */
+.hero-home {
+  overflow: visible !important;
+  padding-top: 6rem !important;
+  padding-bottom: 3rem !important;
+}
+
+/* ============================================================
+   RESPONSIVE — < 576px
+============================================================ */
+@media (max-width: 576px) {
+
+  .hero-global,
+  .hero-home,
+  .hero-connexion,
+  .hero-inscription,
+  .hero-recherche,
+  .hero-historique,
+  .hero-profil,
+  .hero-covoiturer,
+  .hero-presse,
+  .hero-contact,
+  .hero-proposer,
+  .hero-apropos,
+  .hero-404 {
+    min-height: 22vh;
+    padding: 2rem 1rem 2.5rem;
+  }
+
+  /* Titre un peu réduit mais toujours lisible */
+  .hero-global .hero-title-ecoride {
+    font-size: 2.4rem !important;
+  }
+
+  /* Tagline plus compacte */
+  .hero-global .hero-tagline-ecoride,
+  .hero-global .hero-tagline-eco {
+    font-size: 1rem !important;
+  }
+
+  /* Ajustement home */
+  .hero-home {
+    padding-top: 4rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  /* Masquer texte secondaire */
+  .hero-home .lead {
+    display: none !important;
+  }
+}
+
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Formulaires (Version PRO)
+   Cartes, inputs, labels, textarea, password toggle
+   ============================================================ */
+/* ------------------------------------------------------------
+   CARTE DE FORMULAIRE PRINCIPALE
+------------------------------------------------------------- */
+.card.ecoride-form {
+  background: #fffdf8;
+  border: 1px solid rgba(27, 63, 21, 0.1);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  position: relative;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: transform, box-shadow 0.25s ease;
+}
+.card.ecoride-form::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 199, 126, 0.1), rgba(63, 117, 63, 0.05));
+  pointer-events: none;
+  z-index: 0;
+}
+.card.ecoride-form h2 {
+  font-family: var(--font-title);
+  color: white;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  letter-spacing: 0.5px;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------
+   LABELS / TEXTES AIDE
+------------------------------------------------------------- */
+.card.ecoride-form label {
+  font-weight: 500;
+  color: var(--eco-dark);
+  font-size: 0.95rem;
+}
+
+.card.ecoride-form .form-text {
+  font-size: 0.85rem;
+  color: rgb(35, 161, 30);
+}
+
+/* ------------------------------------------------------------
+   INPUTS — UNIFORMISATION
+------------------------------------------------------------- */
+.card.ecoride-form .form-control {
+  border-radius: 10px;
+  border: 1.5px solid rgba(63, 117, 63, 0.25);
+  padding: 0.75rem 1rem;
+  background: #fff;
+  transition: all 0.25s ease;
+}
+.card.ecoride-form .form-control:focus {
+  border-color: var(--eco-secondary);
+  box-shadow: 0 0 0 4px rgba(63, 117, 63, 0.15);
+  background: #fffffb;
+}
+
+/* Bouton principal dans un formulaire */
+.card.ecoride-form .btn-ecoride {
+  width: 100%;
+  font-size: 1rem;
+  border-radius: 50px;
+  margin-top: 1rem;
+}
+
+/* Liens internes (connexion, conditions...) */
+.card.ecoride-form .form-check-label a,
+.card.ecoride-form p.text-center a {
+  color: var(--eco-secondary);
+  font-weight: 500;
+  text-decoration: underline dotted;
+  transition: color 0.2s ease;
+}
+.card.ecoride-form .form-check-label a:hover,
+.card.ecoride-form p.text-center a:hover {
+  color: var(--eco-accent);
+  text-decoration: underline solid;
+}
+
+/* ------------------------------------------------------------
+   INPUTS GLOBALS (utilisés hors card)
+------------------------------------------------------------- */
+.eco-input {
+  border: 1.5px solid #ddd;
+  border-radius: 50px;
+  padding: 12px 18px;
+  background-color: #fff;
+  width: 100%;
+  transition: all 0.25s ease;
+}
+.eco-input:hover {
+  border-color: var(--eco-secondary);
+}
+.eco-input:focus {
+  border-color: var(--eco-success);
+  box-shadow: 0 0 0 3px rgba(71, 185, 81, 0.25);
+  outline: none;
+}
+
+/* Textarea carré */
+.eco-textarea {
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  padding: 12px 18px;
+  min-height: 110px;
+  resize: vertical;
+  width: 100%;
+  transition: all 0.25s ease;
+}
+.eco-textarea:focus {
+  border-color: var(--eco-success);
+  box-shadow: 0 0 0 3px rgba(71, 185, 81, 0.25);
+  outline: none;
+}
+
+/* ------------------------------------------------------------
+   PASSWORD INPUT — MODE "ŒIL"
+------------------------------------------------------------- */
+.eco-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  width: 100%;
+  padding-right: 50px !important; /* espace pour l’icône */
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+
+  background: none;
+  border: none;
+  padding: 0;
+
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  z-index: 30;                  /* CLÉ ABSOLUE POUR MOBILE */
+  pointer-events: auto !important;
+
+  color: #5f5f5f;
+  font-size: 1.3rem;
+  touch-action: manipulation;   /* améliore le tap sur iOS */
+}
+
+/* L’icône doit IGNORER les clics */
+.toggle-password i {
+  pointer-events: none !important;
+}
+
+.toggle-password:active {
+  transform: translateY(-50%) scale(0.9);
+}
+
+.toggle-password:hover {
+  color: var(--eco-primary);
+}
+
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Profil utilisateur (Version PRO)
+   Avatar, progress bar, sous-navigation, trajets
+   ============================================================ */
+/* ------------------------------------------------------------
+   AVATAR PROFIL
+------------------------------------------------------------- */
+.profile-avatar {
+  background-color: var(--eco-secondary);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.profile-avatar span {
+  font-size: 1.6rem;
+}
+
+/* ------------------------------------------------------------
+   PROGRESS BAR
+------------------------------------------------------------- */
+.progress-bar {
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------
+   BARRE D’ONGLETS (SOUS-NAVIGATION DU PROFIL)
+------------------------------------------------------------- */
+.profile-subnav {
+  background: #fff;
+  border: none;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+.profile-subnav .nav {
+  border-bottom: 1px solid #e5e5e5;
+}
+.profile-subnav .nav-link {
+  color: #496c59;
+  font-weight: 500;
+  font-size: 1rem;
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  transition: color 0.3s ease;
+}
+.profile-subnav .nav-link:hover {
+  color: var(--eco-success);
+}
+.profile-subnav .nav-link.active {
+  color: var(--eco-secondary);
+}
+.profile-subnav .nav-link {
+  /* underline animé */
+}
+.profile-subnav .nav-link::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 0%;
+  height: 2.5px;
+  background-color: var(--eco-secondary);
+  border-radius: 1px;
+  transition: width 0.3s ease;
+}
+.profile-subnav .nav-link.active::after {
+  width: 100%;
+}
+
+/* ------------------------------------------------------------
+   UTILITAIRES
+------------------------------------------------------------- */
+.bg-white {
+  background-color: #fff !important;
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Footer (Version PRO)
+   Structure, liens, brand, réseaux, bouton contact
+   ============================================================ */
+/* ------------------------------------------------------------
+   STRUCTURE GLOBALE
+------------------------------------------------------------- */
+.footer-ecoride {
+  background: var(--eco-dark);
+  color: var(--eco-light);
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Séparateur décoratif */
+.footer-divider {
+  width: 80px;
+  height: 2px;
+  border: none;
+  background: var(--eco-accent);
+  margin: 0.8rem auto;
+  opacity: 0.9;
+}
+
+/* ------------------------------------------------------------
+   BRAND ECORIDE
+------------------------------------------------------------- */
+.footer-ecoride .footer-brand {
+  font-family: var(--font-title);
+  letter-spacing: 0.5px;
+}
+.footer-ecoride .footer-brand a {
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-transform: capitalize;
+  background: linear-gradient(90deg, #ffffff 0%, #ffe1b0 40%, #ff9e2b 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: transform, filter 0.25s ease;
+}
+.footer-ecoride .footer-brand a:hover {
+  transform: scale(1.05);
+  filter: brightness(1.1);
+}
+
+/* ------------------------------------------------------------
+   LIENS DU FOOTER
+------------------------------------------------------------- */
+.footer-ecoride .footer-link {
+  color: #f8f9fa;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+.footer-ecoride .footer-link:hover {
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------
+   RÉSEAUX SOCIAUX
+------------------------------------------------------------- */
+.social-link {
+  color: var(--eco-light);
+  font-size: 1.4rem;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+.social-link:hover {
+  color: var(--eco-accent);
+  transform: translateY(-2px);
+}
+
+/* ------------------------------------------------------------
+   BOUTON "NOUS CONTACTER"
+------------------------------------------------------------- */
+.btn-contact-footer {
+  background: transparent;
+  color: var(--eco-accent);
+  font-weight: 500;
+  border-radius: 50px;
+  padding: 0.5rem 1.4rem;
+  border: 2px solid var(--eco-accent);
+  transition: all 0.25s ease;
+}
+.btn-contact-footer:hover {
+  background: var(--eco-accent);
+  color: var(--eco-dark);
+  transform: translateY(-2px);
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Popup AimLab & Easter Egg (Version PRO)
+   Popup fullscreen, bouton close, iframe, animations, cibles
+   ============================================================ */
+/* ------------------------------------------------------------
+   EASTER EGG — Icône feuille secrète
+------------------------------------------------------------- */
+#eco-secret-logo {
+  position: relative;
+  z-index: 9999;
+  opacity: 0.45;
+  cursor: pointer;
+  filter: grayscale(100%);
+  transition: all 0.3s ease;
+  pointer-events: auto !important;
+}
+#eco-secret-logo:hover {
+  opacity: 1;
+  filter: none;
+  transform: rotate(-8deg) scale(1.15);
+}
+#eco-secret-logo:hover::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(71, 185, 81, 0.8);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------
+   POPUP AIMLAB — Fond obscur + blur
+------------------------------------------------------------- */
+#aimlab-popup {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 36, 12, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+}
+
+#aimlab-popup.active {
+  display: flex;
+}
+
+/* ------------------------------------------------------------
+   CONTENU DE LA POPUP — Taille élargie
+------------------------------------------------------------- */
+#aimlab-popup .popup-content {
+  position: relative;
+  width: 1050px;      /* ⬅️ PLUS LARGE */
+  height: 720px;      /* ⬅️ PLUS HAUT */
+  background: #fff;
+  border: 4px solid #47b951;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  animation: popupFade 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------------------------------------------------------------
+   IFRAME DU JEU — prend toute la place
+------------------------------------------------------------- */
+#aimlab-popup iframe {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+}
+
+
+
+/* ------------------------------------------------------------
+   BOUTON DE FERMETURE
+------------------------------------------------------------- */
+#close-popup {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  color: #fff;
+  width: 35px;
+  height: 35px;
+  font-size: 2rem;
+  cursor: pointer;
+  line-height: 1;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  transition: 0.25s ease;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#close-popup:hover {
+  transform: rotate(90deg);
+}
+
+/* ------------------------------------------------------------
+   ANIMATIONS POPUP
+------------------------------------------------------------- */
+@keyframes popupFade {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+/* ------------------------------------------------------------
+   AIMLAB — Cibles & Crosshair
+------------------------------------------------------------- */
+.aim-target,
+.crosshair {
+  border-color: rgba(150, 150, 150, 0.6);
+  background: #bfbfbf;
+}
+
+#target {
+  position: absolute;
+  width: 120px;
+  height: auto;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: auto;
+  cursor: crosshair;
+  transition: filter 0.1s ease;
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* ============================================================
+   ECORIDE — MAIN SCSS IMPORTER (Version PRO)
+   Ce fichier ne contient AUCUN style.
+   ============================================================ */
+/* -------------------------
+   Variables globales
+-------------------------- */
+/* -------------------------
+   Mixins réutilisables
+-------------------------- */
+/* ============================================================
+   ECORIDE — Utilities & Global Fixes (Version PRO)
+   Cookies banner, accordions, backgrounds, helpers
+   ============================================================ */
+/* ------------------------------------------------------------
+   BANDEAU COOKIES ECORIDE
+------------------------------------------------------------- */
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--eco-dark);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: transform, opacity 0.25s ease;
+}
+.cookie-banner.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.cookie-banner p {
+  margin: 0;
+  flex: 1;
+}
+.cookie-banner .btn {
+  border-radius: 50px;
+  padding: 6px 18px;
+}
+.cookie-banner .btn-success {
+  background: var(--eco-secondary);
+  border: none;
+}
+.cookie-banner .btn-outline-light {
+  border: 1px solid #fff;
+  color: #fff;
+}
+
+/* ------------------------------------------------------------
+   ACCORDION BOOTSTRAP — FIXES
+------------------------------------------------------------- */
+.accordion-button:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--eco-light);
+  color: var(--eco-primary);
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   BACKGROUND UTILITAIRE
+------------------------------------------------------------- */
+.bg-ecoride {
+  background-color: rgba(60, 109, 53, 0.4039215686);
+}
+
+/* ------------------------------------------------------------
+   Dashboard Header (EcoRide) 
+------------------------------------------------------------- */
+.dashboard-header {
+    text-align: center;
+    padding: 40px 20px;
+    margin-bottom: 20px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--eco-primary);
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    font-size: 1.15rem;
+    color: var(--eco-secondary);
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* ------------------------------------------------------------
+   BOUTON "Loading""
+------------------------------------------------------------- */
+/* ------------------------------------------------------------
+   BOUTON AVEC LOADER (petit spinner dans le bouton)
+------------------------------------------------------------- */
+.btn-loading {
+    opacity: 0.85;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px; /* espace entre loader et texte */
+}
+
+.simple-loader {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--eco-dark);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: simple-spin 0.7s linear infinite;
+}
+
+@keyframes simple-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ------------------------------------------------------------
+   PAGE LOADER FULLSCREEN
+------------------------------------------------------------- */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.page-loader .loader-circle {
+  width: 45px;
+  height: 45px;
+  border: 5px solid var(--eco-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-ecoride:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* === FILTRES MOBILE === */
+
+.filters-panel-mobile {
+  display: none;
+}
+
+.filters-panel-mobile.active {
+  display: block;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 85%;
+  height: 100vh;
+  background: white;
+  z-index: 9999;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+  padding: 1.5rem;
+  overflow-y: auto;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.avatar-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e8f5e8;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--eco-primary);
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+/* ===== AUTOCOMPLETE ECORIDE ===== */
+
+.autocomplete-list {
+    position: absolute;
+    top: 100%;               /* Juste sous l'input */
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-top: 6px;
+    list-style: none;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 99999;          /* Passe devant tout le hero */
+}
+
+.autocomplete-list:empty {
+    display: none;
+}
+.autocomplete-list:not(:empty) {
+    padding: 6px 0;
+}
+
+/* style des éléments */
+.autocomplete-list li {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #1b3f15;          /* eco-primary */
+    border-left: 3px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.autocomplete-list li:hover {
+    background: #f3f9f3;       /* léger vert très clair */
+    border-left-color: #78a878; /* accent vert */
+}
+/* === BADGE PAYS === */
+.country-badge {
+    display: inline-block;
+    background: #e8f3e8; /* léger vert pale */
+    color: #1b3f15; /* eco-primary */
+    font-size: 0.70rem;
+    font-weight: 600;
+    padding: 3px 7px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    min-width: 32px;
+    text-align: center;
+    letter-spacing: 0.5px;
+}
+
+/* Meilleur alignement */
+.autocomplete-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+}
+
+.city-name {
+    font-size: 0.95rem;
+    color: #1b3f15;
+}
+
+
+
+
+
+
+/*# sourceMappingURL=main.css.map */

@@ -1,13 +1,15 @@
 when@dev:
     web_profiler:
-        toolbar: true
+        toolbar: false         # ❌ désactive la barre du bas
+        excluded_ajax_paths: '^/aimlab'
 
     framework:
         profiler:
-            collect_serializer_data: true
+            enabled: false     # ❌ désactive le profiler complet
+            collect_serializer_data: false  # ❌ désactive les serializations lourdes
 
 when@test:
     framework:
         profiler:
             collect: false
-            collect_serializer_data: true
+            collect_serializer_data: false

@@ -1,0 +1,13 @@
+<section class="hero-eco" style="background-image:url('{{ background|default("") }}');">
+    <div class="hero-overlay"></div>
+
+    <div class="hero-content container text-center">
+        <h1 class="hero-title">{{ title }}</h1>
+
+        {% if subtitle %}
+            <p class="hero-subtitle">{{ subtitle }}</p>
+        {% endif %}
+
+        {% block hero_extra %}{% endblock %}
+    </div>
+</section>

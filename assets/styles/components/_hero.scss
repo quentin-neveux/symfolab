@@ -1,0 +1,184 @@
+/* ============================================================
+   ECORIDE — Heros (Version PRO)
+   Structure globale, overlays, variantes, responsive
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   STRUCTURE GLOBALE DES HEROS
+------------------------------------------------------------- */
+
+.hero-global,
+.hero-home,
+.hero-connexion,
+.hero-inscription,
+.hero-recherche,
+.hero-historique,
+.hero-profil,
+.hero-covoiturer,
+.hero-presse,
+.hero-contact,
+.hero-proposer,
+.hero-apropos,
+.hero-404 {
+  min-height: 50vh !important;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  color: #fff;
+  text-align: center;
+  padding: 3rem 1rem;
+  overflow: hidden;
+
+  /* Overlay noir */
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.28);
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* Contenu au-dessus */
+  > * {
+    position: relative;
+    z-index: 5;
+    pointer-events: auto;
+  }
+}
+
+/* ------------------------------------------------------------
+   TITRES / TAGLINES
+------------------------------------------------------------- */
+
+.hero-title,
+.hero-global h1,
+.hero-home h1 {
+  font-family: var(--font-title);
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 2px;
+  font-size: clamp(2.4rem, 4vw, 4rem);
+  margin-bottom: 0.6rem;
+}
+
+.hero-tagline,
+.hero-global p,
+.hero-home p {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  font-weight: 400;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+  margin-bottom: 0.75rem;
+}
+
+/* ------------------------------------------------------------
+   HERO HOME — Dégradé vers bas + gradient texte
+------------------------------------------------------------- */
+
+.hero-home {
+  background-image: url("../images/hero-home.jpg");
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 33%;
+    background: linear-gradient(
+      to bottom,
+      rgba(255, 255, 255, 0) 0%,
+      #ffffff 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  > * {
+    position: relative;
+    z-index: 3;
+  }
+}
+
+/* Logo texte EcoRide */
+.hero-title-ecoride {
+  background: linear-gradient(
+    90deg,
+    #ffffff 0%,
+    #ffd7a6 35%,
+    #fa8a13 75%,
+    #cc6a00 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ------------------------------------------------------------
+   VARIANTES PAR PAGE (images)
+------------------------------------------------------------- */
+
+.hero-connexion     { background-image: url("../../public/images/hero-connexion.jpg"); }
+.hero-inscription   { background-image: url("../images/hero-inscription.jpg"); }
+.hero-recherche     { background-image: url("../images/hero-recherche.jpg"); }
+.hero-historique    { background-image: url("../images/hero-historique.jpg"); }
+.hero-profil        { background-image: url("../images/hero-profil.jpg"); }
+.hero-covoiturer    { background-image: url("../images/hero-covoiturer.jpg"); }
+.hero-presse        { background-image: url("../images/hero-presse.jpg"); }
+.hero-contact       { background-image: url("../images/hero-contact.jpg"); }
+.hero-proposer      { background-image: url("../images/hero-proposer.jpg"); }
+.hero-apropos       { background-image: url("../images/hero-apropos.jpg"); }
+
+/* 404 */
+.hero-404 {
+  background-image: url("../images/hero-404.jpg");
+  background-color: transparent;
+  background-blend-mode: multiply;
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+------------------------------------------------------------- */
+
+@include responsive(md) {
+  .hero-global,
+  .hero-home,
+  .hero-connexion,
+  .hero-inscription,
+  .hero-recherche,
+  .hero-historique,
+  .hero-profil,
+  .hero-covoiturer,
+  .hero-presse,
+  .hero-contact,
+  .hero-proposer,
+  .hero-apropos,
+  .hero-404 {
+    min-height: 70vh !important;
+  }
+}
+
+@include responsive(sm) {
+  .hero-global,
+  .hero-home,
+  .hero-connexion,
+  .hero-inscription,
+  .hero-recherche,
+  .hero-historique,
+  .hero-profil,
+  .hero-covoiturer,
+  .hero-presse,
+  .hero-contact,
+  .hero-proposer,
+  .hero-apropos,
+  .hero-404 {
+    min-height: 60vh !important;
+  }
+}

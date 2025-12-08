@@ -4,6 +4,8 @@ namespace App\Entity;
 
 use App\Repository\TrajetRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 
 #[ORM\Entity(repositoryClass: TrajetRepository::class)]
 class Trajet
@@ -31,8 +33,8 @@ class Trajet
     #[ORM\Column(name: "places_disponibles")]
     private ?int $placesDisponibles = null;
 
-    #[ORM\Column(type: 'float')]
-    private ?float $prix = null;
+    #[ORM\Column(type: 'integer')]
+    private ?int $tokenCost = 10;
 
     #[ORM\Column(name: "type_vehicule", length: 100, nullable: true)]
     private ?string $typeVehicule = null;
@@ -40,8 +42,8 @@ class Trajet
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $energie = null;
 
-    #[ORM\Column(name: "est_ecologique", type: 'boolean', options: ['default' => false])]
-    private ?bool $estEcologique = false;
+    #[ORM\Column(type: 'boolean')]
+    private bool $estEcologique = false;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $commentaire = null;
@@ -49,9 +51,16 @@ class Trajet
     #[ORM\ManyToOne(inversedBy: 'trajets')]
     private ?User $conducteur = null;
 
-    // ======================================================
-    // 🟢 Getters & Setters (propre et compatible Twig)
-    // ======================================================
+    #[ORM\OneToMany(mappedBy: 'trajet', targetEntity: TrajetPassager::class, cascade: ['persist', 'remove'])]
+    private Collection $passagers;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $conducteurConfirmeFin = false;
+
+    public function __construct()
+    {
+        $this->passagers = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -124,14 +133,14 @@ class Trajet
         return $this;
     }
 
-    public function getPrix(): ?float
+    public function getTokenCost(): ?int
     {
-        return $this->prix;
+        return $this->tokenCost;
     }
 
-    public function setPrix(float $prix): self
+    public function setTokenCost(int $tokenCost): self
     {
-        $this->prix = $prix;
+        $this->tokenCost = $tokenCost;
         return $this;
     }
 
@@ -157,14 +166,14 @@ class Trajet
         return $this;
     }
 
-    public function isEstEcologique(): ?bool
+    public function isEstEcologique(): bool
     {
         return $this->estEcologique;
     }
 
-    public function setEstEcologique(bool $estEcologique): self
+    public function setEstEcologique(bool $value): self
     {
-        $this->estEcologique = $estEcologique;
+        $this->estEcologique = $value;
         return $this;
     }
 
@@ -189,4 +198,109 @@ class Trajet
         $this->conducteur = $conducteur;
         return $this;
     }
+
+    /** @return Collection<int, TrajetPassager> */
+    public function getPassagers(): Collection
+    {
+        return $this->passagers;
+    }
+
+    public function addPassager(TrajetPassager $passager): self
+    {
+        if (!$this->passagers->contains($passager)) {
+            $this->passagers->add($passager);
+            $passager->setTrajet($this);
+        }
+        return $this;
+    }
+
+    public function removePassager(TrajetPassager $passager): self
+    {
+        if ($this->passagers->removeElement($passager)) {
+            if ($passager->getTrajet() === $this) {
+                $passager->setTrajet(null);
+            }
+        }
+        return $this;
+    }
+
+    public function isConducteurConfirmeFin(): bool
+    {
+        return $this->conducteurConfirmeFin;
+    }
+
+    public function setConducteurConfirmeFin(bool $value): self
+    {
+        $this->conducteurConfirmeFin = $value;
+        return $this;
+    }
+    public function calculateTokenCost(): self
+{
+    // Exemple simple
+    $distance = $this->estimateDistance($this->villeDepart, $this->villeArrivee);
+
+    if ($distance < 50)      $this->tokenCost = 5;
+    elseif ($distance < 150) $this->tokenCost = 10;
+    elseif ($distance < 300) $this->tokenCost = 20;
+    else                     $this->tokenCost = 30;
+
+    return $this;
+}
+private function estimateDistance(string $from, string $to): int
+{
+    $from = $this->normalizeCity($from);
+    $to   = $this->normalizeCity($to);
+
+    $distances = [
+        // FRANCE
+        'paris' => [
+            'lyon' => 465, 'marseille' => 775, 'lille' => 225,
+            'bordeaux' => 590, 'strasbourg' => 490, 'toulouse' => 680
+        ],
+        'lyon' => [
+            'paris' => 465, 'marseille' => 315, 'geneve' => 150
+        ],
+
+        // SUISSE
+        'geneve' => [
+            'lausanne' => 65, 'zurich' => 280, 'lyon' => 150
+        ],
+        'zurich' => [
+            'geneve' => 280, 'lausanne' => 215
+        ],
+
+        // ITALIE
+        'milan' => [
+            'turin' => 145, 'venise' => 270, 'geneve' => 320
+        ],
+        'rome' => [
+            'naples' => 225, 'florence' => 275
+        ],
+
+        // BELGIQUE
+        'bruxelles' => [
+            'liege' => 100, 'lille' => 120, 'paris' => 300
+        ],
+    ];
+
+    if (isset($distances[$from][$to])) {
+        return $distances[$from][$to];
+    }
+
+    // fallback
+    return 100;
+}
+
+
+private function normalizeCity(string $city): string
+{
+    return strtolower(
+        preg_replace('/[^a-z]/', '', 
+            iconv('UTF-8', 'ASCII//TRANSLIT', $city)
+        )
+    );
+}
+
+
+
 }
