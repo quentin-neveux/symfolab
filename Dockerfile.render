@@ -1,0 +1,42 @@
+# PHP + Apache
+FROM php:8.3-apache
+
+# Active mod_rewrite pour Symfony
+RUN a2enmod rewrite
+
+# Dépendances système utiles (intl, zip, mysql, pgsql…)
+RUN apt-get update && apt-get install -y \
+    git \
+    unzip \
+    libicu-dev \
+    libzip-dev \
+    libonig-dev \
+    libpq-dev \
+ && docker-php-ext-install intl pdo_mysql pdo_pgsql zip
+
+# Symfony dans /public
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf \
+    /etc/apache2/apache2.conf
+
+WORKDIR /var/www/html
+
+# Copie du code
+COPY . .
+
+# Composer depuis l'image officielle
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Install prod + cache clear
+RUN composer install --no-dev --optimize-autoloader \
+ && php bin/console cache:clear --env=prod
+
+# Symfony en prod
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]
