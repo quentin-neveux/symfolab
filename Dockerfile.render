@@ -21,8 +21,7 @@ COPY . .
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress \
- && php bin/console cache:clear --env=prod
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress
 
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
@@ -30,3 +29,4 @@ ENV APP_DEBUG=0
 EXPOSE 80
 
 CMD ["apache2-foreground"]
+# ------------------------------------------------------------
