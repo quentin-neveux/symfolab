@@ -1,35 +1,36 @@
-# PHP + Apache
+# Image PHP + Apache
 FROM php:8.3-apache
 
-# Active mod_rewrite pour Symfony
+# Active mod_rewrite pour Symfony (URLs propres)
 RUN a2enmod rewrite
 
-# Dépendances système utiles (intl, zip, mysql, pgsql…)
+# Extensions PHP nécessaires
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
     libicu-dev \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libxml2-dev \
     libzip-dev \
     libonig-dev \
     libpq-dev \
- && docker-php-ext-install intl pdo_mysql pdo_pgsql zip
+ && docker-php-ext-install intl pdo pdo_mysql pdo_pgsql zip opcache gd
 
-# Symfony dans /public
-ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
-
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
-    /etc/apache2/sites-available/*.conf \
-    /etc/apache2/apache2.conf
-
+# Dossier de travail
 WORKDIR /var/www/html
 
-# Copie du code
+# Copie des fichiers composer d'abord (pour le cache Docker)
+COPY composer.json composer.lock ./
+
+# Install des dépendances (sans scripts pour l’instant)
+RUN composer install --no-interaction --no-progress --no-scripts
+
+# Copie du reste du projet
 COPY . .
 
-# Composer depuis l'image officielle
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Install prod + cache clear
+# Install définitif en prod + clear cache prod
 RUN composer install --no-dev --optimize-autoloader \
  && php bin/console cache:clear --env=prod
 
@@ -37,6 +38,7 @@ RUN composer install --no-dev --optimize-autoloader \
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
 
+# Apache écoute sur 80 (Render saura le trouver)
 EXPOSE 80
 
 CMD ["apache2-foreground"]
