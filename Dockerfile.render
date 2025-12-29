@@ -2,17 +2,15 @@ FROM php:8.3-apache
 
 RUN a2enmod rewrite
 
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf \
+    /etc/apache2/apache2.conf
+
 RUN apt-get update && apt-get install -y \
-    git \
-    unzip \
-    libicu-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libxml2-dev \
-    libzip-dev \
-    libonig-dev \
-    libpq-dev \
+    git unzip libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
+    libxml2-dev libzip-dev libonig-dev libpq-dev \
  && docker-php-ext-install intl pdo pdo_mysql pdo_pgsql zip opcache gd
 
 WORKDIR /var/www/html
@@ -29,4 +27,3 @@ ENV APP_DEBUG=0
 EXPOSE 80
 
 CMD ["apache2-foreground"]
-# ------------------------------------------------------------
