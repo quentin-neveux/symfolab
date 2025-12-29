@@ -55,141 +55,287 @@
 
     <div class="row">
 
-      {# ============================================================
-         FILTRES — DESKTOP
-      ============================================================ #}
-      <aside class="col-lg-3 d-none d-lg-block">
-        <div class="bg-white shadow-sm rounded-4 p-4">
+{# ============================================================
+   FILTRES DESKTOP
+============================================================ #}
+<aside class="col-lg-3 d-none d-lg-block">
+  <div class="bg-white shadow-sm rounded-4 p-4">
 
-          <h4 class="text-success fw-bold mb-3">Trier par</h4>
+    <form method="GET" action="{{ path('app_recherche') }}">
 
-          <label class="d-block mb-2"><input type="radio" name="sort" checked> Départ le plus tôt</label>
-          <label class="d-block mb-2"><input type="radio" name="sort"> Prix le plus bas</label>
-          <label class="d-block mb-2"><input type="radio" name="sort"> Proche du point de départ</label>
-          <label class="d-block mb-2"><input type="radio" name="sort"> Proche du point d’arrivée</label>
+      <input type="hidden" name="ville_depart" value="{{ ville_depart }}">
+      <input type="hidden" name="ville_arrivee" value="{{ ville_arrivee }}">
+      <input type="hidden" name="date_depart" value="{{ date_depart }}">
 
-          <hr>
+      <h4 class="text-success fw-bold mb-3">Trier par</h4>
 
-          <h4 class="text-success fw-bold mb-3">Heure de départ</h4>
+      <label class="d-block mb-2">
+        <input type="radio" name="sort" value="depart_asc" checked>
+        Départ le plus tôt
+      </label>
 
-          <label class="d-block mb-2"><input type="checkbox"> Avant 12h</label>
-          <label class="d-block mb-2"><input type="checkbox"> 12h - 18h</label>
-          <label class="d-block mb-2"><input type="checkbox"> Après 18h</label>
+      <label class="d-block mb-2">
+        <input type="radio" name="sort" value="prix_asc">
+        Prix le plus bas
+      </label>
 
-        </div>
-      </aside>
+      <hr>
 
+      <h4 class="text-success fw-bold mb-3">Type de véhicule</h4>
 
-      {# ============================================================
-         LISTE DES TRAJETS
-      ============================================================ #}
-      <div class="col-lg-9">
+      <label class="d-block mb-2 ms-3">
+        <input type="checkbox" name="energie[]" value="Électrique">
+        🔋 Électrique
+      </label>
+      <label class="d-block mb-2 ms-3">
+        <input type="checkbox" name="energie[]" value="Essence">
+        ⛽ Essence
+      </label>
+      <label class="d-block mb-2 ms-3">
+        <input type="checkbox" name="energie[]" value="Diesel">
+        🟤 Diesel
+      </label>
+      <label class="d-block mb-2 ms-3">
+        <input type="checkbox" name="energie[]" value="Hybride">
+        ♻️ Hybride
+      </label>
 
-        {% if trajets is empty %}
-          <p class="text-muted text-center">Aucun trajet trouvé.</p>
-          <div class="text-center">
-            <a href="{{ path('app_home') }}" class="btn btn-ecoride mt-3">
-              Retour à l'accueil
-            </a>
-          </div>
+      <hr>
 
-        {% else %}
+      <h4 class="text-success fw-bold mb-3">Prix maximum</h4>
+      <input
+        type="number"
+        class="form-control mb-3"
+        name="prix_max"
+        placeholder="ex : 50"
+        value="{{ app.request.get('prix_max') }}"
+      >
 
-          <div class="trajets-list d-flex flex-column gap-3">
-            {% for trajet in trajets %}
-
-              <div class="trajet-card bg-white rounded-4 shadow-sm p-3 p-lg-4">
-
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <p class="mb-1 small text-muted">
-                      <i class="bi bi-calendar text-success me-1"></i>
-                      {{ trajet.dateDepart|date('d/m') }}
-                      &nbsp;•&nbsp;
-                      <i class="bi bi-clock text-success me-1"></i>
-                      {{ trajet.dateDepart|date('H:i') }}
-                    </p>
-
-                    <h5 class="fw-bold text-success mb-1">
-                      {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
-                    </h5>
-
-                    <p class="mb-1 small text-muted">
-                      <i class="bi bi-people text-success me-1"></i>
-                      {{ trajet.placesDisponibles }} place(s)
-                    </p>
-
-                    <p class="mb-1 small text-muted">
-                      {{ trajet.typeVehicule }} • {{ trajet.energie }}
-                    </p>
-                  </div>
-
-                  <div class="text-end">
-                    <span class="fw-bold fs-3 text-success d-block">
-                      {{ trajet.tokenCost }}
-                    </span>
-                    <span class="small text-muted">tokens</span>
-                  </div>
-                </div>
-
-                <div class="d-flex align-items-center mt-3 pt-3 border-top">
-                  <div class="avatar-circle me-3">
-                    {{ trajet.conducteur.prenom|first|upper }}{{ trajet.conducteur.nom|first|upper }}
-                  </div>
-
-                  <p class="mb-0 fw-semibold">
-                    {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}
-                  </p>
-                </div>
-
-                <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
-                  class="btn btn-ecoride w-100 mt-3 rounded-pill">
-                  Voir les détails
-                </a>
-              </div>
-
-            {% endfor %}
-          </div>
-
-        {% endif %}
-
+      <div class="mt-4">
+        <button
+          type="submit"
+          class="btn btn-ecoride w-100 rounded-pill">
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          Appliquer les filtres
+        </button>
       </div>
-    </div>
+
+    </form>
+
   </div>
-</section>
+</aside>
 
 
 {# ============================================================
-   PANEL MOBILE — FILTRES
+   LISTE DES TRAJETS
 ============================================================ #}
-<div id="filters-panel-mobile" class="filters-panel-mobile">
-    <div class="panel-content bg-white">
+<div class="col-lg-9">
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="text-success fw-bold mb-0">Filtres</h4>
-            <button id="close-filters" class="btn btn-outline-danger px-3 py-1">
-              Fermer
-            </button>
+{% if trajets is empty %}
+
+    <p class="text-muted text-center">Aucun trajet trouvé pour cette date.</p>
+
+<!-- BARRE DE RECHERCHE -->
+    <form id="search-form" action="{{ path('app_recherche') }}" method="get" class="mx-auto mb-4">
+      <div class="eco-searchbar">
+
+        <!-- 🟢 Ville de départ -->
+        <div class="eco-search-field position-relative">
+          <i class="bi bi-geo-alt text-success me-2"></i>
+
+          <input 
+            type="text"
+            id="ville-depart"
+            class="form-control"
+            name="ville_depart"
+            placeholder="Départ"
+            autocomplete="off"
+            required
+          >
+
+          <ul id="ville-depart-list" class="autocomplete-list"></ul>
         </div>
 
-        <hr>
+        <!-- 🟢 Ville d’arrivée -->
+        <div class="eco-search-field position-relative">
+          <i class="bi bi-flag text-success me-2"></i>
 
-        <h5 class="text-success fw-bold mt-3">Trier par</h5>
+          <input 
+            type="text"
+            id="ville-arrivee"
+            class="form-control"
+            name="ville_arrivee"
+            placeholder="Arrivée"
+            autocomplete="off"
+            required
+          >
 
-        <label class="d-block mb-2"><input type="radio" checked> Départ le plus tôt</label>
-        <label class="d-block mb-2"><input type="radio"> Prix le plus bas</label>
-        <label class="d-block mb-2"><input type="radio"> Proche départ</label>
-        <label class="d-block mb-2"><input type="radio"> Proche arrivée</label>
+          <ul id="ville-arrivee-list" class="autocomplete-list"></ul>
+        </div>
 
-        <hr>
+        <!-- Date -->
+        <div class="eco-search-field">
+          <i class="bi bi-calendar-event text-success me-2"></i>
+          <input type="date" class="form-control" name="date_depart">
+        </div>
 
-        <h5 class="text-success fw-bold mt-3">Heure de départ</h5>
+        <button type="submit" class="eco-search-btn">Rechercher</button>
 
-        <label class="d-block mb-2"><input type="checkbox"> Avant 12h</label>
-        <label class="d-block mb-2"><input type="checkbox"> 12h - 18h</label>
-        <label class="d-block mb-2"><input type="checkbox"> Après 18h</label>
+      </div>
+    </form>
 
+    {# SUGGESTION DE TRAJET #}
+
+    {% if trajetSuggestion %}
+        <div class="alert alert-success text-center mt-3">
+            Prochain trajet disponible :
+            <strong>{{ trajetSuggestion.dateDepart|date('d/m H:i') }}</strong><br>
+            <a href="{{ path('app_trajet_detail', {id: trajetSuggestion.id}) }}" 
+               class="btn btn-ecoride mt-2 rounded-pill">
+               Voir ce trajet
+            </a>
+        </div>
+    {% endif %}
+
+{% else %}
+
+    <div class="trajets-list d-flex flex-column gap-3">
+
+        {% for trajet in trajets %}
+
+            <div class="trajet-card bg-white rounded-4 shadow-sm p-3 p-lg-4">
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-calendar text-success me-1"></i>
+                            {{ trajet.dateDepart|date('d/m') }}
+                            &nbsp;•&nbsp;
+                            <i class="bi bi-clock text-success me-1"></i>
+                            {{ trajet.dateDepart|date('H:i') }}
+                        </p>
+
+                        <h5 class="fw-bold text-success mb-1">
+                            {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+                        </h5>
+
+                        <p class="mb-1 small text-muted">
+                            <i class="bi bi-people text-success me-1"></i>
+                            {{ trajet.placesDisponibles }} place(s)
+                        </p>
+
+                        {# ===== VEHICULE ===== #}
+                        <p class="mb-1 small text-muted">
+
+                            {% if trajet.vehicle %}
+                                {{ trajet.vehicle.marque }} {{ trajet.vehicle.modele }} • {{ trajet.vehicle.energie }}
+                            {% else %}
+                                Véhicule non renseigné
+                            {% endif %}
+
+                            {% if trajet.vehicle and trajet.vehicle.energie == 'Électrique' %}
+                                <span class="badge bg-success ms-2">Éco</span>
+                            {% endif %}
+                        </p>
+
+                    </div>
+
+                    <div class="text-end">
+                        <span class="fw-bold fs-3 text-success d-block">
+                            {{ trajet.price }} €
+                        </span>
+                        <span class="small text-muted">par personne</span>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center mt-3 pt-3 border-top">
+                    <div class="avatar-circle me-3">
+                        {{ trajet.conducteur.prenom|first|upper }}{{ trajet.conducteur.nom|first|upper }}
+                    </div>
+
+                    <p class="mb-0 fw-semibold">
+                        {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}
+                    </p>
+                </div>
+
+                <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                   class="btn btn-ecoride w-100 mt-3 rounded-pill">
+                    Voir les détails
+                </a>
+            </div>
+
+        {% endfor %}
     </div>
+
+{% endif %}
+
 </div>
+</div>
+</div>
+</section>
+
+
+
+{# ============================================================
+   FILTRES MOBILE
+============================================================ #}
+<div id="filters-panel-mobile" class="filters-panel-mobile">
+  <div class="panel-content bg-white">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h4 class="text-success fw-bold mb-0">🔍 Filtres</h4>
+
+      <button
+        id="close-filters"
+        type="button"
+        class="btn btn-outline-danger btn-sm rounded-pill px-3">
+        ✕
+      </button>
+    </div>
+
+    <hr>
+
+    <h5 class="text-success fw-bold mt-3">Trier par</h5>
+
+    <label class="d-block mb-2">
+      <input type="radio" name="sortMobile" value="depart_asc" checked>
+      Départ le plus tôt
+    </label>
+
+    <label class="d-block mb-2">
+      <input type="radio" name="sortMobile" value="prix_asc">
+      Prix le plus bas
+    </label>
+
+    <hr>
+
+    <h5 class="text-success fw-bold mt-3">Type de véhicule</h5>
+
+    <label class="d-block mb-2 ms-3">
+      <input type="checkbox" value="Électrique"> 🔋 Électrique
+    </label>
+    <label class="d-block mb-2 ms-3">
+      <input type="checkbox" value="Essence"> ⛽ Essence
+    </label>
+    <label class="d-block mb-2 ms-3">
+      <input type="checkbox" value="Diesel"> 🟤 Diesel
+    </label>
+    <label class="d-block mb-2 ms-3">
+      <input type="checkbox" value="Hybride"> ♻️ Hybride
+    </label>
+
+    <div class="mt-4">
+      <button
+        type="button"
+        class="btn btn-ecoride w-100 rounded-pill"
+        id="apply-filters">
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Appliquer les filtres
+      </button>
+    </div>
+
+  </div>
+</div>
+
 
 {% endblock %}

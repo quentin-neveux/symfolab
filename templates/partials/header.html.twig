@@ -2,7 +2,7 @@
    HEADER - NAVBAR ECORIDE 
    ============================================================ #}
 
-<nav class="navbar navbar-expand-lg sticky-top ecoride-navbar shadow-sm py-3">
+<nav class="navbar navbar-expand-xl sticky-top ecoride-navbar shadow-sm py-3">
   <div class="container d-flex align-items-center justify-content-between">
 
     <!-- LOGO ECORIDE -->
@@ -27,19 +27,12 @@
         {% if app.user %}
         
 {# === UTILISATEUR CONNECTÉ === #}
-          {# === UTILISATEUR CONNECTÉ === #}
+
 
 <li class="nav-item">
   <a class="nav-link {% if app.request.get('_route') == 'app_home' %}active{% endif %}"
      href="{{ path('app_home') }}">
     <i class="me-2"></i>Accueil
-  </a>
-</li>
-
-<li class="nav-item">
-  <a class="nav-link {% if app.request.get('_route') == 'app_profil' %}active{% endif %}"
-     href="{{ path('app_profil') }}">
-    <i class="bi bi-person me-2"></i>Mon profil
   </a>
 </li>
 
@@ -57,65 +50,68 @@
   </a>
 </li>
 
-{# --- AVATAR / DROPDOWN --- #}
-<li class="nav-item dropdown">
-  <a class="nav-link dropdown-toggle d-flex align-items-center"
-     href="#" id="userDropdown" role="button"
-     data-bs-toggle="dropdown" aria-expanded="false">
-
-    {% if app.user.photo %}
-      <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
-           alt="Photo de profil"
-           class="rounded-circle me-2"
-           style="width:35px; height:35px; object-fit:cover;">
-    {% else %}
-      <div class="user-avatar-nav me-2 d-flex justify-content-center align-items-center rounded-circle"
-           style="width:35px; height:35px; background: var(--eco-secondary); color:white; font-weight:600;">
-        {% set initials = ((app.user.prenom ?? '')|first ~ (app.user.nom ?? '')|first)|upper %}
-        <span>{{ initials }}</span>
-      </div>
-    {% endif %}
-
-    <span class="text-white fw-semibold">
-      {{ app.user.prenom ?? '' }} {{ app.user.nom ?? '' }}
-    </span>
+<li class="nav-item">
+  <a class="nav-link {% if app.request.get('_route') == 'app_profil' %}active{% endif %}"
+     href="{{ path('app_profil') }}">
+    <i class="bi bi-person me-2"></i>Mon profil
   </a>
+</li>
 
-  <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
-    <li>
-      <a class="dropdown-item text-danger fw-semibold" href="{{ path('app_logout') }}">
-        Déconnexion
-      </a>
-    </li>
-  </ul>
+  {# --- AVATAR / USER INFO DROPDOWN --- #}
+  <li class="nav-item dropdown d-flex align-items-center">
+    <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+      {% if app.user.photo %}
+        <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
+             alt="Photo de profil"
+             class="rounded-circle me-2"
+             style="width:35px; height:35px; object-fit:cover;">
+      {% else %}
+        <div class="user-avatar-nav me-2 d-flex justify-content-center align-items-center rounded-circle"
+             style="width:35px; height:35px; background: var(--eco-secondary); color:white; font-weight:600;">
+          {% set initials = ((app.user.prenom ?? '')|first ~ (app.user.nom ?? '')|first)|upper %}
+          <span>{{ initials }}</span>
+        </div>
+      {% endif %}
+      <span class="text-white fw-semibold">
+        {{ app.user.prenom ?? '' }} {{ app.user.nom ?? '' }}
+      </span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+      <li>
+        <a class="dropdown-item text-danger fw-semibold" href="{{ path('app_logout') }}">
+          Déconnexion
+        </a>
+      </li>
+    </ul>
+
 </li>
 
         {% else %}
 
           {# === UTILISATEUR NON CONNECTÉ === #}
 
-          <li class="nav-item text-white">
+          <li class="nav-item text-center text-white">
             <a href="{{ path('app_home') }}" 
                class="nav-link {% if app.request.pathinfo == '/' %}active{% endif %}">
               Accueil
             </a>
           </li>
 
-          <li class="nav-item text-white">
+          <li class="nav-item text-center text-white">
             <a href="{{ path('app_conseils') }}" 
                class="nav-link {% if app.request.pathinfo starts with '/conseils' %}active{% endif %}">
               Conseils & Actus
             </a>
           </li>
 
-          <li class="nav-item text-white">
+          <li class="nav-item text-center text-white">
             <a href="{{ path('app_apropos') }}" 
                class="nav-link {% if app.request.pathinfo starts with '/a-propos' %}active{% endif %}">
               À propos
             </a>
           </li>
 
-          <li class="nav-item nav-item-buttons d-flex">
+          <li class="nav-item nav-item-buttons d-flex align-items-center gap-2 justify-content-center">
             <a href="{{ path('app_inscription') }}" class="btn-nav-light">Créer un compte</a>
             <a href="{{ path('app_connexion') }}" class="btn-nav-light">Se connecter</a>
           </li>

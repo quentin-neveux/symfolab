@@ -18,17 +18,25 @@ security:
       lazy: true
       provider: app_user_provider
 
-      # ✅ Un SEUL authenticator (le tien)
       custom_authenticators:
         - App\Security\LoginFormAuthenticator
 
-      # ✅ Point d'entrée obligatoire quand on a un authenticator custom
       entry_point: App\Security\LoginFormAuthenticator
 
       logout:
         path: app_logout
         target: app_home
 
+      remember_me:
+        secret: '%kernel.secret%'
+        lifetime: 604800
+        path: /
+
   access_control:
+    - { path: ^/trajet/\d+$, roles: PUBLIC_ACCESS }
+    - { path: ^/trajet/\d+/(reserver|reserver/confirm|annuler)$, roles: ROLE_USER }
+    - { path: ^/connexion, roles: PUBLIC_ACCESS }
+    - { path: ^/inscription, roles: PUBLIC_ACCESS }
+    - { path: ^/reset-password, roles: PUBLIC_ACCESS }
     - { path: ^/profil, roles: ROLE_USER }
     - { path: ^/admin, roles: ROLE_ADMIN }

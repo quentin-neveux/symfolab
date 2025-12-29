@@ -1,0 +1,87 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Confirmation de réservation - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-recherche d-flex align-items-center text-center text-white position-relative">
+    <div class="container">
+        <h2 class="hero-title text-white mb-3">Confirmation</h2>
+        <p class="hero-tagline mb-0">Dernière étape avant la réservation</p>
+    </div>
+</section>
+
+<section class="py-5 bg-ecoride-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div class="bg-white rounded-4 shadow-sm p-4 p-md-5">
+
+                    <h3 class="text-success fw-bold mb-4 text-center">
+                        Confirmer la réservation
+                    </h3>
+
+                    {# ================== RÉCAP TRAJET ================== #}
+                    <div class="border rounded-3 p-4 mb-4 bg-light">
+
+                        <h5 class="fw-bold mb-3">
+                            {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+                        </h5>
+
+                        <p class="mb-1">
+                            <i class="bi bi-calendar2 me-2 text-success"></i>
+                            {{ trajet.dateDepart|date('d/m/Y') }}
+                        </p>
+
+                        <p class="mb-1">
+                            <i class="bi bi-clock me-2 text-success"></i>
+                            {{ trajet.dateDepart|date('H:i') }}
+                        </p>
+
+                        <p class="mb-1">
+                            <i class="bi bi-people me-2 text-success"></i>
+                            {{ trajet.placesDisponibles }} place(s) restante(s)
+                        </p>
+
+                        <p class="mb-0">
+                            <i class="bi bi-cash me-2 text-success"></i>
+                            {{ trajet.price }} € / pers
+                        </p>
+
+                    </div>
+
+                    {# ================== INFO TOKENS ================== #}
+                    <div class="alert alert-warning text-center mb-4">
+                        <strong>Attention :</strong> la réservation de ce trajet débitera
+                        <strong>2 tokens</strong> de ton solde.
+                    </div>
+
+                    {# ================== ACTIONS ================== #}
+                    <div class="d-grid gap-3">
+
+                        <form action="{{ path('trajet_reserver', { id: trajet.id }) }}"
+                              method="post">
+                              {# onsubmit="return confirm('Confirmer définitivement la réservation ? Les tokens seront débités.')" #}
+
+                            <button type="submit"
+                                    class="btn btn-ecoride py-3 rounded-pill w-100">
+                                Aller à la réservation
+                            </button>
+                        </form>
+
+                        <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                           class="btn btn-outline-secondary py-3 rounded-pill">
+                            Annuler et revenir au trajet
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

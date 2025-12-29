@@ -15,6 +15,7 @@
   <div class="container">
     <div class="card shadow-sm rounded-4 border-0">
       <div class="card-body">
+
         <h3 class="mb-4 text-success fw-bold">Trajets passés</h3>
 
         <table class="table table-hover align-middle">
@@ -24,7 +25,7 @@
               <th>Arrivée</th>
               <th>Date</th>
               <th>Rôle</th>
-              <th>Status</th>
+              <th>Statut</th>
               <th class="text-center">Action</th>
             </tr>
           </thead>
@@ -34,15 +35,17 @@
             {% for item in historiques %}
 
               {% set trajet = item.trajet %}
-              {% set role = item.role %} {# 'conducteur' ou 'passager' #}
+              {% set role = item.role %}
               {% set reservation = item.reservation %}
 
-              <tr>
+              <tr class="clickable-row"
+                  data-href="{{ path('app_trajet_detail', { id: trajet.id }) }}">
+
                 <td>{{ trajet.villeDepart }}</td>
                 <td>{{ trajet.villeArrivee }}</td>
                 <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
 
-                <!-- Rôle -->
+                <!-- RÔLE -->
                 <td>
                   {% if role == 'conducteur' %}
                     <span class="badge bg-primary">Conducteur</span>
@@ -51,75 +54,64 @@
                   {% endif %}
                 </td>
 
-                <!-- Statut -->
+                <!-- STATUT -->
                 <td>
                   {% if role == 'conducteur' %}
-
                     {% if trajet.conducteurConfirmeFin %}
                       <span class="badge bg-success">Terminé</span>
                     {% else %}
                       <span class="badge bg-warning text-dark">En attente conducteur</span>
                     {% endif %}
-
                   {% else %}
-
                     {% if reservation.passagerConfirmeFin %}
                       <span class="badge bg-success">Terminé</span>
                     {% else %}
-                      <span class="badge bg-warning text-dark">En attente du trajet...</span>
+                      <span class="badge bg-warning text-dark">En attente</span>
                     {% endif %}
-
                   {% endif %}
                 </td>
 
                 <!-- ACTIONS -->
                 <td class="text-center">
 
-                  <!-- Bouton: conducteur valide fin -->
                   {% if role == 'conducteur' %}
-
-                    {% if trajet.conducteurConfirmeFin == false %}
+                    {% if not trajet.conducteurConfirmeFin %}
                       <a href="{{ path('trajet_fin_conducteur', { id: trajet.id }) }}"
-                         class="btn btn-success btn-sm rounded-pill">
-                         Valider fin
+                         class="btn btn-success btn-sm rounded-pill no-row-click">
+                        Valider fin
                       </a>
-
                     {% else %}
                       <span class="text-success fw-semibold">✔ Validé</span>
                     {% endif %}
-
                   {% endif %}
 
-                  <!-- Bouton: passager valide fin -->
                   {% if role == 'passager' %}
-
-                    {% if reservation.passagerConfirmeFin == false %}
+                    {% if not reservation.passagerConfirmeFin %}
                       <a href="{{ path('trajet_fin_passager', { id: trajet.id }) }}"
-                         class="btn btn-outline-success btn-sm rounded-pill">
-                         J’ai terminé
+                         class="btn btn-outline-success btn-sm rounded-pill no-row-click">
+                        J’ai terminé
                       </a>
                     {% else %}
                       <span class="text-success fw-semibold">✔ Validé</span>
                     {% endif %}
-
                   {% endif %}
 
-                  <!-- Notation : affichée UNIQUEMENT si conducteurConfirmeFin + passagerConfirmeFin -->
-                  {% if role == 'passager' %}
-                    {% if trajet.conducteurConfirmeFin and reservation.passagerConfirmeFin and reservation.isPaid and reservation.aDejaNote == false %}
-                      
+                  {% if role == 'passager'
+                     and trajet.conducteurConfirmeFin
+                     and reservation.passagerConfirmeFin
+                     and reservation.isPaid
+                     and not reservation.aDejaNote %}
+                    <div class="mt-2">
                       <a href="{{ path('app_review', { id: trajet.conducteur.id }) }}"
-                         class="btn btn-outline-primary btn-sm rounded-pill mt-2">
-                         Noter ⭐
+                         class="btn btn-outline-primary btn-sm rounded-pill no-row-click">
+                        Noter ⭐
                       </a>
-
-                    {% elseif reservation.aDejaNote %}
-                      <p class="small text-muted mt-2">Déjà noté ✔</p>
-                    {% endif %}
+                    </div>
+                  {% elseif reservation and reservation.aDejaNote %}
+                    <p class="small text-muted mt-2">Déjà noté ✔</p>
                   {% endif %}
 
                 </td>
-
               </tr>
 
             {% else %}

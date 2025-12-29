@@ -1,8 +1,4 @@
-# ============================================================
-# 🐘 DOCKERFILE POUR SYMFONY (PHP-FPM 8.3)
-# ============================================================
-
-FROM php:8.3-fpm
+FROM php:8.3-fpm-bullseye
 
 # ------------------------------------------------------------
 # Extensions nécessaires à Symfony
@@ -13,9 +9,18 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install intl pdo pdo_mysql zip opcache gd
 
 # ------------------------------------------------------------
-# Installation de Composer (copié depuis l’image officielle)
+# Composer
 # ------------------------------------------------------------
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# ------------------------------------------------------------
+# UID / GID (ALIGNÉS AVEC WINDOWS)
+# ------------------------------------------------------------
+ARG UID=1000
+ARG GID=1000
+
+RUN groupmod -g ${GID} www-data \
+ && usermod -u ${UID} -g ${GID} www-data
 
 # ------------------------------------------------------------
 # Dossier de travail
@@ -23,22 +28,24 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www/html
 
 # ------------------------------------------------------------
-# Copie des fichiers (composer.json AVANT le reste = cache Docker)
+# Dépendances (cache Docker)
 # ------------------------------------------------------------
 COPY composer.json composer.lock ./
 RUN composer install --no-interaction --no-progress --no-scripts
 
-# Maintenant on copie le reste du projet
+# ------------------------------------------------------------
+# Projet
+# ------------------------------------------------------------
 COPY . .
 
 # ------------------------------------------------------------
-# Fix des droits pour Symfony
+# Permissions FINALES
 # ------------------------------------------------------------
-RUN chown -R www-data:www-data var/ vendor/
+RUN chown -R www-data:www-data /var/www/html
 
 # ------------------------------------------------------------
-# PHP-FPM comme process principal
+# Runtime
 # ------------------------------------------------------------
+USER www-data
 CMD ["php-fpm"]
-
 EXPOSE 9000

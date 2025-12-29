@@ -1,0 +1,46 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block admin_content %}
+
+<h2 class="fw-bold text-danger mb-4">
+  Trajets en litige
+</h2>
+
+{% if trajets|length > 0 %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Trajet</th>
+          <th>Conducteur</th>
+          <th>Date</th>
+          <th>Montant</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for trajet in trajets %}
+          <tr>
+            <td>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</td>
+            <td>{{ trajet.conducteur.prenom }}</td>
+            <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
+            <td>{{ trajet.payoutAmount }} €</td>
+            <td>
+              <form method="post"
+                    action="{{ path('admin_trajets_litige_valider', { id: trajet.id }) }}"
+                    onsubmit="return confirm('Libérer le paiement ?')">
+                <button class="btn btn-success btn-sm rounded-pill">
+                  Libérer paiement
+                </button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p class="text-muted">Aucun litige en cours.</p>
+{% endif %}
+
+{% endblock %}

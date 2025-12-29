@@ -27,6 +27,11 @@
 
           <form method="post" action="{{ path('app_connexion') }}">
 
+            {# 🔐 IMPORTANT : conservation du target path #}
+            <input type="hidden"
+                   name="_target_path"
+                   value="{{ app.request.get('_target_path') }}">
+
             <!-- EMAIL -->
             <div class="mb-3">
               <label for="email" class="form-label fw-semibold text-dark">Adresse e-mail</label>
@@ -72,16 +77,16 @@
                 <label class="form-check-label" for="rememberMe">Se souvenir de moi</label>
               </div>
 
-              <a href="#" class="small text-decoration-none text-success">
+              <a href="{{ path('app_forgot_password_request') }}"
+                 class="small text-decoration-none text-success">
                 Mot de passe oublié ?
               </a>
             </div>
 
-            <!-- BOUTON AVEC LOADER -->
+            <!-- BOUTON -->
             <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn">
               Se connecter
             </button>
-
 
             <p class="text-center mt-4 mb-0 text-muted">
               Pas encore de compte ?

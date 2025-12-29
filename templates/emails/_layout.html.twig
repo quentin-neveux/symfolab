@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>EcoRide</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, Helvetica, sans-serif;">
+
+<!-- WRAPPER FULL WIDTH -->
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8; padding:24px 0;">
+    <tr>
+        <td align="center">
+
+            <!-- CONTAINER RESPONSIVE -->
+            <table width="100%" cellpadding="0" cellspacing="0"
+                   style="max-width:600px; background:#ffffff; border-radius:16px; overflow:hidden;">
+
+                <!-- =====================================
+                     HEADER
+                ====================================== -->
+                <tr>
+                    <td style="background:#1f7a4f; padding:20px 16px; text-align:center;">
+                        <h1 style="margin:0; color:#ffffff; font-size:24px; line-height:1.3;">
+                            EcoRide
+                        </h1>
+                        <p style="margin:6px 0 0; color:#dff3ea; font-size:14px;">
+                            Covoiturage responsable
+                        </p>
+                    </td>
+                </tr>
+
+                <!-- =====================================
+                     CONTENT
+                ====================================== -->
+                <tr>
+                    <td style="padding:24px 18px; color:#333333; font-size:15px; line-height:1.6;">
+                        {% block body %}{% endblock %}
+                    </td>
+                </tr>
+
+                <!-- =====================================
+                     FOOTER
+                ====================================== -->
+                <tr>
+                    <td style="background:#f1f1f1; padding:18px 14px; text-align:center; font-size:12px; color:#777;">
+                        <p style="margin:0;">
+                            © {{ "now"|date("Y") }} EcoRide — Tous droits réservés
+                        </p>
+                        <p style="margin:8px 0 0;">
+                            Ceci est un email automatique, merci de ne pas répondre.
+                        </p>
+                    </td>
+                </tr>
+
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

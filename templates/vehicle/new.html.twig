@@ -1,0 +1,74 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un véhicule - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h1 class="fw-bold text-success mb-3">Ajouter un véhicule</h1>
+    <p class="lead mx-auto" style="max-width: 800px;">
+      Enregistre un nouveau véhicule que tu utiliseras pour covoiturer avec EcoRide.
+    </p>
+  </div>
+</section>
+
+<section class="py-5 bg-light">
+  <div class="container">
+
+    <div class="card shadow-sm rounded-4 p-4 mx-auto" style="max-width: 600px;">
+
+      <h3 class="fw-bold text-success mb-4">Nouveau véhicule</h3>
+
+      {{ form_start(form) }}
+
+      <div class="row g-3">
+
+        <div class="col-md-6">
+          {{ form_row(form.marque) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.modele) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.immatriculation) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.energie) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.places) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.dateImmatriculation) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.couleur) }}
+        </div>
+
+        <div class="col-md-6">
+          {{ form_row(form.type) }}
+        </div>
+
+      </div>
+
+      <div class="text-center mt-4">
+        <button type="submit" class="btn btn-ecoride w-100 rounded-pill">
+          Enregistrer
+        </button>
+      </div>
+
+      {{ form_end(form) }}
+
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

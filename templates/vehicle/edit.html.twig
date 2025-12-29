@@ -1,0 +1,59 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier véhicule - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-profil text-center text-white">
+    <div class="container">
+        <h2 class="hero-title mb-3 text-white">Modifier véhicule</h2>
+    </div>
+</section>
+
+<section class="py-5 bg-light">
+    <div class="container">
+
+        <div class="card shadow-sm rounded-4 p-4 mx-auto" style="max-width: 600px;">
+
+            <h3 class="fw-bold text-success mb-4">
+                Modifier : {{ vehicle.marque }} {{ vehicle.modele }}
+            </h3>
+
+            {{ form_start(form) }}
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    {{ form_row(form.marque) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form_row(form.modele) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form_row(form.immatriculation) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form_row(form.energie) }}
+                </div>
+
+                <div class="col-md-6">
+                    {{ form_row(form.places) }}
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <button class="btn btn-ecoride w-100 rounded-pill">
+                    Sauvegarder
+                </button>
+            </div>
+
+            {{ form_end(form) }}
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}

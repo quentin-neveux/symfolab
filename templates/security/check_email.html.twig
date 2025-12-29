@@ -1,0 +1,18 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email envoyé{% endblock %}
+
+{% block body %}
+<div class="container mt-5 text-center" style="max-width: 520px;">
+    <h1 class="mb-3">Vérifie ta boîte mail</h1>
+
+    <p>
+        Si un compte existe avec cette adresse email,  
+        un lien de réinitialisation vient d’être envoyé.
+    </p>
+
+    <a href="{{ path('app_connexion') }}" class="btn btn-outline-success mt-4">
+        Retour à la connexion
+    </a>
+</div>
+{% endblock %}

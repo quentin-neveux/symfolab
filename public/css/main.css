@@ -79,6 +79,32 @@
 }
 
 /* ------------------------------------------------------------
+   BOX CONDUCTEUR (photo + infos)
+------------------------------------------------------------- */
+.conducteur-box {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.conducteur-photo {
+    width: 90px;
+    height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.stars {
+    font-size: 1.2rem;
+    color: #f1c40f;
+}
+
+.conducteur-infos p {
+    margin: 0;
+}
+
+
+/* ------------------------------------------------------------
    LIENS NAVBAR
 ------------------------------------------------------------- */
 .ecoride-navbar .nav-link {
@@ -132,30 +158,100 @@
   background: linear-gradient(180deg, #59c242 0%, #285f1b 100%);
 }
 
-/* ------------------------------------------------------------
-   ALIGNEMENT DES BOUTONS (mobile)
-------------------------------------------------------------- */
-@media (max-width: 992px) {
-  .navbar-collapse {
-    text-align: center;
+/* =========================================================================
+   NAVBAR MOBILE — Gestion du dropdown utilisateur & centrage global
+   ========================================================================== */
+@media (max-width: 1199px) {
+
+  /* --- Réactiver le dropdown Bootstrap normalement --- */
+  #userDropdown {
+    pointer-events: auto !important;
   }
-  .navbar-collapse ul {
-    display: flex;
+
+  #userDropdown::after {
+    display: inline-block !important;
+  }
+
+  /* --- Structure du bloc dropdown utilisateur --- */
+  .navbar-collapse .dropdown {
+    width: 100%;
+    display: flex !important;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
+    text-align: center;
   }
-  .navbar-collapse .nav-item-buttons {
-    display: flex;
+
+  /* Avatar + nom + chevron correctement centrés */
+  .navbar-collapse .dropdown-toggle {
+    display: flex !important;
+    align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    margin-top: 0.8rem;
+    padding: 0.6rem 1rem;
   }
-  .navbar-collapse .btn-nav-light,
-  .navbar-collapse .btn-nav-solid {
-    margin: 0;
-    padding: 0.5rem 1.2rem;
+
+  .navbar-collapse .dropdown-toggle::after {
+    margin-left: 0.3rem !important;
+  }
+
+  /* --- Apparence du menu déroulant --- */
+  .navbar-collapse .dropdown-menu {
+    display: none !important;
+    position: static !important;
+    float: none !important;
+
+    margin: 0.8rem 0 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    text-align: center;
+  }
+
+  /* Afficher le dropdown quand Bootstrap l’active */
+  .navbar-collapse .dropdown-menu.show {
+    display: block !important;
+  }
+
+  /* --- Bouton Déconnexion : style unifié, pill-shaped --- */
+  .navbar-collapse .dropdown-item {
+    display: inline-block;
+    margin: 1rem auto 0;
+    padding: 0.75rem 1.9rem;
+
+    border-radius: 50px;
+    border: 2px solid #dc3545;
+    background: #ffffff;
+
+    color: #dc3545 !important;
+    font-weight: 600;
+    font-size: 1rem;
+
+    transition: all 0.25s ease;
+  }
+
+  .navbar-collapse .dropdown-item:hover {
+    background: #dc3545;
+    color: #ffffff !important;
+  }
+
+  /* --- Centrage général des éléments du menu mobile --- */
+  .navbar-collapse ul {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .navbar-collapse .nav-item {
+    width: 100%;
+    text-align: center;
   }
 }
+
 
 /* ------------------------------------------------------------
    BURGER MENU
@@ -489,6 +585,84 @@
   transition: all 0.25s ease;
 }
 
+/* ============================================================
+   SEARCHBAR — PASSAGERS (UX type BlaBlaCar)
+   Desktop + Mobile (SANS drawer plein écran)
+============================================================ */
+
+/* Bouton principal */
+.eco-passengers-btn {
+  background: #ffffff;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Icônes */
+.eco-passengers-btn i {
+  font-size: 16px;
+}
+
+/* Dropdown (desktop + mobile) */
+.eco-passengers-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px); /* ⬅️ AU-DESSUS */
+  left: 0;
+  width: 220px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  z-index: 1000;
+}
+
+/* Boutons + / − */
+.eco-passengers-dropdown button {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Compteur */
+#passengers-count {
+  min-width: 32px;
+  text-align: center;
+  font-size: 16px;
+}
+
+/* ------------------------------------------------------------
+   MOBILE (≤ 768px)
+   → on garde EXACTEMENT le même comportement
+------------------------------------------------------------ */
+@media (max-width: 768px) {
+
+  .eco-passengers-btn {
+    height: 48px;
+    font-size: 15px;
+  }
+
+  .eco-passengers-dropdown {
+    width: 200px;
+    padding: 14px;
+  }
+
+  .eco-passengers-dropdown button {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+}
+
+
 
 /* ============================================================
    CHAMPS
@@ -602,19 +776,18 @@
 
 
 /* ============================================================
-   MOBILE ( < 576px )
+   SEARCHBAR — MOBILE & TABLETTE ( < 768px )
 =============================================================== */
-@media (max-width: 576px) {
+@media (max-width: 767px) {
 
   .eco-searchbar {
     flex-direction: column;
-
     background: #fff;
     border-radius: 1.6rem;
     padding: 1.2rem 1.3rem;
     margin-top: 1.5rem;
 
-    overflow: hidden; /* Corrige les coins carrés */
+    overflow: hidden; /* Coins arrondis fixes */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
   }
 
@@ -642,6 +815,7 @@
     border-radius: 1rem;
   }
 }
+
 
 /* ============================================================
    ECORIDE — MAIN SCSS IMPORTER (Version PRO)
@@ -1120,6 +1294,25 @@
 .profile-subnav .nav-link.active::after {
   width: 100%;
 }
+/* ======= PROFIL — RESPONSIVE FIX ======= */
+@media (max-width: 576px) {
+    .profil-header {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .profil-header .profil-info {
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .profil-header .token-box {
+        margin-top: 10px;
+        text-align: center;
+    }
+}
+
 
 /* ------------------------------------------------------------
    UTILITAIRES
@@ -1239,27 +1432,37 @@
 /* -------------------------
    Mixins réutilisables
 -------------------------- */
-/* ============================================================
-   ECORIDE — Popup AimLab & Easter Egg (Version PRO)
-   Popup fullscreen, bouton close, iframe, animations, cibles
-   ============================================================ */
+/* ============================================================================
+   ECORIDE — Popup AimLab & Easter Egg (Version PRO + Responsive)
+   ============================================================================ */
+
 /* ------------------------------------------------------------
-   EASTER EGG — Icône feuille secrète
+   EASTER EGG — Icône feuille secrète (clic uniquement visible)
 ------------------------------------------------------------- */
+
+/* Cacher la feuille du Aimlab en mobile */
+@media (max-width: 767px) {
+  #eco-secret-logo {
+    display: none !important;
+  }
+}
+
 #eco-secret-logo {
   position: relative;
-  z-index: 9999;
+  z-index: 5;
   opacity: 0.45;
   cursor: pointer;
   filter: grayscale(100%);
   transition: all 0.3s ease;
-  pointer-events: auto !important;
+  pointer-events: auto !important;  /* clic seulement quand visible */
 }
+
 #eco-secret-logo:hover {
   opacity: 1;
   filter: none;
   transform: rotate(-8deg) scale(1.15);
 }
+
 #eco-secret-logo:hover::after {
   content: "";
   position: absolute;
@@ -1288,12 +1491,12 @@
 }
 
 /* ------------------------------------------------------------
-   CONTENU DE LA POPUP — Taille élargie
+   CONTENU POPUP — Version Desktop
 ------------------------------------------------------------- */
 #aimlab-popup .popup-content {
   position: relative;
-  width: 1050px;      /* ⬅️ PLUS LARGE */
-  height: 720px;      /* ⬅️ PLUS HAUT */
+  width: 1050px;
+  height: 720px;
   background: #fff;
   border: 4px solid #47b951;
   border-radius: 22px;
@@ -1304,21 +1507,16 @@
   flex-direction: column;
 }
 
-/* ------------------------------------------------------------
-   IFRAME DU JEU — prend toute la place
-------------------------------------------------------------- */
+/* IFRAME DU JEU */
 #aimlab-popup iframe {
   flex: 1;
   width: 100%;
   height: 100%;
   border: none;
-  background: transparent;
 }
 
-
-
 /* ------------------------------------------------------------
-   BOUTON DE FERMETURE
+   BOUTON FERMETURE
 ------------------------------------------------------------- */
 #close-popup {
   position: absolute;
@@ -1332,7 +1530,6 @@
   font-size: 2rem;
   cursor: pointer;
   line-height: 1;
-  border: 2px solid transparent;
   border-radius: 50%;
   transition: 0.25s ease;
   z-index: 10001;
@@ -1340,25 +1537,21 @@
   align-items: center;
   justify-content: center;
 }
+
 #close-popup:hover {
   transform: rotate(90deg);
 }
 
 /* ------------------------------------------------------------
-   ANIMATIONS POPUP
+   ANIMATION
 ------------------------------------------------------------- */
 @keyframes popupFade {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
 }
+
 /* ------------------------------------------------------------
-   AIMLAB — Cibles & Crosshair
+   AIMLAB — Cible & crosshair
 ------------------------------------------------------------- */
 .aim-target,
 .crosshair {
@@ -1376,8 +1569,53 @@
   cursor: crosshair;
   transition: filter 0.1s ease;
   -webkit-user-drag: none;
-  user-drag: none;
 }
+
+/* ============================================================================
+   🔥 RESPONSIVE — TABLETTE & MOBILE
+   Ajuste la popup + la cible + la taille du jeu
+============================================================================ */
+
+/* TABLETTES (<= 768px) */
+@media (max-width: 768px) {
+
+  #aimlab-popup .popup-content {
+    width: 95vw;
+    height: 80vh;
+    border-width: 3px;
+  }
+
+  #close-popup {
+    width: 32px;
+    height: 32px;
+    font-size: 1.7rem;
+  }
+
+  #target {
+    width: 80px !important;
+  }
+}
+
+/* TÉLÉPHONES (<= 480px) */
+@media (max-width: 480px) {
+
+  #aimlab-popup .popup-content {
+    width: 95vw;
+    height: 75vh;
+  }
+
+  #close-popup {
+    width: 28px;
+    height: 28px;
+    font-size: 1.5rem;
+  }
+
+  #target {
+    width: 65px !important;
+  }
+}
+
+
 
 /* ============================================================
    ECORIDE — MAIN SCSS IMPORTER (Version PRO)
@@ -1638,6 +1876,127 @@
     font-size: 0.95rem;
     color: #1b3f15;
 }
+
+/*=== AUTO CONPLETE VEHICLE FILTER ===*/
+.autocomplete-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.autocomplete-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background .15s ease;
+}
+
+.autocomplete-item:hover {
+  background: #e9f7ef;
+}
+
+
+/* === BADGE ECOLOGIQUE ROND === */
+.eco-badge-round {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #dfeee2; /* Vert très clair */
+    margin-left: 8px;
+    overflow: hidden; /* IMPORTANT : masque le carré */
+    box-shadow: 0 0 4px rgba(0,0,0,0.1);
+}
+
+.eco-badge-round img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;      /* étire pour remplir le rond */
+    object-position: center;
+    border-radius: 50%;     /* masque supplémentaire */
+}
+
+.trajet-title-eco {
+    display: flex;
+    align-items: center;        /* 🔥 Aligne verticalement tout */
+    gap: 10px;                  /* Espace entre texte et logo */
+    color: var(--eco-primary);  /* Garde ton vert officiel */
+    font-weight: 700;
+}
+
+.eco-badge-round img {
+    display: block; /* empêche les micro-décalages inline */
+}
+
+/* Animation slide down */
+.vehicle-filter-menu-mobile {
+    display: none;
+    padding-left: 10px;
+    animation: slideDown 0.25s ease-out;
+}
+
+.vehicle-filter-menu {
+    display: none;
+}
+
+/* ===============================
+   Boutons de sélection - Places (version compacte)
+   =============================== */
+.places-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px; /* 🔥 réduit l'espace entre les cases */
+}
+
+.places-grid > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+/* Cache les radios natifs */
+.places-grid input[type="radio"] {
+    display: none;
+}
+
+/* Style des labels = boutons */
+.places-grid label {
+    cursor: pointer;
+    padding: 6px 12px; /* 🔥 plus compact */
+    border: 2px solid #c8e6c9;
+    border-radius: 8px; /* 🔥 moins arrondi = plus compact visuellement */
+    background: #ffffff;
+    font-weight: 600;
+    color: #2e7d32;
+    transition: 0.15s ease-in-out;
+    min-width: 38px; /* 🔥 largeur réduite */
+    text-align: center;
+}
+
+/* Sélection */
+.places-grid input[type="radio"]:checked + label {
+    background: #2e7d32;
+    color: white;
+    border-color: #2e7d32;
+}
+
+/* Hover */
+.places-grid label:hover {
+    background: #e8f5e9;
+}
+
+
+
+
 
 
 

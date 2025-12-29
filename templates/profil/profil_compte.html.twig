@@ -5,109 +5,134 @@
 {% block body %}
 
 <section class="container my-5">
-
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      {# Sous-menu #}
+      {# Sous-menu profil #}
       {% include 'profil/_profil_header.html.twig' %}
 
-      {# En-tête #}
+      {# =============================
+         EN-TÊTE (CONSERVÉ)
+         ============================= #}
       <div class="bg-white rounded shadow-sm p-4 mb-4">
         <div class="d-flex justify-content-between align-items-start">
           <div>
-            <h3 class="mb-1">Paramètres du compte</h3>
+            <h3 class="mb-1">Mon compte</h3>
             <p class="text-muted small mb-0">
-              Gérez vos informations personnelles, votre sécurité et votre accès au compte.
+              Informations personnelles et état de votre compte EcoRide.
             </p>
           </div>
           <div class="ms-3">
-            <a href="{{ path('app_profil_edit') }}" class="btn btn-ecoride rounded-pill px-4">
+            <a href="{{ path('app_profil_edit') }}"
+               class="btn btn-ecoride rounded-pill px-4">
               Modifier mon profil
             </a>
           </div>
         </div>
       </div>
 
-      
-
       {# =============================
-         Informations de compte
+         IDENTITÉ
          ============================= #}
       <div class="bg-white rounded shadow-sm p-4 mb-4">
 
-        <h5 class="mb-3">Informations personnelles</h5>
+        <h5 class="mb-3">Identité</h5>
 
         <ul class="list-group list-group-flush">
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Nom</span>
+            <span class="text-muted">
+              {{ app.user.prenom }} {{ app.user.nom }}
+            </span>
+          </li>
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>Email</span>
-            <span class="text-muted">{{ app.user.email }}</span>
+            <span class="text-muted">
+              {{ app.user.email }}
+            </span>
           </li>
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>Téléphone</span>
-            {% if app.user.telephone %}
-              <span class="text-muted">{{ app.user.telephone }}</span>
-            {% else %}
-              <span class="text-muted small">Non renseigné</span>
-            {% endif %}
+            <span class="text-muted">
+              {{ app.user.telephone ?? 'Non renseigné' }}
+            </span>
           </li>
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>Date de naissance</span>
-            {% if app.user.dateNaissance %}
-              <span class="text-muted">{{ app.user.dateNaissance|date('d/m/Y') }}</span>
-            {% else %}
-              <span class="text-muted small">Non renseignée</span>
-            {% endif %}
+            <span class="text-muted">
+              {{ app.user.dateNaissance
+                ? app.user.dateNaissance|date('d/m/Y')
+                : 'Non renseignée'
+              }}
+            </span>
           </li>
 
         </ul>
-
       </div>
 
       {# =============================
-         Sécurité du compte
+         ÉTAT DU COMPTE
          ============================= #}
       <div class="bg-white rounded shadow-sm p-4 mb-4">
 
-        <h5 class="mb-3">Sécurité</h5>
+        <h5 class="mb-3">État du compte</h5>
 
         <ul class="list-group list-group-flush">
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Mot de passe</span>
-            <a href="#" class="text-success small">Modifier</a>
+            <span>Statut</span>
+            <span class="badge bg-success">Compte actif</span>
           </li>
 
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>Dernière modification</span>
-            <span class="text-muted small">Indisponible</span>
+            <span>Membre depuis</span>
+            <span class="text-muted">
+              {{ app.user.createdAt|date('Y') }}
+            </span>
+          </li>
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Tokens EcoRide</span>
+            <span class="fw-semibold">
+              {{ app.user.tokens }} tokens
+            </span>
+          </li>
+
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            <span>Gains conducteur</span>
+            <span class="fw-semibold text-success">
+              {{ app.user.earnings|number_format(2, ',', ' ') }} €
+            </span>
           </li>
 
         </ul>
-
       </div>
 
       {# =============================
-         Déconnexion & Suppression
+         SESSION
          ============================= #}
       <div class="bg-white rounded shadow-sm p-4">
 
+        <h5 class="mb-3">Session</h5>
+
         <a href="{{ path('app_logout') }}"
-           class="d-block text-danger fw-semibold text-decoration-none mb-2">
-          <i class="bi bi-box-arrow-right me-2"></i>Déconnexion
+           class="d-inline-flex align-items-center text-danger fw-semibold text-decoration-none">
+          <i class="bi bi-box-arrow-right me-2"></i>
+          Se déconnecter
         </a>
 
-        <a href="#" class="small text-muted text-decoration-none">
-          Fermer mon compte
-        </a>
+        <p class="small text-muted mt-2 mb-0">
+          Pour des raisons de sécurité, pensez à vous déconnecter sur les appareils partagés.
+        </p>
+
       </div>
 
     </div>
   </div>
-
 </section>
 
 {% endblock %}

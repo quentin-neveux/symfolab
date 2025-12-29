@@ -1,14 +1,25 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/_layout.html.twig' %}
 
-{% block body %}
-<div class="container py-5">
-  <h2 class="mb-4">Modifier trajet #{{ trajet.id }}</h2>
+{% block admin_content %}
 
-  {{ form_start(form) }}
-    {{ form_widget(form) }}
+<h2 class="text-success mb-4 fw-bold">
+    Modifier le trajet #{{ trajet.id }}
+</h2>
 
-    <button class="btn btn-success mt-3">Enregistrer</button>
-  {{ form_end(form) }}
+<div class="card p-4 shadow-sm rounded-4">
+
+    {{ form_start(form) }}
+
+        {{ form_widget(form) }}
+
+        <div class="mt-4 text-end">
+            <button class="btn btn-success rounded-pill px-5 py-2 fw-semibold">
+                Enregistrer
+            </button>
+        </div>
+
+    {{ form_end(form) }}
 
 </div>
+
 {% endblock %}

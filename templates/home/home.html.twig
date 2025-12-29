@@ -11,17 +11,18 @@
   <div class="container">
     <h1 class="hero-title-ecoride mb-3">EcoRide</h1>
     <h2 class="hero-tagline-eco mb-3">Changeons d’air, pas de Terre</h2>
-    <p class="lead mb-4">Voyager écologique, c'est simple et convivial.</p>
+    <p class="lead mb-2">Covoiturez écologique ! C'est simple et convivial.</p>
 
-    <!-- BARRE DE RECHERCHE -->
+    <!-- ========================================================
+         BARRE DE RECHERCHE
+    ======================================================== -->
     <form id="search-form" action="{{ path('app_recherche') }}" method="get" class="mx-auto mb-4">
       <div class="eco-searchbar">
 
         <!-- 🟢 Ville de départ -->
         <div class="eco-search-field position-relative">
           <i class="bi bi-geo-alt text-success me-2"></i>
-
-          <input 
+          <input
             type="text"
             id="ville-depart"
             class="form-control"
@@ -30,15 +31,13 @@
             autocomplete="off"
             required
           >
-
           <ul id="ville-depart-list" class="autocomplete-list"></ul>
         </div>
 
         <!-- 🟢 Ville d’arrivée -->
         <div class="eco-search-field position-relative">
           <i class="bi bi-flag text-success me-2"></i>
-
-          <input 
+          <input
             type="text"
             id="ville-arrivee"
             class="form-control"
@@ -47,23 +46,58 @@
             autocomplete="off"
             required
           >
-
           <ul id="ville-arrivee-list" class="autocomplete-list"></ul>
         </div>
 
-        <!-- Date -->
+        <!-- 📅 Date -->
         <div class="eco-search-field">
           <i class="bi bi-calendar-event text-success me-2"></i>
-          <input type="date" class="form-control" name="date_depart">
+          <input
+            type="date"
+            class="form-control"
+            name="date_depart"
+          >
         </div>
 
-        <button type="submit" class="eco-search-btn">Rechercher</button>
+        <!-- 👥 Passagers (UX type BlaBlaCar) -->
+        <div class="eco-search-field position-relative" id="passengers-field">
+          <button
+            type="button"
+            class="form-control d-flex align-items-center justify-content-between eco-passengers-btn"
+            id="passengers-toggle"
+          >
+            <span>
+              <i class="bi bi-person text-success me-2"></i>
+              <span id="passengers-label">1 passager</span>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+          </button>
+
+          <div class="eco-passengers-dropdown d-none" id="passengers-dropdown">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <strong>Passagers</strong>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center">
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="passengers-minus">−</button>
+              <span id="passengers-count" class="fw-bold">1</span>
+              <button type="button" class="btn btn-outline-secondary btn-sm" id="passengers-plus">+</button>
+            </div>
+          </div>
+
+          <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="1">
+        </div>
+
+        <!-- 🔍 Bouton -->
+        <button type="submit" class="eco-search-btn">
+          Rechercher
+        </button>
 
       </div>
     </form>
-
   </div>
 </section>
+
 
 <!-- ============================================================
      SECTION 1 : POURQUOI ECORIDE (alternée)

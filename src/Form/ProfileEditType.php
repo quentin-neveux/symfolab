@@ -54,17 +54,21 @@ class ProfileEditType extends AbstractType
             // Photo de profil (non mappée)
             // --------------------------------------------------
             ->add('photo', FileType::class, [
-                'label' => 'Photo de profil',
                 'required' => false,
                 'mapped' => false,
                 'constraints' => [
                     new File([
-                        'maxSize' => '4M',
-                        'mimeTypes' => ['image/jpeg', 'image/png'],
-                        'mimeTypesMessage' => 'Formats acceptés : JPEG ou PNG',
+                        'maxSize' => '2M',
+                        'mimeTypes' => [
+                            'image/jpeg',
+                            'image/png',
+                            'image/webp',
+                        ],
+                        'mimeTypesMessage' => 'Format invalide (JPG, PNG ou WebP uniquement)',
                     ])
-                ]
+                ],
             ])
+
 
             // --------------------------------------------------
             // Préférences de voyage

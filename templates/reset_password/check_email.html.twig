@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Email envoyé — EcoRide{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+
+            <div class="card shadow-sm border-0 rounded-4 p-4 text-center">
+                <h1 class="h4 mb-3">Vérifie ta boîte mail 📬</h1>
+
+                <p class="text-muted">
+                    Si un compte EcoRide existe avec cette adresse email,
+                    un lien de réinitialisation vient d’être envoyé.
+                </p>
+
+                <p class="text-muted">
+                    Pense à vérifier tes spams.
+                </p>
+
+                <a href="{{ path('app_connexion') }}"
+                   class="btn btn-outline-success mt-4">
+                    Retour à la connexion
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

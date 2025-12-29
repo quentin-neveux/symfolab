@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\ProfileEditType;
 use App\Repository\ReviewRepository;
+use App\Repository\VehicleRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -15,21 +16,34 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 
 final class ProfilController extends AbstractController
 {
+    // =========================================================
+    // 🔵 PAGE PROFIL (vue principale)
+    // =========================================================
     #[Route('/profil', name: 'app_profil')]
-    public function index(ReviewRepository $reviewRepo): Response
-    {
+    public function index(
+        ReviewRepository $reviewRepo,
+        VehicleRepository $vehicleRepo
+    ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
         /** @var User $user */
         $user = $this->getUser();
         $average = $reviewRepo->getAverageRatingForUser($user->getId());
 
+        // 💥 Récupérer les véhicules du user
+        $vehicles = $vehicleRepo->findByUser($user);
+
         return $this->render('profil/profil.html.twig', [
             'user' => $user,
             'averageRating' => $average,
+            'vehicles' => $vehicles, // indispensable
         ]);
     }
 
+
+    // =========================================================
+    // ⚙️ PAGE D’INFOS DU COMPTE
+    // =========================================================
     #[Route('/profil/compte', name: 'app_profil_compte')]
     public function compte(): Response
     {
@@ -37,6 +51,9 @@ final class ProfilController extends AbstractController
         return $this->render('profil/profil_compte.html.twig');
     }
 
+    // =========================================================
+    // ✏️ EDITION DU PROFIL
+    // =========================================================
     #[Route('/profil/edit', name: 'app_profil_edit')]
     public function edit(
         Request $request,
@@ -55,40 +72,36 @@ final class ProfilController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
 
             // ============================
-            //        UPLOAD PHOTO
+            // 🔼 UPLOAD PHOTO
             // ============================
             $file = $form->get('photo')->getData();
 
             if ($file) {
                 $uploadsDir = $this->getParameter('photos_directory');
 
-                // Supprimer l’ancienne photo
                 if ($user->getPhoto()) {
-                    $oldFile = $uploadsDir . '/' . $user->getPhoto();
-                    if (file_exists($oldFile)) {
-                        unlink($oldFile);
-                    }
+                    $old = $uploadsDir . '/' . $user->getPhoto();
+                    if (file_exists($old)) unlink($old);
                 }
 
-                // Nouveau nom
-                $newFilename = $slugger->slug($user->getPrenom() . '-' . time())
-                    . '.' . $file->guessExtension();
+                $newFilename =
+                    $slugger->slug($user->getPrenom() . '-' . time()) .
+                    '.' .
+                    $file->guessExtension();
 
-                // Déplacement vers dossier uploads
                 try {
                     $file->move($uploadsDir, $newFilename);
                 } catch (FileException $e) {
-                    $this->addFlash('danger', "Erreur durant l'upload de la photo.");
+                    $this->addFlash('danger', "Erreur durant l'upload.");
                 }
 
-                // Set photo dans l'entité
                 $user->setPhoto($newFilename);
             }
 
-            // Persist
+            // Save
             $em->flush();
 
-            $this->addFlash('success', 'Profil mis à jour avec succès ✔️');
+            $this->addFlash('success', 'Profil mis à jour ✔️');
             return $this->redirectToRoute('app_profil');
         }
 
@@ -97,4 +110,3 @@ final class ProfilController extends AbstractController
         ]);
     }
 }
-

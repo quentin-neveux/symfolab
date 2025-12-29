@@ -4,57 +4,67 @@ namespace App\Controller;
 
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
-use App\Service\DistanceCalculator;
-use App\Service\TokenCalculator;
+use App\Entity\Vehicle;
 use App\Form\TrajetType;
 use App\Form\TrajetEditType;
 use App\Repository\ReviewRepository;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
 class TrajetController extends AbstractController
 {
-    // ----------------------------------------------------------
-    // 🟢 Proposer un nouveau trajet
-    // ----------------------------------------------------------
+    use TargetPathTrait;
+
+    // ==========================================================
+    // 🟢 PROPOSER UN TRAJET
+    // ==========================================================
     #[Route('/profil/proposer-trajet', name: 'app_proposer_trajet')]
     public function proposer(
         Request $request,
         EntityManagerInterface $em,
-        DistanceCalculator $distanceCalc,
-        TokenCalculator $tokenCalc
+        MailerService $mailer
     ): Response {
-        if (!$this->getUser()) {
-            $request->getSession()->set('redirect_after_login', $request->getUri());
+        $user = $this->getUser();
+
+        if (!$user) {
+            $this->saveTargetPath($request->getSession(), 'main', $request->getUri());
             return $this->redirectToRoute('app_connexion');
         }
 
         $trajet = new Trajet();
-        $form = $this->createForm(TrajetType::class, $trajet);
+        $trajet->setConducteur($user);
+
+        $form = $this->createForm(TrajetType::class, $trajet, ['user' => $user]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // ➤ Distance estimée entre les deux villes
-            $distance = $distanceCalc->estimateDistance(
-                $trajet->getVilleDepart(),
-                $trajet->getVilleArrivee()
-            );
+            /** @var Vehicle|null $newVehicle */
+            $newVehicle = $form->get('newVehicle')->getData();
 
-            // ➤ Coût en tokens par service
-            $tokenCost = $tokenCalc->calculate($distance);
-            $trajet->setTokenCost($tokenCost);
+            if ($newVehicle) {
+                $newVehicle->setOwner($user);
+                $em->persist($newVehicle);
+                $trajet->setVehicle($newVehicle);
+            }
 
-            // ➤ Conducteur : l'utilisateur actuel
-            $trajet->setConducteur($this->getUser());
+            if (!$trajet->getVehicle()) {
+                $this->addFlash('danger', 'Tu dois sélectionner ou ajouter un véhicule.');
+                return $this->redirectToRoute('app_proposer_trajet');
+            }
 
             $em->persist($trajet);
             $em->flush();
 
-            $this->addFlash('success', "Votre trajet a bien été publié. Coût : $tokenCost tokens");
+            // ✉️ Mail conducteur
+            $mailer->notifyTrajetCreated($trajet);
+
+            $this->addFlash('success', 'Ton trajet a bien été publié.');
             return $this->redirectToRoute('app_mes_trajets');
         }
 
@@ -63,10 +73,41 @@ class TrajetController extends AbstractController
         ]);
     }
 
+    // ==========================================================
+    // 🔍 DÉTAIL TRAJET
+    // ==========================================================
+    #[Route('/trajet/{id}', name: 'app_trajet_detail')]
+    public function detail(
+        Trajet $trajet,
+        EntityManagerInterface $em,
+        ReviewRepository $reviewRepo
+    ): Response {
+        $user = $this->getUser();
+        $reservation = null;
 
-    // ----------------------------------------------------------
-    // 🟡 Mes trajets (Avenir / En cours / Passés)
-    // ----------------------------------------------------------
+        if ($user) {
+            $reservation = $em->getRepository(TrajetPassager::class)
+                ->findOneBy(['trajet' => $trajet, 'passager' => $user]);
+        }
+
+        $passagers = $em->getRepository(TrajetPassager::class)
+            ->findBy(['trajet' => $trajet]);
+
+        $averageRating = $reviewRepo->getAverageRatingForUser(
+            $trajet->getConducteur()->getId()
+        );
+
+        return $this->render('trajet/detail.html.twig', [
+            'trajet'        => $trajet,
+            'reservation'   => $reservation,
+            'passagers'     => $passagers,
+            'averageRating' => $averageRating,
+        ]);
+    }
+
+    // ==========================================================
+    // 🟡 MES TRAJETS
+    // ==========================================================
     #[Route('/profil/mes_trajets', name: 'app_mes_trajets')]
     public function mesTrajets(EntityManagerInterface $em): Response
     {
@@ -77,235 +118,155 @@ class TrajetController extends AbstractController
             return $this->redirectToRoute('app_connexion');
         }
 
-        $repo = $em->getRepository(Trajet::class);
-        $tpRepo = $em->getRepository(TrajetPassager::class);
-        $now = new \DateTime();
+        $trajetRepo = $em->getRepository(Trajet::class);
+        $tpRepo     = $em->getRepository(TrajetPassager::class);
+        $now        = new \DateTimeImmutable();
 
-        $trajetsConducteur = $repo->findBy(['conducteur' => $user], ['dateDepart' => 'ASC']);
-        $trajetsPassager   = $tpRepo->findBy(['passager' => $user]);
+        $trajetsConducteur = $trajetRepo->findBy(
+            ['conducteur' => $user],
+            ['dateDepart' => 'ASC']
+        );
 
-        $trajetsAvenir = [];
-        $trajetsEnCours = [];
-        $trajetsPasses = [];
+        $trajetsPassager = $tpRepo->findBy(['passager' => $user]);
 
-        // --- Conducteur ---
+        $avenir = $encours = $passes = [];
+
         foreach ($trajetsConducteur as $trajet) {
-            $item = [
-                'trajet' => $trajet,
-                'role' => 'conducteur',
-                'reservation' => null
-            ];
-
-            if ($trajet->getDateDepart() > $now) {
-                $trajetsAvenir[] = $item;
-            } elseif ($trajet->getDateArrivee() && $trajet->getDateArrivee() < $now) {
-                $trajetsPasses[] = $item;
-            } else {
-                $trajetsEnCours[] = $item;
-            }
+            $this->classifyTrajet($trajet, 'conducteur', null, $now, $avenir, $encours, $passes);
         }
 
-        // --- Passager ---
-        foreach ($trajetsPassager as $res) {
-            $trajet = $res->getTrajet();
-
-            $item = [
-                'trajet' => $trajet,
-                'role' => 'passager',
-                'reservation' => $res
-            ];
-
-            if ($trajet->getDateDepart() > $now) {
-                $trajetsAvenir[] = $item;
-            } elseif ($trajet->getDateArrivee() && $trajet->getDateArrivee() < $now) {
-                $trajetsPasses[] = $item;
-            } else {
-                $trajetsEnCours[] = $item;
-            }
+        foreach ($trajetsPassager as $reservation) {
+            $trajet = $reservation->getTrajet();
+            $this->classifyTrajet($trajet, 'passager', $reservation, $now, $avenir, $encours, $passes);
         }
 
         return $this->render('trajet/trajet_historique.html.twig', [
-            'trajetsAvenir' => $trajetsAvenir,
-            'trajetsEnCours' => $trajetsEnCours,
-            'trajetsPasses' => $trajetsPasses,
+            'trajetsAvenir'  => $avenir,
+            'trajetsEnCours' => $encours,
+            'trajetsPasses'  => $passes,
         ]);
     }
 
-
-    // ----------------------------------------------------------
-    // 🔎 Détail d’un trajet
-    // ----------------------------------------------------------
-    #[Route('/trajet/{id}', name: 'app_trajet_detail')]
-    public function detail(
-        int $id,
+    // ==========================================================
+    // 🔵 MODIFIER TRAJET
+    // ==========================================================
+    #[Route('/trajet/{id}/edit', name: 'app_trajet_edit')]
+    public function edit(
+        Trajet $trajet,
         Request $request,
-        EntityManagerInterface $em,
-        ReviewRepository $reviewRepo
+        EntityManagerInterface $em
     ): Response {
-        $trajet = $em->getRepository(Trajet::class)->find($id);
+        $user = $this->getUser();
 
-        if (!$trajet) {
-            throw $this->createNotFoundException('Trajet introuvable.');
+        if (!$user || $trajet->getConducteur() !== $user) {
+            $this->addFlash('danger', 'Tu ne peux modifier que tes trajets.');
+            return $this->redirectToRoute('app_mes_trajets');
         }
 
-        if (!$this->getUser()) {
-            $request->getSession()->set('redirect_after_login', $request->getUri());
-        }
-
-        $conducteur = $trajet->getConducteur();
-
-        $averageRating = $conducteur 
-            ? $reviewRepo->getAverageRatingForUser($conducteur->getId()) 
-            : null;
-
-        $reviews = $conducteur 
-            ? $reviewRepo->getReviewsForUser($conducteur->getId()) 
-            : [];
-
-        $reservation = null;
-        if ($this->getUser()) {
-            $reservation = $em->getRepository(TrajetPassager::class)->findOneBy([
-                'trajet' => $trajet,
-                'passager' => $this->getUser()
-            ]);
-        }
-
-        return $this->render('trajet/detail.html.twig', [
-            'trajet' => $trajet,
-            'averageRating' => $averageRating,
-            'reviews' => $reviews,
-            'reservation' => $reservation,
-        ]);
-    }
-
-
-    // ----------------------------------------------------------
-    // ✏️ Modifier un trajet
-    // ----------------------------------------------------------
-    #[Route('/profil/trajet/{id}/edit', name: 'app_trajet_edit')]
-    public function edit(int $id, Request $request, EntityManagerInterface $em): Response
-    {
-        $trajet = $em->getRepository(Trajet::class)->find($id);
-
-        if (!$trajet) {
-            throw $this->createNotFoundException('Trajet introuvable.');
-        }
-
-        if ($trajet->getConducteur() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Tu ne peux modifier que tes propres trajets.');
-        }
-
-        $form = $this->createForm(TrajetEditType::class, $trajet);
+        $form = $this->createForm(TrajetEditType::class, $trajet, ['user' => $user]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            // Mise à jour de l'heure si modifiée
-            $newTime = $form->get('dateDepart')->getData();
-
-            if ($newTime) {
-                $date = $trajet->getDateDepart();
-                $date->setTime(
-                    (int)substr($newTime, 0, 2),
-                    (int)substr($newTime, 3, 2)
-                );
-                $trajet->setDateDepart($date);
-            }
-
             $em->flush();
-
-            $this->addFlash('success', 'Trajet modifié avec succès.');
-            return $this->redirectToRoute('app_mes_trajets');
+            $this->addFlash('success', 'Trajet modifié.');
+            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
 
         return $this->render('trajet/edit.html.twig', [
             'trajet' => $trajet,
-            'form' => $form->createView(),
+            'form'   => $form->createView(),
         ]);
     }
 
-
-    // ----------------------------------------------------------
-    // ❌ Supprimer un trajet
-    // ----------------------------------------------------------
-    #[Route('/profil/trajet/{id}/delete', name: 'app_trajet_delete')]
-    public function delete(int $id, EntityManagerInterface $em): Response
-    {
-        $trajet = $em->getRepository(Trajet::class)->find($id);
-
-        if (!$trajet) {
-            throw $this->createNotFoundException('Trajet introuvable.');
-        }
-
-        if ($trajet->getConducteur() !== $this->getUser()) {
-            throw $this->createAccessDeniedException('Tu ne peux supprimer que tes propres trajets.');
-        }
-
-        $reservations = $em->getRepository(TrajetPassager::class)
-            ->findBy(['trajet' => $trajet]);
-
-        foreach ($reservations as $res) {
-
-            $user = $res->getPassager();
-
-            if ($res->isPaid()) {
-                $user->setTokens($user->getTokens() + $trajet->getTokenCost());
-            }
-
-            $em->remove($res);
-        }
-
-        $em->remove($trajet);
-        $em->flush();
-
-        $this->addFlash('success', 'Trajet supprimé. Les passagers ont été remboursés.');
-
-        return $this->redirectToRoute('app_mes_trajets');
-    }
-
-
-    // ----------------------------------------------------------
-    // ❌ Annuler une réservation (passager)
-    // ----------------------------------------------------------
-    #[Route('/trajet/{id}/annuler', name: 'trajet_annuler_reservation')]
-    public function annulerReservation(int $id, EntityManagerInterface $em): Response
-    {
+    // ==========================================================
+    // ❌ ANNULER TRAJET (CONDUCTEUR) — CORRIGÉ
+    // ==========================================================
+    #[Route('/trajet/{id}/annuler-conducteur', name: 'trajet_annuler_conducteur', methods: ['POST'])]
+    public function annulerTrajetConducteur(
+        Trajet $trajet,
+        EntityManagerInterface $em,
+        MailerService $mailer
+    ): Response {
         $user = $this->getUser();
 
-        if (!$user) {
-            $this->addFlash('warning', 'Connecte-toi pour annuler une réservation.');
-            return $this->redirectToRoute('app_connexion');
-        }
-
-        $trajet = $em->getRepository(Trajet::class)->find($id);
-
-        if (!$trajet) {
-            throw $this->createNotFoundException('Trajet introuvable.');
-        }
-
-        $reservation = $em->getRepository(TrajetPassager::class)
-            ->findOneBy([
-                'trajet' => $trajet,
-                'passager' => $user
-            ]);
-
-        if (!$reservation) {
-            $this->addFlash('danger', 'Tu ne participes pas à ce trajet.');
+        if (!$user || $trajet->getConducteur() !== $user) {
+            $this->addFlash('danger', 'Action non autorisée.');
             return $this->redirectToRoute('app_mes_trajets');
         }
 
-        if ($reservation->isPaid()) {
-            $montant = $trajet->getTokenCost();
-            $user->setTokens($user->getTokens() + $montant);
+        if ($trajet->getDateDepart() <= new \DateTime()) {
+            $this->addFlash('danger', 'Le trajet a déjà commencé.');
+            return $this->redirectToRoute('app_trajet_detail', [
+                'id' => $trajet->getId()
+            ]);
         }
 
-        $trajet->setPlacesDisponibles($trajet->getPlacesDisponibles() + 1);
+        $em->beginTransaction();
 
-        $em->remove($reservation);
-        $em->flush();
+        try {
+            // 🔁 Réservations
+            $reservations = $em->getRepository(TrajetPassager::class)
+                ->findBy(['trajet' => $trajet]);
 
-        $this->addFlash('success', '🚗 Réservation annulée. Remboursement effectué.');
+            foreach ($reservations as $reservation) {
+                $passager = $reservation->getPassager();
 
+                if ($passager) {
+                    $passager->setTokens($passager->getTokens() + 2);
+
+                    $refund = new \App\Entity\TokenTransaction();
+                    $refund->setUser($passager);
+                    $refund->setAmount(2);
+                    $refund->setType('CREDIT');
+                    $refund->setReason('REFUND_ANNULATION_CONDUCTEUR');
+                    $refund->setTrajetId($trajet->getId());
+                    $em->persist($refund);
+                }
+
+                $em->remove($reservation);
+            }
+
+            // ✉️ MAILS AVANT SUPPRESSION (ID ENCORE VALIDE)
+            $mailer->notifyCancellationByConducteur($trajet);
+
+            // ❌ Suppression trajet
+            $em->remove($trajet);
+            $em->flush();
+            $em->commit();
+
+        } catch (\Throwable $e) {
+            $em->rollback();
+            throw $e;
+        }
+
+        $this->addFlash('info', 'Le trajet a été annulé.');
         return $this->redirectToRoute('app_mes_trajets');
+    }
+
+    // ==========================================================
+    // 🧠 UTILITAIRE
+    // ==========================================================
+    private function classifyTrajet(
+        Trajet $trajet,
+        string $role,
+        ?TrajetPassager $reservation,
+        \DateTimeInterface $now,
+        array &$avenir,
+        array &$encours,
+        array &$passes
+    ): void {
+        $item = [
+            'trajet'      => $trajet,
+            'role'        => $role,
+            'reservation' => $reservation,
+        ];
+
+        if ($trajet->getDateDepart() > $now) {
+            $avenir[] = $item;
+        } elseif ($trajet->getDateArrivee() && $trajet->getDateArrivee() < $now) {
+            $passes[] = $item;
+        } else {
+            $encours[] = $item;
+        }
     }
 }

@@ -1,27 +1,72 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/_layout.html.twig' %}
 
-{% block body %}
-<div class="container py-5">
-  <h2 class="mb-4">Modifier l’utilisateur : {{ user.email }}</h2>
+{% block admin_content %}
 
-  {{ form_start(form) }}
-    {{ form_widget(form) }}
+<h2 class="text-success mb-4 fw-bold">
+    Modifier l’utilisateur
+</h2>
 
-    <hr>
+<div class="card p-4 shadow-sm rounded-4">
 
-    {# Champ perso pour ajouter des tokens #}
-    <label for="add_tokens" class="form-label fw-bold">Ajouter des tokens</label>
-    <input 
-      type="number" 
-      id="add_tokens" 
-      name="add_tokens" 
-      class="form-control mb-3" 
-      placeholder="Ex : 100"
-      min="1"
-    >
+    <p class="text-muted mb-4">
+        Compte : <strong>{{ user.email }}</strong>
+    </p>
 
-    <button class="btn btn-success mt-3">Enregistrer</button>
-  {{ form_end(form) }}
+    {{ form_start(form) }}
+
+        {# ============================
+           CHAMPS UTILISATEUR
+        ============================ #}
+        {{ form_row(form.prenom) }}
+        {{ form_row(form.nom) }}
+        {{ form_row(form.email) }}
+
+        {# ============================
+           SWITCH ADMIN (PROPRE)
+        ============================ #}
+        <div class="mb-4">
+            <div class="form-check form-switch">
+                {{ form_widget(form.isAdmin, {
+                    attr: { class: 'form-check-input' }
+                }) }}
+                {{ form_label(form.isAdmin, 'Administrateur', {
+                    label_attr: { class: 'form-check-label fw-semibold' }
+                }) }}
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        {# ============================
+           AJOUT MANUEL DE TOKENS
+        ============================ #}
+        <div class="mb-4">
+            <label for="add_tokens" class="form-label fw-semibold">
+                Ajouter des tokens
+            </label>
+
+            <input
+                type="number"
+                id="add_tokens"
+                name="add_tokens"
+                class="form-control rounded-pill py-2"
+                placeholder="Ex : 20"
+                min="1"
+            >
+
+            <small class="text-muted">
+                Laisser vide pour ne pas modifier le solde.
+            </small>
+        </div>
+
+        <div class="text-end">
+            <button class="btn btn-success rounded-pill px-5 py-2 fw-semibold">
+                Enregistrer
+            </button>
+        </div>
+
+    {{ form_end(form) }}
 
 </div>
+
 {% endblock %}

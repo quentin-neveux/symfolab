@@ -1,0 +1,45 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block subject %}
+Réinitialisation de ton mot de passe — EcoRide
+{% endblock %}
+
+{% block content %}
+<p>Bonjour,</p>
+
+<p>
+Tu as demandé la réinitialisation de ton mot de passe pour ton compte EcoRide.
+</p>
+
+<p style="text-align:center; margin:30px 0;">
+    <a href="{{ url('app_reset_password', { token: resetToken.token }) }}"
+       style="
+           background:#1f7a4f;
+           color:#ffffff;
+           padding:14px 24px;
+           text-decoration:none;
+           border-radius:8px;
+           font-weight:bold;
+           display:inline-block;
+       ">
+        Réinitialiser mon mot de passe
+    </a>
+</p>
+
+<p>
+Ce lien expirera dans
+<strong>
+    {{ resetToken.expirationMessageKey
+        |trans(resetToken.expirationMessageData, 'ResetPasswordBundle') }}
+</strong>.
+</p>
+
+<p>
+Si tu n’es pas à l’origine de cette demande, tu peux ignorer cet email en toute sécurité.
+</p>
+
+<p style="margin-top:30px;">
+À très bientôt,<br>
+<strong>L’équipe EcoRide</strong>
+</p>
+{% endblock %}

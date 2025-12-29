@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Laisser un avis - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-proposer d-flex align-items-center text-center text-white position-relative">
+  <div class="container">
+    <h2 class="hero-title mb-3 text-white">Laisser un avis</h2>
+    <p class="hero-tagline text-white">
+      Pour le trajet {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+    </p>
+  </div>
+</section>
+
+<section class="py-5 bg-ecoride-light">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-8 col-lg-6">
+
+        <div class="card shadow p-4 rounded-4">
+
+          <h3 class="text-success fw-bold mb-4 text-center">Ton avis</h3>
+
+          {{ form_start(form) }}
+
+          {# ⭐⭐⭐⭐⭐ ÉTOILES #}
+          <div id="starRating" class="text-center mb-4">
+            {% for i in 1..5 %}
+              <i class="bi bi-star fs-1 star"
+                 data-value="{{ i }}"
+                 style="cursor:pointer; color:#ccc;"></i>
+            {% endfor %}
+          </div>
+
+          {{ form_widget(form.rating) }}
+
+          {# 🎯 TAGS CLIQUABLES #}
+          <p class="fw-semibold mb-2">Points positifs :</p>
+
+          <div id="reviewTags" class="d-flex flex-wrap gap-2 mb-3">
+            {% set tagsList = [
+              "À l'heure",
+              "Conduite agréable",
+              "Sympa",
+              "Musique agréable",
+              "Voiture propre",
+              "Communication facile"
+            ] %}
+
+            {% for tag in tagsList %}
+              <span class="tag-chip"
+                    data-value="{{ tag }}"
+                    style="
+                      padding:8px 14px;
+                      border-radius:20px;
+                      background:#e8f5e9;
+                      border:1px solid #a5d6a7;
+                      cursor:pointer;
+                      user-select:none;
+                    ">
+                {{ tag }}
+              </span>
+            {% endfor %}
+          </div>
+
+          <input type="hidden" id="tagsInput" name="review_tags" />
+
+          {# 💬 COMMENTAIRE #}
+          {{ form_row(form.comment) }}
+
+          <button class="btn btn-ecoride w-100 mt-4 rounded-pill py-2 fw-semibold">
+            Envoyer l'avis
+          </button>
+
+          {{ form_end(form) }}
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+{# JS INTERACTIF #}
+<script>
+  // ⭐⭐⭐⭐⭐ Gestion des étoiles
+  const stars = document.querySelectorAll('#starRating .star');
+  const ratingInput = document.querySelector('input[name="review[rating]"]');
+  let currentRating = 0;
+
+  stars.forEach(star => {
+    star.addEventListener('mouseover', () => highlight(star.dataset.value));
+    star.addEventListener('mouseout', () => highlight(currentRating));
+    star.addEventListener('click', () => {
+      currentRating = star.dataset.value;
+      ratingInput.value = currentRating;
+    });
+  });
+
+  function highlight(val) {
+    stars.forEach(star => {
+      star.style.color = star.dataset.value <= val ? '#f1c40f' : '#ccc';
+    });
+  }
+
+  // 🎯 TAGS CLIQUABLES
+  const tags = document.querySelectorAll(".tag-chip");
+  const tagsInput = document.getElementById("tagsInput");
+  let selectedTags = [];
+
+  tags.forEach(tag => {
+    tag.addEventListener("click", () => {
+      const value = tag.dataset.value;
+
+      if (selectedTags.includes(value)) {
+        selectedTags = selectedTags.filter(t => t !== value);
+        tag.style.background = "#e8f5e9";
+        tag.style.borderColor = "#a5d6a7";
+      } else {
+        selectedTags.push(value);
+        tag.style.background = "#a5d6a7";
+        tag.style.borderColor = "#2e7d32";
+      }
+
+      tagsInput.value = selectedTags.join(", ");
+    });
+  });
+</script>
+
+{% endblock %}

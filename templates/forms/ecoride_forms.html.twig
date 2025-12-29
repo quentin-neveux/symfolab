@@ -1,33 +1,47 @@
-{# templates/forms/ecoride_forms.html.twig #}
+{# ============================================================================
+   TEMPLATE DE FORMULAIRES — ECORIDE
+   Compatibilité totale avec Bootstrap 5 + Champs personnalisés
+   ============================================================================
+#}
 
 {% use 'bootstrap_5_layout.html.twig' %}
 
+
+{# ---------------------------------------------------------------------------
+   🎨 form_row : style uniformisé pour tous les champs
+--------------------------------------------------------------------------- #}
 {% block form_row %}
     <div class="mb-3">
 
+        {# Label Bootstrap #}
         {{ form_label(form, null, {
             label_attr: { class: 'form-label fw-semibold text-dark' }
         }) }}
 
-        {# Détection du type de widget : textarea ou input #}
+        {# Détection automatique du type de champ #}
         {% if 'textarea' in form.vars.block_prefixes %}
-            {% set fieldClass = 'eco-textarea' %}
+            {% set fieldClass = 'eco-textarea form-control' %}
         {% else %}
-            {% set fieldClass = 'eco-input' %}
+            {% set fieldClass = 'eco-input form-control rounded-pill px-3 py-2' %}
         {% endif %}
 
+        {# Champ #}
         {{ form_widget(form, {
             attr: attr|default({})|merge({
                 class: (attr.class|default(fieldClass))
             })
         }) }}
 
+        {# Erreurs #}
         {{ form_errors(form) }}
 
     </div>
 {% endblock %}
 
-{# Neutraliser wrapper Bootstrap pour textarea #}
+
+{# ---------------------------------------------------------------------------
+   🎨 textarea_widget : on neutralise l'effet "floating" de Bootstrap
+--------------------------------------------------------------------------- #}
 {% block textarea_widget %}
     {{ block('form_widget_simple') }}
 {% endblock %}

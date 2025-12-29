@@ -1,49 +1,91 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/_layout.html.twig' %}
 
-{% block body %}
-<div class="container py-5">
-<div class="d-flex justify-content-center mb-4">
-    <a href="{{ path('admin_dashboard') }}" class="btn btn-ecoride rounded-pill px-4 py-2">
-        ⌫ Retour au Dashboard
-    </a>
+{% block admin_content %}
+
+<h2 class="text-success mb-4 fw-bold">
+    Gestion des utilisateurs
+</h2>
+
+<form method="get"
+      action="{{ path('admin_users_index') }}"
+      class="mb-4 d-flex gap-3 flex-wrap">
+    <input type="text"
+           name="search"
+           class="form-control"
+           placeholder="Rechercher un utilisateur…"
+           value="{{ search }}"
+           style="max-width:300px">
+    <button class="btn btn-ecoride">Rechercher</button>
+    {% if search %}
+        <a href="{{ path('admin_tokens_index') }}"
+           class="btn btn-outline-danger">
+            Réinitialiser
+        </a>
+    {% endif %}
+</form>
+
+{# ============================
+   TABLE DES UTILISATEURS
+============================ #}
+<div class="card shadow-sm rounded-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-success">
+                <tr>
+                    <th>{{ knp_pagination_sortable(users, 'ID', 'u.id') }}</th>
+                    <th>{{ knp_pagination_sortable(users, 'Prénom', 'u.prenom') }}</th>
+                    <th>{{ knp_pagination_sortable(users, 'Email', 'u.email') }}</th>
+                    <th>Rôles</th>
+                    <th>Tokens</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.prenom ?? '-' }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <span class="badge bg-secondary">
+                            {{ user.roles|join(', ') }}
+                        </span>
+                    </td>
+                    <td>
+                        <strong>{{ user.tokens }}</strong>
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ path('admin_users_edit', {id: user.id}) }}"
+                           class="btn btn-sm btn-warning rounded-pill px-3">
+                            Modifier
+                        </a>
+                        <a href="{{ path('admin_users_delete', {id: user.id}) }}"
+                           class="btn btn-sm btn-danger rounded-pill px-3"
+                           onclick="return confirm('Supprimer cet utilisateur ?')">
+                            Supprimer
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        Aucun utilisateur trouvé.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
 </div>
 
-  <h2 class="mb-4">Gestion des utilisateurs</h2>
-
-  <table class="table table-hover align-middle">
-    <thead>
-  <tr>
-    <th>{{ knp_pagination_sortable(users, 'ID', 'u.id') }}</th>
-    <th>{{ knp_pagination_sortable(users, 'Prénom', 'u.prenom') }}</th>
-    <th>{{ knp_pagination_sortable(users, 'Email', 'u.email') }}</th>
-    <th>Rôles</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-
-
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.prenom ?? '-' }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.roles|join(', ') }}</td>
-        <td>{{ user.tokens }}</td>
-        <td>
-          <a href="{{ path('admin_users_edit', {id: user.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-          <a href="{{ path('admin_users_delete', {id: user.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-4">
+{# ============================
+   PAGINATION
+============================ #}
+<div class="d-flex justify-content-center mt-4">
     {{ knp_pagination_render(users) }}
-  </div>
-
 </div>
-{% endblock %}
 
+{% endblock %}

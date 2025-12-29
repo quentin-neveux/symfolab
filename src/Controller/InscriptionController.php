@@ -30,6 +30,13 @@ final class InscriptionController extends AbstractController
         $this->addFlash('warning', "Cet email existe déjà.");
         return $this->redirectToRoute('app_inscription');
         }
+        $this->mailerService->send(
+            $user->getEmail(),
+            'Bienvenue sur EcoRide',
+            'emails/passager/confirmation_inscription.html.twig',
+            ['user' => $user]
+            );
+
 
         $user = new User();
         $form = $this->createForm(UserRegistrationFormType::class, $user);
@@ -45,7 +52,7 @@ final class InscriptionController extends AbstractController
             $user->setPassword($hashedPassword);
 
             // Tokens initiaux
-            $user->setTokens(100);
+            $user->setTokens(20);
 
             // Persist
             $entityManager->persist($user);

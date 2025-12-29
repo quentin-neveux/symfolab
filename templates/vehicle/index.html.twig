@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes véhicules - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="py-5 bg-light">
+    <div class="container">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold text-success mb-0">Liste de mes véhicules</h3>
+
+            <a href="{{ path('vehicle_new') }}" class="btn btn-ecoride rounded-pill">
+                ➕ Ajouter un véhicule
+            </a>
+        </div>
+
+        {% if vehicles is empty %}
+            <p class="text-center text-muted py-4">
+                Aucun véhicule enregistré.<br>
+                <a href="{{ path('vehicle_new') }}" class="text-success fw-bold">
+                    Ajouter un véhicule
+                </a>
+            </p>
+        {% else %}
+
+            <div class="row g-4">
+
+                {% for v in vehicles %}
+                    <div class="col-md-6">
+                        <div class="bg-white shadow-sm rounded-4 p-4">
+
+                            <h4 class="fw-bold text-success mb-2">
+                                {{ v.marque }} {{ v.modele }}
+                            </h4>
+
+                            <p class="mb-1">
+                                <strong>Immatriculation :</strong> {{ v.immatriculation }}
+                            </p>
+
+                            <p class="mb-1">
+                                <strong>Énergie :</strong> {{ v.energie }}
+                            </p>
+
+                            <p class="mb-3">
+                                <strong>Places :</strong> {{ v.places }}
+                            </p>
+
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('vehicle_edit', {id: v.id}) }}"
+                                   class="btn btn-outline-success rounded-pill px-4">
+                                    Modifier
+                                </a>
+
+                                <a href="{{ path('vehicle_delete', {id: v.id}) }}"
+                                   class="btn btn-outline-danger rounded-pill px-4"
+                                   onclick="return confirm('Supprimer ce véhicule ?');">
+                                    Supprimer
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}

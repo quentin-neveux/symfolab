@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Entity\Trajet;
 use App\Repository\UserRepository;
 use App\Repository\TrajetRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,68 +15,72 @@ use Symfony\Component\Routing\Attribute\Route;
 class AdminController extends AbstractController
 {
     // ----------------------------------------------------------
-    // 🟢 Dashboard Admin
+    // 🟢 DASHBOARD ADMIN
     // ----------------------------------------------------------
     #[Route('/', name: 'dashboard')]
     public function dashboard(
         UserRepository $userRepo,
         TrajetRepository $trajetRepo
     ): Response {
-        
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $nbUsers = $userRepo->count([]);
-        $nbTrajets = $trajetRepo->count([]);
-        $nbTrajetsToday = $trajetRepo->countToday();
+        $usersCount   = $userRepo->count([]);
+        $trajetsCount = $trajetRepo->count([]);
+        $trajetsToday = $trajetRepo->countToday(); // ✔ méthode repo
 
         return $this->render('admin/dashboard.html.twig', [
-            'nbUsers' => $nbUsers,
-            'nbTrajets' => $nbTrajets,
-            'nbTrajetsToday' => $nbTrajetsToday,
+            'usersCount'   => $usersCount,
+            'trajetsCount' => $trajetsCount,
+            'trajetsToday' => $trajetsToday, // ✔ NOM ALIGNÉ AVEC TWIG
         ]);
     }
 
     // ----------------------------------------------------------
-    // 🟣 Commande rapide : /admin/addtokens/{userId}/{amount}
+    // 🟣 COMMANDE RAPIDE : AJOUT DE TOKENS (ADMIN)
     // ----------------------------------------------------------
-    #[Route('/addtokens/{userId}/{amount}', name: 'addtokens')]
+    #[Route('/addtokens/{userId}/{amount}', name: 'addtokens', requirements: [
+        'userId' => '\d+',
+        'amount' => '\d+'
+    ])]
     public function addTokens(
         int $userId,
         int $amount,
         EntityManagerInterface $em
     ): Response {
-        
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $user = $em->getRepository(User::class)->find($userId);
 
         if (!$user) {
-            throw $this->createNotFoundException("Utilisateur introuvable.");
+            throw $this->createNotFoundException('Utilisateur introuvable.');
         }
 
         if ($amount <= 0) {
-            $this->addFlash('danger', "Le montant doit être supérieur à 0.");
+            $this->addFlash('danger', 'Le montant doit être supérieur à 0.');
             return $this->redirectToRoute('admin_dashboard');
         }
 
-        // Ajouter les tokens
         $user->setTokens($user->getTokens() + $amount);
         $em->flush();
 
         $this->addFlash(
-            'success', 
-            "✔️ {$amount} tokens ajoutés à {$user->getEmail()}"
+            'success',
+            sprintf('✔️ %d tokens ajoutés à %s', $amount, $user->getEmail())
         );
 
         return $this->redirectToRoute('admin_dashboard');
     }
 
-    #[Route('/admin/trajets/{id}', name: 'admin_trajet_show', requirements: ['id' => '\d+'])]
-public function showTrajet(Trajet $trajet): Response
-{
-    return $this->render('admin/trajets/show.html.twig', [
-        'trajet' => $trajet
-    ]);
-}
-    
+    // ----------------------------------------------------------
+    // 🔍 AFFICHAGE D’UN TRAJET (ADMIN)
+    // ----------------------------------------------------------
+    #[Route('/trajets/{id}', name: 'trajet_show', requirements: ['id' => '\d+'])]
+    public function showTrajet(Trajet $trajet): Response
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        return $this->render('admin/trajets/show.html.twig', [
+            'trajet' => $trajet,
+        ]);
+    }
 }

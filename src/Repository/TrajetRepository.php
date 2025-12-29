@@ -13,20 +13,21 @@ class TrajetRepository extends ServiceEntityRepository
         parent::__construct($registry, Trajet::class);
     }
 
+    /**
+     * Nombre de trajets créés aujourd’hui
+     */
     public function countToday(): int
-{
-    $today = new \DateTimeImmutable('today');
-    $tomorrow = $today->modify('+1 day');
+    {
+        $today = new \DateTimeImmutable('today');
+        $tomorrow = $today->modify('+1 day');
 
-    return (int) $this->createQueryBuilder('t')
-        ->select('COUNT(t.id)')
-        ->where('t.dateDepart >= :today')
-        ->andWhere('t.dateDepart < :tomorrow')
-        ->setParameter('today', $today)
-        ->setParameter('tomorrow', $tomorrow)
-        ->getQuery()
-        ->getSingleScalarResult();
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.dateDepart >= :today')
+            ->andWhere('t.dateDepart < :tomorrow')
+            ->setParameter('today', $today)
+            ->setParameter('tomorrow', $tomorrow)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
-    
-}
-

@@ -1,0 +1,89 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+{% set currentRoute = app.request.attributes.get('_route') %}
+{% set currentRole  = app.request.query.get('role') %}
+
+{# =========================================================
+   HEADER ADMIN PERSISTANT
+========================================================= #}
+<div class="bg-ecoride-light border-bottom">
+    <div class="container py-4">
+
+        <h1 class="mb-3 text-success fw-bold">
+            Dashboard Administrateur
+        </h1>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            {# DASHBOARD #}
+            <a href="{{ path('admin_dashboard') }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_dashboard'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Dashboard
+            </a>
+
+            {# UTILISATEURS (hors admins) #}
+            <a href="{{ path('admin_users_index') }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_users'
+                  and currentRole != 'admin'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Utilisateurs
+            </a>
+
+            {# TRAJETS #}
+            <a href="{{ path('admin_trajets_index') }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_trajets'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Trajets
+            </a>
+
+            {# TOKENS #}
+            <a href="{{ path('admin_tokens_index') }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_tokens'
+                  and not currentRoute starts with 'admin_tokens_history'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Tokens
+            </a>
+
+            {# HISTORIQUE TOKENS #}
+            <a href="{{ path('admin_tokens_history') }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_tokens_history'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Historique
+            </a>
+
+            {# ADMINS (utilisateurs filtrés ROLE_ADMIN) #}
+            <a href="{{ path('admin_users_index', { role: 'admin' }) }}"
+               class="btn rounded-pill px-3
+               {{ currentRoute starts with 'admin_users'
+                  and currentRole == 'admin'
+                   ? 'btn-success'
+                   : 'btn-outline-success' }}">
+                Admins
+            </a>
+
+        </div>
+
+    </div>
+</div>
+
+{# =========================================================
+   CONTENU ADMIN
+========================================================= #}
+<div class="container py-5">
+    {% block admin_content %}{% endblock %}
+</div>
+
+{% endblock %}

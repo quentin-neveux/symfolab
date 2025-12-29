@@ -1,68 +1,127 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/_layout.html.twig' %}
 
-{% block title %}Gestion des Tokens{% endblock %}
+{% block admin_title %}Gestion des Tokens{% endblock %}
 
-{% block body %}
-<div class="container py-5">
-    <h1 class="mb-4 text-success">Gestion des Tokens</h1>
+{% block admin_content %}
 
-    <form method="get" action="{{ path('admin_tokens_index') }}" class="mb-4 d-flex gap-3">
-        <input 
-            type="text" 
-            name="search" 
-            class="form-control"
-            placeholder="Rechercher un utilisateur..."
-            value="{{ search }}"
-            style="max-width: 300px;"
-        >
-        <button class="btn btn-ecoride">Rechercher</button>
-        <a href="{{ path('admin_dashboard') }}" class="btn btn-ecoride">Retour au dashboard</a>
-        {% if search %}
-            <a href="{{ path('admin_tokens_index') }}" class="btn btn-outline-danger">Réinitialiser</a>
-        {% endif %}
-    </form>
+{# =========================
+   STATS
+========================= #}
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="card shadow-sm border-success">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-1">Tokens crédités</h6>
+                <p class="fs-3 fw-bold text-success mb-0">{{ totalCredit }}</p>
+            </div>
+        </div>
+    </div>
 
-    <table class="table table-striped align-middle">
-        <thead class="table-success">
-            <tr>
-                <th>#</th>
-                <th>Email</th>
-                <th>Tokens actuels</th>
-                <th>Ajouter des tokens</th>
-            </tr>
-        </thead>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-danger">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-1">Tokens débités</h6>
+                <p class="fs-3 fw-bold text-danger mb-0">{{ totalDebit }}</p>
+            </div>
+        </div>
+    </div>
 
-        <tbody>
-        {% for user in users %}
-            <tr>
-                <td>{{ user.id }}</td>
-                <td>{{ user.email }}</td>
-                <td><strong>{{ user.tokens }}</strong></td>
-
-                <td>
-                    <form action="{{ path('admin_tokens_add', {id: user.id}) }}" method="POST" class="d-flex gap-2">
-                        <input
-                            type="number"
-                            name="amount"
-                            class="form-control"
-                            min="1"
-                            placeholder="Ex : 50"
-                            required
-                            style="max-width:120px"
-                        >
-                        <button class="btn btn-success">Ajouter</button>
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4" class="text-center text-muted py-3">
-                    Aucun utilisateur trouvé.
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
+    <div class="col-md-4">
+        <div class="card shadow-sm border-primary">
+            <div class="card-body text-center">
+                <h6 class="text-muted mb-1">Solde plateforme</h6>
+                <p class="fs-3 fw-bold text-primary mb-0">{{ platformBalance }}</p>
+            </div>
+        </div>
+    </div>
 </div>
+
+{# =========================
+   SEARCH
+========================= #}
+<form method="get"
+      action="{{ path('admin_tokens_index') }}"
+      class="mb-4 d-flex gap-3 flex-wrap">
+    <input type="text"
+           name="search"
+           class="form-control"
+           placeholder="Rechercher un utilisateur…"
+           value="{{ search }}"
+           style="max-width:300px">
+
+    <button class="btn btn-ecoride">
+        Rechercher
+    </button>
+
+    {% if search %}
+        <a href="{{ path('admin_tokens_index') }}"
+           class="btn btn-outline-danger">
+            Réinitialiser
+        </a>
+    {% endif %}
+</form>
+
+{# =========================
+   TABLE USERS
+========================= #}
+<div class="card shadow-sm rounded-4">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-success">
+                <tr>
+                    <th>#</th>
+                    <th>Email</th>
+                    <th>Tokens</th>
+                    <th>Modifier (+ / −)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        <strong>{{ user.tokens }}</strong>
+                    </td>
+                    <td>
+                        <form action="{{ path('admin_tokens_update') }}"
+                              method="POST"
+                              class="d-flex gap-2"
+                              onsubmit="return confirm('Confirmer la modification des tokens ?')">
+
+                            <input type="hidden" name="user" value="{{ user.id }}">
+
+                            <input type="number"
+                                   name="amount"
+                                   class="form-control"
+                                   placeholder="+10 ou -5"
+                                   required
+                                   style="max-width:120px">
+
+                            <button class="btn btn-success">
+                                Appliquer
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4"
+                        class="text-center text-muted py-3">
+                        Aucun utilisateur trouvé.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# =========================
+   PAGINATION 
+========================= #}
+<div class="d-flex justify-content-center mt-4">
+    {{ knp_pagination_render(users) }}
+</div>
+
 {% endblock %}

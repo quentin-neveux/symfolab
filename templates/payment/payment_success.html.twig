@@ -1,0 +1,40 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiement du trajet – EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="py-5 bg-ecoride-light">
+    <div class="container">
+        <div class="row justify-content-center">
+
+            <div class="col-md-8 col-lg-6">
+                <div class="bg-white shadow rounded-4 p-4 text-center">
+
+                    <div class="display-6 text-success mb-3">
+                        ✔
+                    </div>
+
+                    <h3 class="fw-bold mb-3">
+                        Merci pour ton paiement
+                    </h3>
+
+                    <p class="text-muted mb-4">
+                        Ta place pour le trajet
+                        <strong>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</strong>
+                        est confirmée.
+                    </p>
+
+                    <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                       class="btn btn-ecoride rounded-pill px-4 py-2">
+                        Voir le trajet
+                    </a>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% endblock %}

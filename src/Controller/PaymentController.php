@@ -4,65 +4,148 @@ namespace App\Controller;
 
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
+use App\Entity\TokenTransaction;
 use App\Repository\TrajetPassagerRepository;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[IsGranted('ROLE_USER')]
 class PaymentController extends AbstractController
 {
-    #[Route('/trajet/{id}/paiement', name: 'payment_page')]
-    public function payer(
+    public function __construct(
+        private MailerService $mailer
+    ) {}
+
+    // =========================================================
+    // 🟢 PAGE DE PAIEMENT
+    // =========================================================
+    #[Route('/trajet/{id}/payment', name: 'trajet_payment')]
+    public function paiement(
+        Trajet $trajet,
+        TrajetPassagerRepository $tpRepo
+    ): Response {
+        $user = $this->getUser();
+
+        // 🚫 Déjà réservé → succès direct
+        if ($tpRepo->findOneBy([
+            'trajet'   => $trajet,
+            'passager' => $user
+        ])) {
+            return $this->redirectToRoute('trajet_payment_success', [
+                'id' => $trajet->getId()
+            ]);
+        }
+
+        return $this->render('payment/payment.html.twig', [
+            'trajet' => $trajet,
+        ]);
+    }
+
+    // =========================================================
+    // 🔵 VALIDATION DU PAIEMENT → RÉSERVATION
+    // =========================================================
+    #[Route('/trajet/{id}/payment/validate', name: 'trajet_payment_validate', methods: ['POST'])]
+    public function validerPaiement(
+        Request $request,
         Trajet $trajet,
         TrajetPassagerRepository $tpRepo,
         EntityManagerInterface $em
     ): Response {
-
         $user = $this->getUser();
 
-        if (!$user) {
-            $this->addFlash('warning', 'Connecte-toi pour payer ta réservation.');
-            return $this->redirectToRoute('app_connexion');
+        // 🔐 CSRF
+        if (!$this->isCsrfTokenValid(
+            'payment_trajet_' . $trajet->getId(),
+            $request->request->get('_token')
+        )) {
+            throw $this->createAccessDeniedException();
         }
 
-        // Vérifier que ce user a bien réservé ce trajet
-        $reservation = $tpRepo->findOneBy([
-            'trajet' => $trajet,
+        // 🚫 Anti double paiement
+        if ($tpRepo->findOneBy([
+            'trajet'   => $trajet,
             'passager' => $user
-        ]);
-
-        if (!$reservation) {
-            $this->addFlash('danger', 'Tu dois réserver ce trajet avant de pouvoir payer.');
-            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+        ])) {
+            return $this->redirectToRoute('trajet_payment_success', [
+                'id' => $trajet->getId()
+            ]);
         }
 
-        // Déjà payé ?
-        if ($reservation->isPaid()) {
-            $this->addFlash('info', 'Tu as déjà payé ce trajet.');
-            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+        // 🚫 Plus de place
+        if ($trajet->getPlacesDisponibles() <= 0) {
+            $this->addFlash('danger', 'Ce trajet est complet.');
+            return $this->redirectToRoute('app_trajet_detail', [
+                'id' => $trajet->getId()
+            ]);
         }
 
-        // Vérifier tokens disponibles
-        $prix = $trajet->getTokenCost();
-
-        if ($user->getTokens() < $prix) {
-            $this->addFlash('danger', 'Solde insuffisant. Recharge tes tokens.');
-            return $this->redirectToRoute('app_profil');
+        // 🚫 Tokens insuffisants
+        if ($user->getTokens() < 2) {
+            $this->addFlash('danger', 'Solde de tokens insuffisant pour les frais plateforme.');
+            return $this->redirectToRoute('app_trajet_detail', [
+                'id' => $trajet->getId()
+            ]);
         }
 
-        // Déduire tokens
-        $user->setTokens($user->getTokens() - $prix);
+        // --------------------------------------------------
+        // TRANSACTION ATOMIQUE
+        // --------------------------------------------------
+        $em->beginTransaction();
 
-        // Valider le paiement sur la réservation
-        $reservation->setIsPaid(true);
+        try {
+            // ➕ Réservation
+            $reservation = new TrajetPassager();
+            $reservation->setTrajet($trajet);
+            $reservation->setPassager($user);
+            $reservation->setIsPaid(true);
+            $em->persist($reservation);
 
-        $em->flush();
+            // ➖ Débit tokens
+            $user->setTokens($user->getTokens() - 2);
 
-        $this->addFlash('success', 'Paiement effectué 🎉');
+            $debit = new TokenTransaction();
+            $debit->setUser($user);
+            $debit->setAmount(2);
+            $debit->setType('DEBIT');
+            $debit->setReason('FRAIS_PLATEFORME');
+            $debit->setTrajetId($trajet->getId());
+            $em->persist($debit);
 
-        return $this->redirectToRoute('app_trajet_detail', [
+            // ➖ Place disponible
+            $trajet->setPlacesDisponibles(
+                $trajet->getPlacesDisponibles() - 1
+            );
+
+            $em->flush();
+            $em->commit();
+
+        } catch (\Throwable $e) {
+            $em->rollback();
+            throw $e;
+        }
+
+        // 📧 MAILS APRÈS PAIEMENT RÉUSSI
+        $this->mailer->notifyReservationConfirmed($trajet, $user); // ✅ PASSAGER
+        $this->mailer->notifyNewPassenger($trajet, $user);         // ✅ CONDUCTEUR
+
+        return $this->redirectToRoute('trajet_payment_success', [
             'id' => $trajet->getId()
+        ]);
+    }
+
+    // =========================================================
+    // ✅ PAGE PAIEMENT RÉUSSI
+    // =========================================================
+    #[Route('/trajet/{id}/payment/success', name: 'trajet_payment_success')]
+    public function succes(Trajet $trajet): Response
+    {
+        return $this->render('payment/payment_success.html.twig', [
+            'trajet' => $trajet,
         ]);
     }
 }

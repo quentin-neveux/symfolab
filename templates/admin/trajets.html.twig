@@ -1,79 +1,117 @@
-{% extends 'base.html.twig' %}
+{% extends 'admin/_layout.html.twig' %}
 
-{% block body %}
-<div class="container py-5">
-<div class="d-flex justify-content-center mb-4">
-    <a href="{{ path('admin_dashboard') }}" class="btn btn-success rounded-pill px-4 py-2">
-        ← Retour au Dashboard
-    </a>
+{% block admin_content %}
+
+<h2 class="text-success mb-4 fw-bold">
+    Gestion des trajets
+</h2>
+
+
+{# ============================
+   FILTRES
+============================ #}
+<div class="card p-4 shadow-sm rounded-4 mb-4">
+    <form method="get" class="row g-3">
+
+        <div class="col-md-3">
+            <input type="text"
+                   name="depart"
+                   class="form-control rounded-pill"
+                   placeholder="Ville départ"
+                   value="{{ app.request.get('depart') }}">
+        </div>
+
+        <div class="col-md-3">
+            <input type="text"
+                   name="arrivee"
+                   class="form-control rounded-pill"
+                   placeholder="Ville arrivée"
+                   value="{{ app.request.get('arrivee') }}">
+        </div>
+
+        <div class="col-md-3">
+            <input type="text"
+                   name="conducteur"
+                   class="form-control rounded-pill"
+                   placeholder="Conducteur (prénom)"
+                   value="{{ app.request.get('conducteur') }}">
+        </div>
+
+        <div class="col-md-3">
+            <button class="btn btn-success w-100 rounded-pill">
+                Filtrer
+            </button>
+        </div>
+
+    </form>
 </div>
 
-  <h2 class="mb-4">Gestion des trajets</h2>
-  <a href="{{ path('admin_trajets_delete_past') }}"
-   class="btn btn-danger mb-3"
-   onclick="return confirm('Supprimer tous les trajets passés ?')">
-    Supprimer les trajets passés
-</a>
+{# ============================
+   TABLE DES TRAJETS
+============================ #}
 
-<form method="get" class="row mb-4">
-
-    <div class="col-md-3 mb-2">
-        <input type="text" name="depart" class="form-control" placeholder="Ville départ"
-               value="{{ app.request.get('depart') }}">
+{% if app.request.get('date') == 'today' %}
+    <div class="alert alert-info text-center rounded-pill">
+        Affichage des trajets du jour
+        <a href="{{ path('admin_trajets_index') }}"
+           class="ms-2 fw-semibold">
+            Réinitialiser
+        </a>
     </div>
+{% endif %}
 
-    <div class="col-md-3 mb-2">
-        <input type="text" name="arrivee" class="form-control" placeholder="Ville arrivée"
-               value="{{ app.request.get('arrivee') }}">
+<div class="card shadow-sm rounded-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-success">
+                <tr>
+                    <th>{{ knp_pagination_sortable(trajets, 'ID', 't.id') }}</th>
+                    <th>{{ knp_pagination_sortable(trajets, 'Départ', 't.villeDepart') }}</th>
+                    <th>{{ knp_pagination_sortable(trajets, 'Arrivée', 't.villeArrivee') }}</th>
+                    <th>{{ knp_pagination_sortable(trajets, 'Date', 't.dateDepart') }}</th>
+                    <th>{{ knp_pagination_sortable(trajets, 'Conducteur', 'u.prenom') }}</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for trajet in trajets %}
+                <tr class="trajet-row"
+                    data-url="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+                    style="cursor: pointer;">
+
+                    <td>{{ trajet.id }}</td>
+                    <td>{{ trajet.villeDepart }}</td>
+                    <td>{{ trajet.villeArrivee }}</td>
+                    <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
+                    <td>
+                        {{ trajet.conducteur.prenom ?? trajet.conducteur.email }}
+                    </td>
+
+                    <td class="text-end">
+
+                        <span class="text-muted fst-italic">
+                            Gestion via actions globales
+                        </span>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">
+                        Aucun trajet trouvé.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div class="col-md-3 mb-2">
-        <input type="text" name="conducteur" class="form-control" placeholder="Conducteur (prénom)"
-               value="{{ app.request.get('conducteur') }}">
-    </div>
-
-    <div class="col-md-3 mb-2">
-        <button class="btn btn-success w-100">Filtrer</button>
-    </div>
-
-</form>
-
-  <table class="table table-hover align-middle">
-    <thead>
-  <tr>
-    <th>{{ knp_pagination_sortable(trajets, 'ID', 't.id') }}</th>
-    <th>{{ knp_pagination_sortable(trajets, 'Départ', 't.villeDepart') }}</th>
-    <th>{{ knp_pagination_sortable(trajets, 'Arrivée', 't.villeArrivee') }}</th>
-    <th>{{ knp_pagination_sortable(trajets, 'Date', 't.dateDepart') }}</th>
-    <th>{{ knp_pagination_sortable(trajets, 'Conducteur', 'u.prenom') }}</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-
-
-    <tbody>
-      {% for trajet in trajets %}
-  <tr class="trajet-row" data-url="{{ path('app_trajet_detail', { id: trajet.id }) }}" style="cursor: pointer;">
-    <td>{{ trajet.id }}</td>
-    <td>{{ trajet.villeDepart }}</td>
-    <td>{{ trajet.villeArrivee }}</td>
-    <td>{{ trajet.dateDepart|date('d/m/Y H:i') }}</td>
-    <td>{{ trajet.conducteur.prenom ?? trajet.conducteur.email }}</td>
-    <td>
-        <a href="{{ path('admin_trajets_edit', {id: trajet.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-        <a href="{{ path('admin_trajets_delete', {id: trajet.id}) }}" class="btn btn-sm btn-danger">Supprimer</a>
-    </td>
-  </tr>
-
-
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <!-- PAGINATION -->
-  <div class="d-flex justify-content-center mt-4">
+{# ============================
+   PAGINATION
+============================ #}
+<div class="d-flex justify-content-center mt-4">
     {{ knp_pagination_render(trajets) }}
-  </div>
-
 </div>
+
 {% endblock %}

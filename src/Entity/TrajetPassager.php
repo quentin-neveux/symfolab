@@ -6,6 +6,15 @@ use App\Repository\TrajetPassagerRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrajetPassagerRepository::class)]
+#[ORM\Table(
+    name: 'trajet_passager',
+    uniqueConstraints: [
+        new ORM\UniqueConstraint(
+            name: 'uniq_trajet_passager',
+            columns: ['trajet_id', 'passager_id']
+        )
+    ]
+)]
 class TrajetPassager
 {
     #[ORM\Id]
@@ -13,42 +22,56 @@ class TrajetPassager
     #[ORM\Column]
     private ?int $id = null;
 
-    // 🔗 Trajet réservé
+    // =========================================================
+    // 🔗 RELATIONS
+    // =========================================================
+
     #[ORM\ManyToOne(inversedBy: 'passagers')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Trajet $trajet = null;
 
-    // 🔗 Passager concerné
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $passager = null;
 
-    // 💰 Paiement effectué ?
+    // =========================================================
+    // 💳 PAIEMENT
+    // =========================================================
+
     #[ORM\Column(type: 'boolean')]
     private bool $isPaid = false;
 
-    // 🟢 Le passager a confirmé la fin ?
+    #[ORM\Column(type: 'boolean')]
+    private bool $isAuthorized = false;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $paidAt = null;
+
+    // =========================================================
+    // 🏁 FIN DE TRAJET / NOTATION
+    // =========================================================
+
     #[ORM\Column(type: 'boolean')]
     private bool $passagerConfirmeFin = false;
 
-    // ⭐ Note déjà laissée ?
     #[ORM\Column(type: 'boolean')]
     private bool $aDejaNote = false;
+
+    // =========================================================
+    // GETTERS / SETTERS
+    // =========================================================
 
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    // =============================
-    // RELATIONS
-    // =============================
     public function getTrajet(): ?Trajet
     {
         return $this->trajet;
     }
 
-    public function setTrajet(?Trajet $trajet): self
+    public function setTrajet(Trajet $trajet): self
     {
         $this->trajet = $trajet;
         return $this;
@@ -59,15 +82,16 @@ class TrajetPassager
         return $this->passager;
     }
 
-    public function setPassager(?User $passager): self
+    public function setPassager(User $passager): self
     {
         $this->passager = $passager;
         return $this;
     }
 
-    // =============================
-    // PAIEMENT
-    // =============================
+    // =========================================================
+    // 💳 ÉTAT DU PAIEMENT
+    // =========================================================
+
     public function isPaid(): bool
     {
         return $this->isPaid;
@@ -76,12 +100,35 @@ class TrajetPassager
     public function setIsPaid(bool $paid): self
     {
         $this->isPaid = $paid;
+
+        // auto-set de la date si paiement validé
+        if ($paid && $this->paidAt === null) {
+            $this->paidAt = new \DateTimeImmutable();
+        }
+
         return $this;
     }
 
-    // =============================
-    // FIN DE TRAJET (passager)
-    // =============================
+    public function isAuthorized(): bool
+    {
+        return $this->isAuthorized;
+    }
+
+    public function setIsAuthorized(bool $authorized): self
+    {
+        $this->isAuthorized = $authorized;
+        return $this;
+    }
+
+    public function getPaidAt(): ?\DateTimeImmutable
+    {
+        return $this->paidAt;
+    }
+
+    // =========================================================
+    // 🏁 FIN DE TRAJET
+    // =========================================================
+
     public function isPassagerConfirmeFin(): bool
     {
         return $this->passagerConfirmeFin;
@@ -93,9 +140,10 @@ class TrajetPassager
         return $this;
     }
 
-    // =============================
-    // NOTATION
-    // =============================
+    // =========================================================
+    // ⭐ NOTATION
+    // =========================================================
+
     public function isADejaNote(): bool
     {
         return $this->aDejaNote;
@@ -107,14 +155,23 @@ class TrajetPassager
         return $this;
     }
 
-    // =============================
-    // LOGIQUE : Peut-il noter ?
-    // =============================
-    public function peutNoter(Trajet $trajet): bool
+    // =========================================================
+    // 🧠 LOGIQUE MÉTIER
+    // =========================================================
+
+    /**
+     * Le passager peut noter uniquement si :
+     * - le paiement a été validé
+     * - le conducteur a confirmé la fin
+     * - le passager a confirmé la fin
+     * - aucune note n’a encore été laissée
+     */
+    public function peutNoter(): bool
     {
         return
             $this->isPaid &&
-            $trajet->isConducteurConfirmeFin() &&
+            $this->trajet !== null &&
+            $this->trajet->isConducteurConfirmeFin() &&
             $this->passagerConfirmeFin &&
             !$this->aDejaNote;
     }
