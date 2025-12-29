@@ -19,7 +19,7 @@ COPY . .
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --no-progress --no-scripts
+RUN composer install --optimize-autoloader --no-interaction --no-progress --no-scripts
 
 ENV APP_ENV=prod
 ENV APP_DEBUG=0
