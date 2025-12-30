@@ -1,0 +1,6 @@
+nelmio_api_doc:
+  documentation:
+    info:
+      title: EcoRide API
+      description: API officielle EcoRide
+      version: 1.0.0

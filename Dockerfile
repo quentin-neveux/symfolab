@@ -5,8 +5,9 @@ FROM php:8.3-fpm-bullseye
 # ------------------------------------------------------------
 RUN apt-get update && apt-get install -y \
     git unzip libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    libxml2-dev libzip-dev curl \
-    && docker-php-ext-install intl pdo pdo_mysql zip opcache gd
+    libxml2-dev libzip-dev libonig-dev libpq-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install intl pdo_mysql pdo_pgsql zip opcache gd
 
 # ------------------------------------------------------------
 # Composer

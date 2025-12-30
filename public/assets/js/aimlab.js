@@ -45,7 +45,7 @@ function nextTarget() {
 function endGame() {
     target.style.display = 'none';
 
-    const avg = times.reduce((a, b) => a + b) / times.length;
+    const avg = times.reduce((a, b) => a + b, 0) / times.length;
     scoreDisplay.textContent = `Bien joué ! Temps moyen : ${avg.toFixed(0)} ms par cible.`;
 
     // --------------------------------------------------------
@@ -168,3 +168,5 @@ function loadTop3() {
 
 // Charge dès ouverture
 document.addEventListener("DOMContentLoaded", loadTop3);
+
+

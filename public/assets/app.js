@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const url = row.dataset.href;
         if (url) {
-          window.location.href = url;
+          globalThis.location.href = url;
         }
       },
       true // capture pour être robuste face à Bootstrap
@@ -277,11 +277,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const flashes = $$(".flash-message");
     if (!flashes.length) return;
 
+    const onFlashTransitionEnd = (e) => {
+      e.target.remove();
+    };
+
     flashes.forEach((el) => {
       setTimeout(() => {
         el.style.transition = "opacity 0.6s";
         el.style.opacity = "0";
-        setTimeout(() => el.remove(), 650);
+        el.addEventListener("transitionend", onFlashTransitionEnd, { once: true });
       }, 4200);
     });
   })();
@@ -330,7 +334,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const iframe = popup.querySelector("iframe");
 
     const open = () => {
-      if (window.innerWidth < 768) return;
+      if (globalThis.innerWidth < 768) return;
       if (iframe) iframe.src = "/aimlab.html?v=" + Date.now();
       popup.classList.add("active");
     };
@@ -438,6 +442,18 @@ document.addEventListener("DOMContentLoaded", () => {
       return models;
     };
 
+    const createAutocompleteItem = (item, onPick) => {
+      const div = document.createElement("div");
+      div.className = "autocomplete-item";
+      div.textContent = item.label ?? item.name ?? item;
+      div.addEventListener("mousedown", function (e) {
+        // mousedown pour éviter blur avant click
+        e.preventDefault();
+        onPick(item);
+      });
+      return div;
+    };
+
     const renderItems = (box, items, onPick) => {
       clearList(box);
       if (!items.length) {
@@ -448,14 +464,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const frag = document.createDocumentFragment();
 
       items.forEach((item) => {
-        const div = document.createElement("div");
-        div.className = "autocomplete-item";
-        div.textContent = item.label ?? item.name ?? item;
-        div.addEventListener("mousedown", (e) => {
-          // mousedown pour éviter blur avant click
-          e.preventDefault();
-          onPick(item);
-        });
+        const div = createAutocompleteItem(item, onPick);
         frag.appendChild(div);
       });
 
@@ -567,7 +576,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!btn) return;
 
     const toggle = () => {
-      if (window.scrollY > 500) btn.classList.add("show");
+      if (globalThis.scrollY > 500) btn.classList.add("show");
       else btn.classList.remove("show");
     };
 
@@ -647,7 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
   applyBtn.addEventListener("click", (e) => {
     e.preventDefault();
 
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(globalThis.location.search);
 
     // --- TRI ---
     const sort = document.querySelector('input[name="sortMobile"]:checked');
@@ -664,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
         params.append("energie[]", cb.value);
       });
 
-    window.location.href = window.location.pathname + "?" + params.toString();
+    globalThis.location.href = globalThis.location.pathname + "?" + params.toString();
   });
 })();
 });

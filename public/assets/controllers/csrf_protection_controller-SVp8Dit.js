@@ -10,7 +10,7 @@ document.addEventListener('submit', function (event) {
 // The `framework.csrf_protection.check_header` config option needs to be enabled for the header to be checked
 document.addEventListener('turbo:submit-start', function (event) {
     const h = generateCsrfHeaders(event.detail.formSubmission.formElement);
-    Object.keys(h).map(function (k) {
+    Object.keys(h).forEach(function (k) {
         event.detail.formSubmission.fetchRequest.headers[k] = h[k];
     });
 });
@@ -27,18 +27,18 @@ export function generateCsrfToken (formElement) {
         return;
     }
 
-    let csrfCookie = csrfField.getAttribute('data-csrf-protection-cookie-value');
+    let csrfCookie = csrfField.dataset.csrfProtectionCookieValue;
     let csrfToken = csrfField.value;
 
     if (!csrfCookie && nameCheck.test(csrfToken)) {
-        csrfField.setAttribute('data-csrf-protection-cookie-value', csrfCookie = csrfToken);
-        csrfField.defaultValue = csrfToken = btoa(String.fromCharCode.apply(null, (window.crypto || window.msCrypto).getRandomValues(new Uint8Array(18))));
+        csrfField.dataset.csrfProtectionCookieValue = csrfCookie = csrfToken;
+        csrfField.defaultValue = csrfToken = btoa(String.fromCodePoint.apply(null, (globalThis.crypto || globalThis.msCrypto).getRandomValues(new Uint8Array(18))));
     }
     csrfField.dispatchEvent(new Event('change', { bubbles: true }));
 
     if (csrfCookie && tokenCheck.test(csrfToken)) {
         const cookie = csrfCookie + '_' + csrfToken + '=' + csrfCookie + '; path=/; samesite=strict';
-        document.cookie = window.location.protocol === 'https:' ? '__Host-' + cookie + '; secure' : cookie;
+        document.cookie = globalThis.location.protocol === 'https:' ? '__Host-' + cookie + '; secure' : cookie;
     }
 }
 
@@ -50,7 +50,7 @@ export function generateCsrfHeaders (formElement) {
         return headers;
     }
 
-    const csrfCookie = csrfField.getAttribute('data-csrf-protection-cookie-value');
+    const csrfCookie = csrfField.dataset.csrfProtectionCookieValue;
 
     if (tokenCheck.test(csrfField.value) && nameCheck.test(csrfCookie)) {
         headers[csrfCookie] = csrfField.value;
@@ -66,12 +66,12 @@ export function removeCsrfToken (formElement) {
         return;
     }
 
-    const csrfCookie = csrfField.getAttribute('data-csrf-protection-cookie-value');
+    const csrfCookie = csrfField.dataset.csrfProtectionCookieValue;
 
     if (tokenCheck.test(csrfField.value) && nameCheck.test(csrfCookie)) {
         const cookie = csrfCookie + '_' + csrfField.value + '=0; path=/; samesite=strict; max-age=0';
 
-        document.cookie = window.location.protocol === 'https:' ? '__Host-' + cookie + '; secure' : cookie;
+        document.cookie = globalThis.location.protocol === 'https:' ? '__Host-' + cookie + '; secure' : cookie;
     }
 }
 

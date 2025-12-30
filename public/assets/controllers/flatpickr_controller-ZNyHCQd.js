@@ -2,7 +2,7 @@ import { Controller } from '@hotwired/stimulus';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
-export default class extends Controller {
+export default class FlatpickrController extends Controller {
   connect() {
     console.log("📅 Flatpickr Stimulus connecté sur :", this.element);
 
