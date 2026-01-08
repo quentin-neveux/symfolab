@@ -30,8 +30,8 @@ class AdminTrajetType extends AbstractType
                 'label' => 'Places disponibles',
             ])
             ->add('price', MoneyType::class, [
-                'label'    => 'Prix (€)',
-                'currency' => 'EUR',
+                'label'    => 'Prix (EcoCrédits ECR)',
+                'currency' => 'ECR',
                 'required' => false,
             ]);
     }

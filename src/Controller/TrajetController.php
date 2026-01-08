@@ -58,6 +58,27 @@ class TrajetController extends AbstractController
                 return $this->redirectToRoute('app_proposer_trajet');
             }
 
+            // 🚗 Conducteur tokens
+            $chauffeur = $user;
+
+            // 🔐 Vérif tokens suffisants
+            if ($chauffeur->getTokens() < 2) {
+                $this->addFlash('danger', 'Il te faut au moins 2 tokens pour publier un trajet.');
+                return $this->redirectToRoute('app_mes_trajets');
+            }
+
+            // 💳 Débit des 2 tokens
+            $chauffeur->setTokens($chauffeur->getTokens() - 2);
+
+            // 📝 Log transaction
+            $tx = new \App\Entity\TokenTransaction();
+            $tx->setUser($chauffeur);
+            $tx->setAmount(2);
+            $tx->setType('DEBIT');
+            $tx->setReason('CREATION_TRAJET');
+            $tx->setTrajetId(null); // tu peux le mettre à jour après si besoin
+            $em->persist($tx);
+
             $em->persist($trajet);
             $em->flush();
 
@@ -82,7 +103,7 @@ class TrajetController extends AbstractController
         EntityManagerInterface $em,
         ReviewRepository $reviewRepo
     ): Response {
-        $user = $this->getUser();
+        $user        = $this->getUser();
         $reservation = null;
 
         if ($user) {
@@ -179,7 +200,7 @@ class TrajetController extends AbstractController
     }
 
     // ==========================================================
-    // ❌ ANNULER TRAJET (CONDUCTEUR) — CORRIGÉ
+    // ❌ ANNULER TRAJET (CONDUCTEUR)
     // ==========================================================
     #[Route('/trajet/{id}/annuler-conducteur', name: 'trajet_annuler_conducteur', methods: ['POST'])]
     public function annulerTrajetConducteur(
@@ -240,6 +261,85 @@ class TrajetController extends AbstractController
         }
 
         $this->addFlash('info', 'Le trajet a été annulé.');
+        return $this->redirectToRoute('app_mes_trajets');
+    }
+
+    // ==========================================================
+    // 🆕 ARRIVÉE À DESTINATION (CONDUCTEUR)
+    // ==========================================================
+    #[Route('/trajet/{id}/arrivee', name: 'trajet_arrivee', methods: ['POST'])]
+    public function arriveeDestination(
+        Trajet $trajet,
+        EntityManagerInterface $em
+    ): Response {
+        $user = $this->getUser();
+
+        if (!$user || $trajet->getConducteur() !== $user) {
+            $this->addFlash('danger', 'Action non autorisée.');
+            return $this->redirectToRoute('app_mes_trajets');
+        }
+
+        // On laisse les réservations, on marque juste la fin côté conducteur
+        if (method_exists($trajet, 'setConducteurConfirmeFin')) {
+            $trajet->setConducteurConfirmeFin(true);
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
+        return $this->redirectToRoute('app_mes_trajets');
+    }
+
+    // ==========================================================
+    // 🆕 CONFIRMATION FIN DE TRAJET (PASSAGER)
+    // ==========================================================
+    #[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
+    public function confirmerFinPassager(
+        TrajetPassager $reservation,
+        EntityManagerInterface $em
+    ): Response {
+        $user = $this->getUser();
+
+        if (!$user || $reservation->getPassager() !== $user) {
+            $this->addFlash('danger', 'Action non autorisée.');
+            return $this->redirectToRoute('app_mes_trajets');
+        }
+
+        if ($reservation->isPassagerConfirmeFin()) {
+            $this->addFlash('info', 'Tu as déjà confirmé ce trajet.');
+            return $this->redirectToRoute('app_mes_trajets');
+        }
+
+        // Le passager confirme la fin
+        $reservation->setPassagerConfirmeFin(true);
+
+        $trajet    = $reservation->getTrajet();
+        $chauffeur = $trajet->getConducteur();
+
+        // Si pas encore payé, on déclenche le "paiement" + gain chauffeur
+        if (!$reservation->isPaid()) {
+
+            // Marque la réservation comme payée (simulation)
+            $reservation->setIsPaid(true);
+            $reservation->setPaidAt(new \DateTimeImmutable());
+
+            // Gain fixe de 2 tokens pour le chauffeur
+            $gainChauffeur = 2;
+
+            $chauffeur->setTokens($chauffeur->getTokens() + $gainChauffeur);
+
+            $gain = new \App\Entity\TokenTransaction();
+            $gain->setUser($chauffeur);
+            $gain->setAmount($gainChauffeur);
+            $gain->setType('CREDIT');
+            $gain->setReason('TRAJET_VALIDÉ');
+            $gain->setTrajetId($trajet->getId());
+            $em->persist($gain);
+        }
+
+        $em->flush();
+
+        $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
         return $this->redirectToRoute('app_mes_trajets');
     }
 

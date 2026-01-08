@@ -33,7 +33,7 @@
                         <p><i class="bi bi-calendar2 text-success me-2"></i>{{ trajet.dateDepart|date('d/m/Y') }}</p>
                         <p><i class="bi bi-clock text-success me-2"></i>{{ trajet.dateDepart|date('H:i') }}</p>
                         <p><i class="bi bi-people text-success me-2"></i>{{ trajet.placesDisponibles }} place(s)</p>
-                        <p><i class="bi bi-cash text-success me-2"></i>{{ trajet.price }} € / pers</p>
+                        <p><i class="bi bi-cash text-success me-2"></i>{{ trajet.tokenCost }} EcoCrédits ECR / pers</p>
 
                         <p class="small text-muted mt-2">
                             {{ trajet.vehicle.marque }} {{ trajet.vehicle.modele }}
@@ -46,9 +46,11 @@
                         {% endif %}
                     </div>
 
+                    {# ===================== CONDUCTEUR ===================== #}
                     <h4 class="text-success fw-bold mb-3">Conducteur</h4>
 
                     <div class="d-flex gap-3 align-items-start mb-4">
+
                         {% set photo = trajet.conducteur.photo
                             ? 'uploads/photos/' ~ trajet.conducteur.photo
                             : 'assets/images/default-user.png' %}
@@ -73,6 +75,16 @@
                                 </div>
                             {% else %}
                                 <p class="text-muted fst-italic mb-0">Aucune note</p>
+                            {% endif %}
+
+                            {# Lien vers profil public conducteur (uniquement si connecté) #}
+                            {% if app.user %}
+                                <div class="mt-2">
+                                    <a href="{{ path('app_profil_public', { id: trajet.conducteur.id }) }}"
+                                       class="btn btn-sm btn-outline-success rounded-pill">
+                                        Voir le profil public
+                                    </a>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
@@ -113,6 +125,7 @@
                             <ul class="list-group">
                                 {% for p in passagers %}
                                     <li class="list-group-item d-flex align-items-center gap-3">
+
                                         {% set photoPassager = p.passager.photo
                                             ? 'uploads/photos/' ~ p.passager.photo
                                             : 'assets/images/default-user.png' %}
@@ -123,7 +136,14 @@
                                              alt="Photo passager">
 
                                         <span class="fw-semibold">
-                                            {{ p.passager.prenom }} {{ p.passager.nom }}
+                                            {% if app.user %}
+                                                <a href="{{ path('app_profil_public', { id: p.passager.id }) }}"
+                                                   class="text-decoration-none text-dark">
+                                                    {{ p.passager.prenom }} {{ p.passager.nom }}
+                                                </a>
+                                            {% else %}
+                                                {{ p.passager.prenom }} {{ p.passager.nom }}
+                                            {% endif %}
                                         </span>
                                     </li>
                                 {% endfor %}
@@ -163,45 +183,58 @@
                     <div class="d-grid gap-3">
 
                         {% if isConducteur %}
-                            <div class="d-grid gap-3">
-                                <a href="{{ path('app_trajet_edit', { id: trajet.id }) }}"
-                                   class="btn btn-ecoride py-3 rounded-pill w-100">
-                                    Modifier le trajet
-                                </a>
 
-                                <form method="post"
-                                      action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
-                                      onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
-
-                                    <input type="hidden"
-                                           name="_token"
-                                           value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
-
-                                    <button type="submit"
-                                            class="btn btn-danger py-3 rounded-pill w-100">
-                                        Annuler le trajet
-                                    </button>
-                                </form>
-                            </div>
-                        
-
-
-                        {% elseif isPassager %}
-                            <a href="{{ path('trajet_annuler', { id: trajet.id }) }}"
-                               class="btn btn-outline-danger py-3 rounded-pill">
-                                Annuler ma participation
+                            <a href="{{ path('app_trajet_edit', { id: trajet.id }) }}"
+                               class="btn btn-ecoride py-3 rounded-pill w-100">
+                                Modifier le trajet
                             </a>
 
+                            <form method="post"
+                                  action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
+                                  onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
+
+                                <input type="hidden"
+                                       name="_token"
+                                       value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
+
+                                <button type="submit"
+                                        class="btn btn-danger py-3 rounded-pill w-100">
+                                    Annuler le trajet
+                                </button>
+                            </form>
+
+                        {% elseif isPassager %}
+
+                            {# Trajet pas encore terminé → on peut annuler #}
+                            {% if not reservation.peutNoter() %}
+                                <a href="{{ path('trajet_annuler', { id: trajet.id }) }}"
+                                   class="btn btn-outline-danger py-3 rounded-pill">
+                                    Annuler ma participation
+                                </a>
+                            {% endif %}
+
+                            {# Trajet terminé & conditions OK → on peut noter #}
+                            {% if reservation.peutNoter() %}
+                                <a href="{{ path('app_review_new', { id: trajet.id }) }}"
+                                   class="btn btn-success py-3 rounded-pill">
+                                    ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
+                                </a>
+                            {% endif %}
+
                         {% else %}
+
+
                             <a href="{{ path('trajet_reserver_confirm', { id: trajet.id }) }}"
                                class="btn btn-ecoride py-3 rounded-pill">
                                 Réserver ce trajet
                             </a>
+
                         {% endif %}
 
                     </div>
 
                 </div>
+
             </div>
         </div>
     </div>

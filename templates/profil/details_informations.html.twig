@@ -1,230 +1,129 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Mon profil - EcoRide{% endblock %}
+{% block title %}Profil de {{ user.prenom }} {{ user.nom }} - EcoRide{% endblock %}
 
 {% block body %}
 <section class="container my-5">
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      {# Sous-menu #}
-      {% include 'profil/_profil_header.html.twig' %}
-
-      {# Boutons #}
-      <div class="d-flex justify-content-center align-items-center gap-3 mt-4 mb-5">
-        {% if 'ROLE_ADMIN' in app.user.roles %}
-          <a href="{{ path('admin_dashboard') }}" class="btn btn-success rounded-pill px-4 py-2">
-            Dashboard Admin
-          </a>
-        {% endif %}
-
-        <a href="{{ path('app_profil_edit') }}" class="btn btn-ecoride px-4 py-2">
-          Modifier mon profil
-        </a>
-      </div>
-
       {# =============================
-         EN-TÊTE PROFIL
+         EN-TÊTE PROFIL PUBLIC
          ============================= #}
       <div class="profile-header d-flex flex-wrap align-items-center p-4 rounded shadow-sm mb-4 bg-white">
-
         {# Avatar #}
         <div class="me-4 mb-3 mb-md-0">
-          {% if app.user.photo %}
-            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
+          {% if user.photo %}
+            <img src="{{ asset('uploads/photos/' ~ user.photo) }}"
                  class="rounded-circle shadow-sm"
                  alt="Photo de profil"
                  width="110" height="110">
           {% else %}
             <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                  style="width:110px;height:110px;font-size:2rem;">
-              {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+              {% set initials = (user.prenom|first ~ user.nom|first)|upper %}
               <span>{{ initials }}</span>
             </div>
           {% endif %}
         </div>
 
-        {# Nom + statut + note (étoiles à côté du nom) #}
+        {# Nom + ancienneté #}
         <div class="flex-grow-1">
+          <h3 class="mb-1">{{ user.prenom }} {{ user.nom }}</h3>
 
-          <div class="d-flex align-items-center gap-3 flex-wrap">
-            <h3 class="mb-1 d-flex align-items-center gap-2 flex-wrap">
-              <span>{{ app.user.prenom }} {{ app.user.nom }}</span>
-            </h3>
-            <div class="d-flex align-items-center">
-              {% if averageRating %}
-                {% set avg = averageRating|round(0, 'floor') %}
-                <span class="d-inline-flex align-items-center">
-                  <span class="fw-bold me-2">{{ averageRating }}/5</span>
-                  <span class="text-warning" style="font-size:1.3rem; line-height:1;">
-                    {% for i in 1..5 %}
-                      {% if i <= avg %}★{% else %}☆{% endif %}
-                    {% endfor %}
-                  </span>
-                </span>
-              {% endif %}
-            </div>
-          </div>
+          <p class="text-muted mb-1">
+            Membre EcoRide depuis {{ user.createdAt|date('m/Y') }}
+          </p>
 
-          <span class="badge bg-success">Compte confirmé</span>
-
-          <p class="text-muted mb-0">
-            Membre depuis {{ app.user.createdAt|date('m/Y') }}
+          <p class="text-muted small mb-0">
+            Profil public visible uniquement aux membres connectés.
           </p>
         </div>
 
-        {# Tokens / gains #}
-        <div class="token-box ms-md-auto mt-4 mt-md-0">
-
-          <div class="d-flex align-items-center justify-content-md-end mb-3">
-            <i class="bi bi-coin text-success fs-3"></i>
-
-            <div class="ms-4">
-              <span class="text-success fw-bold small">EcoCrédits</span><br>
-              <span class="fs-5">
-                <strong class="text-primary">{{ app.user.tokens }}</strong>
-                <span class="text-muted small">ECR</span>
-              </span>
-            </div>
+        {# Note moyenne #}
+        {% if averageRating is defined and averageRating %}
+          <div class="d-flex align-items-center ms-md-4 mt-3 mt-md-0">
+            <span class="fw-bold me-2">{{ averageRating }}/5</span>
+            <span class="text-warning" style="font-size:1.3rem;">
+              {% for i in 1..5 %}
+                {% if i <= averageRating %}★{% else %}☆{% endif %}
+              {% endfor %}
+            </span>
           </div>
-
-          {# <div class="d-flex align-items-center justify-content-md-end">
-            <i class="bi bi-cash-stack text-success fs-3"></i> #}
-
-            {# <div class="ms-3">
-              <span class="text-success fw-bold small">Gains EcoRide</span><br>
-              <span class="fs-5">
-                <strong class="text-primary">
-                  {{ app.user.earnings|number_format(0, ',', ' ') }}
-                </strong>
-                <span class="text-muted small">ECR</span>
-              </span>
-            </div> #}
-          {# </div> #}
-
-        </div>
-
-      </div>
-
-      {# =============================
-         Informations personnelles
-         ============================= #}
-      <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <h5 class="mb-3">Informations personnelles</h5>
-
-        <ul class="list-unstyled mb-0">
-          <li class="mb-2">
-            <i class="bi bi-envelope text-primary me-2"></i>
-            {{ app.user.email }}
-          </li>
-
-          <li class="mb-2">
-            <i class="bi bi-telephone text-primary me-2"></i>
-            {{ app.user.telephone ?? 'Aucun numéro enregistré' }}
-          </li>
-
-          <li class="mb-2">
-            <i class="bi bi-calendar text-primary me-2"></i>
-            {% if app.user.dateNaissance %}
-              {{ app.user.dateNaissance|date('d/m/Y') }}
-            {% else %}
-              <span class="text-muted small">Date de naissance non renseignée</span>
-            {% endif %}
-          </li>
-        </ul>
-      </div>
-
-      {# =============================
-         Bio
-         ============================= #}
-      <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <h5 class="mb-3">À propos de vous</h5>
-
-        {% if app.user.bio %}
-          <p class="mb-0">{{ app.user.bio }}</p>
-        {% else %}
-          <p class="text-muted small mb-0">Aucune biographie renseignée.</p>
         {% endif %}
       </div>
 
       {# =============================
-         Préférences
+         À PROPOS
          ============================= #}
       <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <h5 class="mb-3">Vos préférences de voyage</h5>
+        <h5 class="mb-3">À propos de {{ user.prenom }}</h5>
 
-        <ul class="list-unstyled">
+        {% if user.bio %}
+          <p class="mb-0">{{ user.bio }}</p>
+        {% else %}
+          <p class="text-muted small mb-0">
+            {{ user.prenom }} n’a pas encore renseigné de biographie.
+          </p>
+        {% endif %}
+      </div>
+
+      {# =============================
+         Préférences de voyage
+         ============================= #}
+      <div class="bg-white p-4 rounded shadow-sm mb-4">
+        <h5 class="mb-3">Préférences de voyage</h5>
+
+        <ul class="list-unstyled mb-0">
           <li class="mb-2">
             <i class="bi bi-music-note-beamed text-success me-2"></i>
-            Musique : <strong>{{ app.user.musique|capitalize }}</strong>
+            Musique :
+            <strong>{{ user.musique ? user.musique|capitalize : 'Non renseigné' }}</strong>
           </li>
           <li class="mb-2">
             <i class="bi bi-chat-dots text-success me-2"></i>
-            Discussion : <strong>{{ app.user.discussion|capitalize }}</strong>
+            Discussion :
+            <strong>{{ user.discussion ? user.discussion|capitalize : 'Non renseigné' }}</strong>
           </li>
           <li class="mb-2">
             <i class="bi bi-heart text-success me-2"></i>
-            Animaux : <strong>{{ app.user.animaux|capitalize }}</strong>
+            Animaux :
+            <strong>{{ user.animaux ? user.animaux|capitalize : 'Non renseigné' }}</strong>
           </li>
           <li class="mb-2">
             <i class="bi bi-cup-hot text-success me-2"></i>
-            Pauses café : <strong>{{ app.user.pausesCafe|capitalize }}</strong>
+            Pauses café :
+            <strong>{{ user.pausesCafe ? user.pausesCafe|capitalize : 'Non renseigné' }}</strong>
           </li>
           <li class="mb-2">
             <i class="bi bi-wind text-success me-2"></i>
-            Fumeur : <strong>{{ app.user.fumeur|capitalize }}</strong>
+            Fumeur :
+            <strong>{{ user.fumeur ? user.fumeur|capitalize : 'Non renseigné' }}</strong>
           </li>
         </ul>
       </div>
 
       {# =============================
-         🚗 VÉHICULES
+         Véhicules (si conducteur)
          ============================= #}
-      <div class="bg-white p-4 rounded shadow-sm mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Mes véhicules</h5>
+      {% if vehicles is defined and vehicles|length > 0 %}
+        <div class="bg-white p-4 rounded shadow-sm mb-4">
+          <h5 class="mb-3">Véhicules de {{ user.prenom }}</h5>
 
-          <a href="{{ path('vehicle_new') }}"
-             class="btn btn-sm btn-ecoride rounded-pill px-3">
-            <i class="bi bi-plus-circle me-1"></i>
-            Ajouter un véhicule
-          </a>
-        </div>
-
-        {% if vehicles is defined and vehicles|length > 0 %}
           <ul class="list-group list-group-flush">
             {% for v in vehicles %}
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                   <strong>{{ v.marque }} {{ v.modele }}</strong><br>
                   <small class="text-muted">
-                    {{ v.immatriculation }} — {{ v.energie }} — {{ v.places }} places
+                    {{ v.energie }} — {{ v.places }} places
                   </small>
-                </div>
-
-                <div class="d-flex gap-2">
-                  <a href="{{ path('vehicle_edit', { id: v.id }) }}"
-                     class="btn btn-sm btn-outline-success rounded-pill px-3"
-                     title="Modifier">
-                    <i class="bi bi-pencil"></i>
-                  </a>
-
-                  <a href="{{ path('vehicle_delete', { id: v.id }) }}"
-                     class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                     title="Supprimer"
-                     onclick="return confirm('Supprimer ce véhicule ?')">
-                    <i class="bi bi-trash"></i>
-                  </a>
                 </div>
               </li>
             {% endfor %}
           </ul>
-        {% else %}
-          <p class="text-muted small mb-0">
-            Aucun véhicule enregistré pour le moment.
-          </p>
-        {% endif %}
-      </div>
+        </div>
+      {% endif %}
 
       {# =============================
          ⭐ Avis reçus (carrousel continu)
@@ -239,7 +138,6 @@
         {% else %}
           <div class="reviews-scroller-wrapper mt-2">
             <div class="reviews-track">
-
               {# Série 1 #}
               {% for review in reviews %}
                 <div class="review-card">
@@ -264,12 +162,14 @@
                   {% if review.comment %}
                     {% set parts = review.comment|split('Points positifs :') %}
 
+                    {# Commentaire principal #}
                     {% if parts[0]|trim %}
                       <p class="comment-text mb-2">
                         {{ parts[0]|trim }}
                       </p>
                     {% endif %}
 
+                    {# Bloc points positifs (si présents) #}
                     {% if parts|length > 1 and parts[1]|trim %}
                       <div class="positive-block small mb-2">
                         <div class="label fw-semibold text-success">
@@ -339,10 +239,17 @@
                   </p>
                 </div>
               {% endfor %}
-
             </div>
           </div>
         {% endif %}
+      </div>
+
+      {# Retour #}
+      <div class="text-center mt-4">
+        <a href="{{ app.request.headers.get('referer') ?? path('app_mes_trajets') }}"
+           class="btn btn-outline-secondary rounded-pill px-4">
+          ← Retour
+        </a>
       </div>
 
     </div>

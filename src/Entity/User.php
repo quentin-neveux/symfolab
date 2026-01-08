@@ -10,10 +10,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
-use App\Entity\Trajet;
-use App\Entity\AimlabScore;
-use App\Entity\Review;
-use App\Entity\Vehicle;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -128,9 +124,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'owner', targetEntity: Vehicle::class, cascade: ['persist', 'remove'])]
     private Collection $vehicles;
 
-    // ======================================================
-    // 🔧 CONSTRUCTEUR
-    // ======================================================
     public function __construct()
     {
         $this->createdAt = new \DateTimeImmutable();
@@ -262,6 +255,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     // Tokens
     public function getTokens(): int { return $this->tokens; }
+
     public function setTokens(int $tokens): self
     {
         $this->tokens = max(0, $tokens);
@@ -283,6 +277,24 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    public function canAffordTokens(int $cost): bool
+    {
+        return $this->tokens >= max(0, $cost);
+    }
+
+    /**
+     * Débite des tokens ou throw (utile en paiement transactionnel)
+     */
+    public function debitTokensOrFail(int $cost): self
+    {
+        $cost = max(0, $cost);
+        if ($this->tokens < $cost) {
+            throw new \RuntimeException('Solde de tokens insuffisant.');
+        }
+        $this->tokens -= $cost;
+        return $this;
+    }
+
     // 💰 Gains conducteur
     public function getEarnings(): string
     {
@@ -291,7 +303,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setEarnings(string $earnings): self
     {
-        // Normalisation "2 décimales"
         $this->earnings = number_format((float) $earnings, 2, '.', '');
         return $this;
     }

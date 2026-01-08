@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
 use App\Entity\TokenTransaction;
+use App\Entity\User;
 use App\Repository\TrajetPassagerRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +19,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class PaymentController extends AbstractController
 {
     public function __construct(
-        private MailerService $mailer
+        private readonly MailerService $mailer
     ) {}
 
     // =========================================================
@@ -30,6 +31,9 @@ class PaymentController extends AbstractController
         TrajetPassagerRepository $tpRepo
     ): Response {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         // 🚫 Déjà réservé → succès direct
         if ($tpRepo->findOneBy([
@@ -57,11 +61,14 @@ class PaymentController extends AbstractController
         EntityManagerInterface $em
     ): Response {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         // 🔐 CSRF
         if (!$this->isCsrfTokenValid(
             'payment_trajet_' . $trajet->getId(),
-            $request->request->get('_token')
+            (string) $request->request->get('_token')
         )) {
             throw $this->createAccessDeniedException();
         }
@@ -84,9 +91,31 @@ class PaymentController extends AbstractController
             ]);
         }
 
-        // 🚫 Tokens insuffisants
-        if ($user->getTokens() < 2) {
-            $this->addFlash('danger', 'Solde de tokens insuffisant pour les frais plateforme.');
+        // --------------------------------------------------
+        // 💳 Coût total tokens = trajet + plateforme
+        // --------------------------------------------------
+        $trajetTokens = $trajet->getTokenCost();               // coût du trajet (tokens)
+        $platformFee  = Trajet::PLATFORM_FEE_TOKENS;           // 2
+        $totalCost    = $trajetTokens + $platformFee;
+
+        if ($totalCost <= 0) {
+            // Sécurité : ne devrait jamais arriver si tokenCost >= 0
+            $this->addFlash('danger', 'Coût du trajet invalide.');
+            return $this->redirectToRoute('app_trajet_detail', [
+                'id' => $trajet->getId()
+            ]);
+        }
+
+        // 🚫 Tokens insuffisants (TOTAL)
+        if ($user->getTokens() < $totalCost) {
+            $this->addFlash(
+                'danger',
+                sprintf('Solde de tokens insuffisant. Coût total : %d tokens (trajet %d + frais plateforme %d).',
+                    $totalCost,
+                    $trajetTokens,
+                    $platformFee
+                )
+            );
             return $this->redirectToRoute('app_trajet_detail', [
                 'id' => $trajet->getId()
             ]);
@@ -102,17 +131,25 @@ class PaymentController extends AbstractController
             $reservation = new TrajetPassager();
             $reservation->setTrajet($trajet);
             $reservation->setPassager($user);
+
+            // snapshot des coûts (important pour annulation/remboursement)
+            $reservation->setTokenCostCharged($trajetTokens);
+            $reservation->setPlatformFeeCharged($platformFee);
+
+            // payé
             $reservation->setIsPaid(true);
+
             $em->persist($reservation);
 
-            // ➖ Débit tokens
-            $user->setTokens($user->getTokens() - 2);
+            // ➖ Débit tokens TOTAL
+            $user->removeTokens($totalCost);
 
+            // Trace transaction (TOTAL)
             $debit = new TokenTransaction();
             $debit->setUser($user);
-            $debit->setAmount(2);
+            $debit->setAmount($totalCost);
             $debit->setType('DEBIT');
-            $debit->setReason('FRAIS_PLATEFORME');
+            $debit->setReason('RESERVATION_TRAJET');
             $debit->setTrajetId($trajet->getId());
             $em->persist($debit);
 
@@ -130,8 +167,8 @@ class PaymentController extends AbstractController
         }
 
         // 📧 MAILS APRÈS PAIEMENT RÉUSSI
-        $this->mailer->notifyReservationConfirmed($trajet, $user); // ✅ PASSAGER
-        $this->mailer->notifyNewPassenger($trajet, $user);         // ✅ CONDUCTEUR
+        $this->mailer->notifyReservationConfirmed($trajet, $user); // PASSAGER
+        $this->mailer->notifyNewPassenger($trajet, $user);         // CONDUCTEUR
 
         return $this->redirectToRoute('trajet_payment_success', [
             'id' => $trajet->getId()

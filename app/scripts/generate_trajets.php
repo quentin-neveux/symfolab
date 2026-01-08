@@ -75,7 +75,7 @@ function estimerPrixTotal($depart, $arrivee, $distancesConnues) {
             (strcasecmp($axe[1], $depart) === 0 && strcasecmp($axe[0], $arrivee) === 0)
         ) {
             $d = $axe[2];
-            $prixTotal = ($d * 0.12) + mt_rand(-150, 250)/100; // 0.12€/km ±2€
+            $prixTotal = ($d * 0.12) + mt_rand(-150, 250)/100; // 0.12 ECR/km ±2 ECR
             return max(5, round($prixTotal, 2));
         }
     }

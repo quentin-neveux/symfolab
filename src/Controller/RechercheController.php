@@ -22,16 +22,19 @@ class RechercheController extends AbstractController
         // --------------------------------------------------
         // PARAMÈTRES DE BASE
         // --------------------------------------------------
-        $villeDepart = $request->query->get('ville_depart');
+        $villeDepart  = $request->query->get('ville_depart');
         $villeArrivee = $request->query->get('ville_arrivee');
-        $dateDepart = $request->query->get('date_depart');
+        $dateDepart   = $request->query->get('date_depart');
 
         // --------------------------------------------------
         // FILTRES
         // --------------------------------------------------
         $sort     = $request->query->get('sort', 'depart_asc');
         $energies = $request->query->all('energie');
-        $prixMax  = $request->query->get('prix_max');
+
+        // ⚠️ On garde le nom "prix_max" dans l'URL pour éviter de casser le front,
+        // mais ça représente désormais un plafond de TOKENS.
+        $tokenMaxRaw = $request->query->get('prix_max');
 
         // Sécurité : si aucune recherche → retour page covoiturer
         if (!$villeDepart && !$villeArrivee && !$dateDepart) {
@@ -85,12 +88,17 @@ class RechercheController extends AbstractController
         }
 
         // --------------------------------------------------
-        // FILTRE PRIX
+        // FILTRE TOKENS (ancien "prix_max")
         // --------------------------------------------------
-        if ($prixMax !== null && $prixMax !== '') {
-            $qb
-                ->andWhere('t.price <= :prixMax')
-                ->setParameter('prixMax', (float) $prixMax);
+        $tokenMax = null;
+
+        if ($tokenMaxRaw !== null && $tokenMaxRaw !== '') {
+            $tokenMax = (int) $tokenMaxRaw;
+            if ($tokenMax > 0) {
+                $qb
+                    ->andWhere('t.tokenCost <= :tokenMax')
+                    ->setParameter('tokenMax', $tokenMax);
+            }
         }
 
         // --------------------------------------------------
@@ -98,7 +106,8 @@ class RechercheController extends AbstractController
         // --------------------------------------------------
         switch ($sort) {
             case 'prix_asc':
-                $qb->orderBy('t.price', 'ASC');
+                // ⚠️ compat UI : "prix_asc" = tri par TOKENS
+                $qb->orderBy('t.tokenCost', 'ASC');
                 break;
 
             case 'depart_asc':
@@ -119,6 +128,8 @@ class RechercheController extends AbstractController
 
         if (!$trajets) {
             $qb2 = $em->getRepository(Trajet::class)->createQueryBuilder('ts')
+                ->leftJoin('ts.vehicle', 'v2')
+                ->addSelect('v2')
                 ->andWhere('ts.dateDepart > :now')
                 ->andWhere('ts.placesDisponibles > 0')
                 ->setParameter('now', new \DateTime())
@@ -135,6 +146,28 @@ class RechercheController extends AbstractController
                 $qb2
                     ->andWhere('LOWER(ts.villeArrivee) LIKE LOWER(:va)')
                     ->setParameter('va', '%' . $villeArrivee . '%');
+            }
+
+            if ($dateDepart) {
+                $start = (new \DateTime($dateDepart))->setTime(0, 0, 0);
+                $end   = (new \DateTime($dateDepart))->setTime(23, 59, 59);
+
+                $qb2
+                    ->andWhere('ts.dateDepart BETWEEN :start AND :end')
+                    ->setParameter('start', $start)
+                    ->setParameter('end', $end);
+            }
+
+            if (!empty($energies)) {
+                $qb2
+                    ->andWhere('v2.energie IN (:energies)')
+                    ->setParameter('energies', $energies);
+            }
+
+            if ($tokenMax !== null && $tokenMax > 0) {
+                $qb2
+                    ->andWhere('ts.tokenCost <= :tokenMax')
+                    ->setParameter('tokenMax', $tokenMax);
             }
 
             $trajetSuggestion = $qb2->getQuery()->getOneOrNullResult();

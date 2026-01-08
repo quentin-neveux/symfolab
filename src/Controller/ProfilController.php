@@ -28,18 +28,58 @@ final class ProfilController extends AbstractController
 
         /** @var User $user */
         $user = $this->getUser();
+
+        // Note moyenne
         $average = $reviewRepo->getAverageRatingForUser($user->getId());
 
-        // 💥 Récupérer les véhicules du user
+        // Véhicules du user
         $vehicles = $vehicleRepo->findByUser($user);
 
+        // ⭐ Avis reçus (le user est la "target")
+        $reviews = $reviewRepo->findBy(
+            ['target' => $user],
+            ['createdAt' => 'DESC']
+        );
+
         return $this->render('profil/profil.html.twig', [
-            'user' => $user,
+            'user'          => $user,
             'averageRating' => $average,
-            'vehicles' => $vehicles, // indispensable
+            'vehicles'      => $vehicles,
+            'reviews'       => $reviews,
         ]);
     }
 
+    // =========================================================
+    // 👀 PROFIL PUBLIC D'UN UTILISATEUR
+    // =========================================================
+    #[Route(
+        '/profil/utilisateur/{id}',
+        name: 'app_profil_public',
+        requirements: ['id' => '\d+']
+    )]
+    public function publicProfile(
+        User $user,
+        ReviewRepository $reviewRepo,
+        VehicleRepository $vehicleRepo
+    ): Response {
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
+        $average  = $reviewRepo->getAverageRatingForUser($user->getId());
+        $vehicles = $vehicleRepo->findByUser($user);
+
+        // Avis reçus par cet utilisateur
+        $reviews = $reviewRepo->findBy(
+            ['target' => $user],
+            ['createdAt' => 'DESC']
+        );
+
+        return $this->render('profil/details_informations.html.twig', [
+            'user'          => $user,
+            'averageRating' => $average,
+            'vehicles'      => $vehicles,
+            'reviews'       => $reviews,
+        ]);
+    }
 
     // =========================================================
     // ⚙️ PAGE D’INFOS DU COMPTE
@@ -48,6 +88,7 @@ final class ProfilController extends AbstractController
     public function compte(): Response
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+
         return $this->render('profil/profil_compte.html.twig');
     }
 
@@ -58,8 +99,7 @@ final class ProfilController extends AbstractController
     public function edit(
         Request $request,
         EntityManagerInterface $em,
-        SluggerInterface $slugger,
-        ReviewRepository $reviewRepo
+        SluggerInterface $slugger
     ): Response {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
 
@@ -71,9 +111,7 @@ final class ProfilController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // ============================
             // 🔼 UPLOAD PHOTO
-            // ============================
             $file = $form->get('photo')->getData();
 
             if ($file) {
@@ -81,7 +119,9 @@ final class ProfilController extends AbstractController
 
                 if ($user->getPhoto()) {
                     $old = $uploadsDir . '/' . $user->getPhoto();
-                    if (file_exists($old)) unlink($old);
+                    if (file_exists($old)) {
+                        unlink($old);
+                    }
                 }
 
                 $newFilename =
@@ -98,7 +138,6 @@ final class ProfilController extends AbstractController
                 $user->setPhoto($newFilename);
             }
 
-            // Save
             $em->flush();
 
             $this->addFlash('success', 'Profil mis à jour ✔️');

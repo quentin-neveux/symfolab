@@ -3,13 +3,16 @@
 namespace App\Entity;
 
 use App\Repository\TrajetRepository;
-use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TrajetRepository::class)]
 class Trajet
 {
+    public const PLATFORM_FEE_TOKENS = 2;
+    public const MAX_TOKEN_COST = 15;
+
     // ======================================================
     // 🔑 IDENTIFIANT
     // ======================================================
@@ -37,13 +40,14 @@ class Trajet
     private ?\DateTimeInterface $duree = null;
 
     // ======================================================
-    // 💰 TARIF
+    // 🪙 COÛT DU TRAJET (TOKENS) — ENTIER 1..15
     // ======================================================
-    #[ORM\Column(type: 'float', nullable: true)]
-    private ?float $price = null;
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $tokenCost = 1;
 
     // ======================================================
     // 💰 VERSEMENT CONDUCTEUR (liée au trajet)
+    // (On conserve, mais plus de lien automatique avec un prix float)
     // ======================================================
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => '0.00'])]
     private string $payoutAmount = '0.00';
@@ -106,57 +110,97 @@ class Trajet
     // GETTERS & SETTERS
     // ======================================================
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getVilleDepart(): ?string { return $this->villeDepart; }
+    public function getVilleDepart(): ?string
+    {
+        return $this->villeDepart;
+    }
+
     public function setVilleDepart(string $villeDepart): self
     {
         $this->villeDepart = $villeDepart;
         return $this;
     }
 
-    public function getVilleArrivee(): ?string { return $this->villeArrivee; }
+    public function getVilleArrivee(): ?string
+    {
+        return $this->villeArrivee;
+    }
+
     public function setVilleArrivee(string $villeArrivee): self
     {
         $this->villeArrivee = $villeArrivee;
         return $this;
     }
 
-    public function getDateDepart(): ?\DateTimeInterface { return $this->dateDepart; }
+    public function getDateDepart(): ?\DateTimeInterface
+    {
+        return $this->dateDepart;
+    }
+
     public function setDateDepart(\DateTimeInterface $dateDepart): self
     {
         $this->dateDepart = $dateDepart;
         return $this;
     }
 
-    public function getDateArrivee(): ?\DateTimeInterface { return $this->dateArrivee; }
+    public function getDateArrivee(): ?\DateTimeInterface
+    {
+        return $this->dateArrivee;
+    }
+
     public function setDateArrivee(?\DateTimeInterface $dateArrivee): self
     {
         $this->dateArrivee = $dateArrivee;
         return $this;
     }
 
-    public function getDuree(): ?\DateTimeInterface { return $this->duree; }
+    public function getDuree(): ?\DateTimeInterface
+    {
+        return $this->duree;
+    }
+
     public function setDuree(?\DateTimeInterface $duree): self
     {
         $this->duree = $duree;
         return $this;
     }
 
-    public function getPrice(): ?float { return $this->price; }
-    public function setPrice(?float $price): self
+    // ======================================================
+    // 🪙 TOKENS
+    // ======================================================
+
+    /**
+     * Coût du trajet en tokens (ENTIER).
+     * Contrainte business : 1..15.
+     */
+    public function getTokenCost(): int
     {
-        $this->price = $price;
+        return $this->tokenCost;
+    }
 
-        // On initialise le montant à verser (si tu veux faire autrement plus tard, on changera ici)
-        if ($price !== null) {
-            $this->payoutAmount = number_format((float) $price, 2, '.', '');
-        }
-
+    public function setTokenCost(int $tokenCost): self
+    {
+        $this->tokenCost = max(1, min(self::MAX_TOKEN_COST, $tokenCost));
         return $this;
     }
 
-    // Versement
+    /**
+     * Coût total débité au passager (trajet + frais plateforme).
+     */
+    public function getTotalTokenCost(): int
+    {
+        return $this->tokenCost + self::PLATFORM_FEE_TOKENS;
+    }
+
+    // ======================================================
+    // 💰 VERSEMENT CONDUCTEUR
+    // ======================================================
+
     public function getPayoutAmount(): string
     {
         return $this->payoutAmount;
@@ -179,37 +223,75 @@ class Trajet
         return $this;
     }
 
-    public function getVehicle(): ?Vehicle { return $this->vehicle; }
+    // ======================================================
+    // 🚗 VEHICLE
+    // ======================================================
+
+    public function getVehicle(): ?Vehicle
+    {
+        return $this->vehicle;
+    }
+
     public function setVehicle(Vehicle $vehicle): self
     {
         $this->vehicle = $vehicle;
         return $this;
     }
 
-    public function getPlacesDisponibles(): int { return $this->placesDisponibles; }
+    // ======================================================
+    // 👥 PLACES
+    // ======================================================
+
+    public function getPlacesDisponibles(): int
+    {
+        return $this->placesDisponibles;
+    }
+
     public function setPlacesDisponibles(int $places): self
     {
-        $this->placesDisponibles = max(1, $places);
+        // ✅ autorise 0 (trajet complet)
+        $this->placesDisponibles = max(0, $places);
         return $this;
     }
 
-    public function getCommentaire(): ?string { return $this->commentaire; }
+    // ======================================================
+    // 📝 COMMENTAIRE
+    // ======================================================
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
         return $this;
     }
 
+    // ======================================================
     // 👤 CONDUCTEUR
-    public function getConducteur(): ?User { return $this->conducteur; }
+    // ======================================================
+
+    public function getConducteur(): ?User
+    {
+        return $this->conducteur;
+    }
+
     public function setConducteur(User $conducteur): self
     {
         $this->conducteur = $conducteur;
         return $this;
     }
 
+    // ======================================================
     // 🧍 PASSAGERS
-    public function getPassagers(): Collection { return $this->passagers; }
+    // ======================================================
+
+    public function getPassagers(): Collection
+    {
+        return $this->passagers;
+    }
 
     public function addPassager(TrajetPassager $passager): self
     {
@@ -222,15 +304,16 @@ class Trajet
 
     public function removePassager(TrajetPassager $passager): self
     {
-        if ($this->passagers->removeElement($passager)) {
-            if ($passager->getTrajet() === $this) {
-                $passager->setTrajet(null);
-            }
+        if ($this->passagers->removeElement($passager) && $passager->getTrajet() === $this) {
+            $passager->setTrajet(null);
         }
         return $this;
     }
 
-    // FIN
+    // ======================================================
+    // ✔ FIN
+    // ======================================================
+
     public function isConducteurConfirmeFin(): bool
     {
         return $this->conducteurConfirmeFin;

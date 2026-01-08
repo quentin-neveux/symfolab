@@ -36,9 +36,9 @@ class TrajetFinController extends AbstractController
 
         $trajet->setConducteurConfirmeFin(true);
 
-        // 🔥 Tentative de déclenchement automatique du paiement
+        // Tentative de déclenchement automatique du paiement
         foreach ($trajet->getPassagers() as $reservation) {
-            $this->tryToProcessPayment($reservation);
+            $this->tryToProcessPayment($reservation, $em);
         }
 
         $em->flush();
@@ -90,8 +90,8 @@ class TrajetFinController extends AbstractController
 
         $reservation->setPassagerConfirmeFin(true);
 
-        // 🔥 Tentative de déclenchement automatique du paiement
-        $this->tryToProcessPayment($reservation);
+        // Tentative de déclenchement automatique du paiement
+        $this->tryToProcessPayment($reservation, $em);
 
         $em->flush();
 
@@ -102,22 +102,38 @@ class TrajetFinController extends AbstractController
         ]);
     }
 
-// ----------------------------------------------------------
-// 🔥 LOGIQUE MÉTIER : déclenchement automatique du paiement
-// ----------------------------------------------------------
-private function tryToProcessPayment(TrajetPassager $reservation): void
-{
-    $trajet = $reservation->getTrajet();
+    // ----------------------------------------------------------
+    // 🔥 LOGIQUE MÉTIER : paiement + gain chauffeur
+    // ----------------------------------------------------------
+    private function tryToProcessPayment(
+        TrajetPassager $reservation,
+        EntityManagerInterface $em
+    ): void {
+        $trajet = $reservation->getTrajet();
 
-    if (
-        $reservation->isAuthorized()
-        && $trajet->isConducteurConfirmeFin()
-        && $reservation->isPassagerConfirmeFin()
-        && !$reservation->isPaid()
-    ) {
-        // 💳 Paiement encaissé par la plateforme (simulation)
-        $reservation->setIsPaid(true);
-        $reservation->setPaidAt(new \DateTimeImmutable());
+        if (
+            $reservation->isAuthorized()
+            && $trajet->isConducteurConfirmeFin()
+            && $reservation->isPassagerConfirmeFin()
+            && !$reservation->isPaid()
+        ) {
+            // Marque la réservation comme payée
+            $reservation->setIsPaid(true);
+            $reservation->setPaidAt(new \DateTimeImmutable());
+
+            // Crédit des tokens chauffeur
+            $chauffeur = $trajet->getConducteur();
+            $gainChauffeur = 2;
+
+            $chauffeur->setTokens($chauffeur->getTokens() + $gainChauffeur);
+
+            $gain = new \App\Entity\TokenTransaction();
+            $gain->setUser($chauffeur);
+            $gain->setAmount($gainChauffeur);
+            $gain->setType('CREDIT');
+            $gain->setReason('TRAJET_VALIDÉ');
+            $gain->setTrajetId($trajet->getId());
+            $em->persist($gain);
+        }
     }
-}
 }

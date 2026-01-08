@@ -48,6 +48,16 @@ class TrajetPassager
     private ?\DateTimeImmutable $paidAt = null;
 
     // =========================================================
+    // 🪙 DÉTAIL DU DÉBIT TOKENS (snapshot)
+    // =========================================================
+
+    #[ORM\Column(type: 'integer', options: ['default' => 0])]
+    private int $tokenCostCharged = 0; // coût du trajet débité au moment du paiement
+
+    #[ORM\Column(type: 'integer', options: ['default' => 2])]
+    private int $platformFeeCharged = Trajet::PLATFORM_FEE_TOKENS; // fee plateforme (2)
+
+    // =========================================================
     // 🏁 FIN DE TRAJET / NOTATION
     // =========================================================
 
@@ -101,7 +111,6 @@ class TrajetPassager
     {
         $this->isPaid = $paid;
 
-        // auto-set de la date si paiement validé
         if ($paid && $this->paidAt === null) {
             $this->paidAt = new \DateTimeImmutable();
         }
@@ -123,6 +132,52 @@ class TrajetPassager
     public function getPaidAt(): ?\DateTimeImmutable
     {
         return $this->paidAt;
+    }
+
+    // =========================================================
+    // 🪙 TOKENS CHARGÉS
+    // =========================================================
+
+    public function getTokenCostCharged(): int
+    {
+        return $this->tokenCostCharged;
+    }
+
+    public function setTokenCostCharged(int $amount): self
+    {
+        $this->tokenCostCharged = max(0, $amount);
+        return $this;
+    }
+
+    public function getPlatformFeeCharged(): int
+    {
+        return $this->platformFeeCharged;
+    }
+
+    public function setPlatformFeeCharged(int $amount): self
+    {
+        $this->platformFeeCharged = max(0, $amount);
+        return $this;
+    }
+
+    public function getTotalTokensCharged(): int
+    {
+        return $this->tokenCostCharged + $this->platformFeeCharged;
+    }
+
+    /**
+     * À appeler au moment du paiement (snapshot du coût du trajet).
+     */
+    public function snapshotCostsFromTrajet(): self
+    {
+        if (!$this->trajet) {
+            throw new \RuntimeException('Trajet manquant pour snapshot des coûts.');
+        }
+
+        $this->tokenCostCharged = max(0, $this->trajet->getTokenCost());
+        $this->platformFeeCharged = Trajet::PLATFORM_FEE_TOKENS;
+
+        return $this;
     }
 
     // =========================================================
@@ -159,13 +214,6 @@ class TrajetPassager
     // 🧠 LOGIQUE MÉTIER
     // =========================================================
 
-    /**
-     * Le passager peut noter uniquement si :
-     * - le paiement a été validé
-     * - le conducteur a confirmé la fin
-     * - le passager a confirmé la fin
-     * - aucune note n’a encore été laissée
-     */
     public function peutNoter(): bool
     {
         return

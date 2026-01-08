@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Review;
 use App\Entity\Trajet;
+use App\Entity\TrajetPassager;
 use App\Form\ReviewType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,17 +20,17 @@ class ReviewController extends AbstractController
         Request $request,
         EntityManagerInterface $em
     ): Response {
-
         $user = $this->getUser();
         if (!$user) {
             return $this->redirectToRoute('app_connexion');
         }
 
         // 1️⃣ Vérifier que l'utilisateur était passager du trajet
-        $reservation = $em->getRepository(\App\Entity\TrajetPassager::class)
+        /** @var TrajetPassager|null $reservation */
+        $reservation = $em->getRepository(TrajetPassager::class)
             ->findOneBy([
-                'trajet' => $trajet,
-                'passager' => $user
+                'trajet'   => $trajet,
+                'passager' => $user,
             ]);
 
         if (!$reservation) {
@@ -37,16 +38,16 @@ class ReviewController extends AbstractController
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
 
-        // 2️⃣ Le trajet doit être fini
-        if (!$trajet->isFinished()) {
-            $this->addFlash('warning', "Tu pourras laisser un avis une fois le trajet terminé.");
+        // 2️⃣ Vérifier les conditions métier (paiement + fins confirmées + pas encore noté)
+        if (!$reservation->peutNoter()) {
+            $this->addFlash('warning', "Tu pourras laisser un avis une fois le trajet terminé et validé.");
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
 
-        // 3️⃣ Empêcher de noter deux fois
+        // 3️⃣ Empêcher de noter deux fois (par sécurité)
         $existingReview = $em->getRepository(Review::class)->findOneBy([
             'author' => $user,
-            'trajet' => $trajet
+            'trajet' => $trajet,
         ]);
 
         if ($existingReview) {
@@ -54,7 +55,7 @@ class ReviewController extends AbstractController
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
 
-        // 4️⃣ Création du Review
+        // 4️⃣ Création du Review (createdAt est géré dans le __construct)
         $review = new Review();
         $review->setAuthor($user);
         $review->setTarget($trajet->getConducteur());
@@ -66,21 +67,30 @@ class ReviewController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            // 🎯 Récupérer les tags cliquables (input hidden "review_tags")
+            $tags = $request->request->get('review_tags');
+            if ($tags) {
+                $comment = $review->getComment() ?: '';
+                if ($comment !== '') {
+                    $comment .= "\n\n";
+                }
+                $comment .= 'Points positifs : ' . $tags;
+                $review->setComment($comment);
+            }
+
             $em->persist($review);
+
+            // Marquer la réservation comme déjà notée
+            $reservation->setADejaNote(true);
+
             $em->flush();
 
-            $this->addFlash('success', "Merci ! Ton avis a été enregistré 🙌");
+            $this->addFlash('success', "Merci ! Ton avis a été enregistré.");
 
             return $this->redirectToRoute('app_trajet_detail', [
-                'id' => $trajet->getId()
+                'id' => $trajet->getId(),
             ]);
         }
-        $tags = $request->request->get('review_tags');
-
-        if ($tags) {
-            $review->setComment(trim($review->getComment() . "\n\nPoints positifs : " . $tags));
-        }
-
 
         return $this->render('review/new.html.twig', [
             'trajet' => $trajet,

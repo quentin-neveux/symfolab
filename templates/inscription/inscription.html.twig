@@ -88,16 +88,35 @@
             </div>
           </div>
 
-          {{ form_row(registrationForm.agreeTerms, {
-            row_attr: { class: 'mb-3 form-check' },
-            label_attr: { class: 'form-check-label' },
-            attr: { class: 'form-check-input' }
-          }) }}
+          {# =============================
+             CONDITIONS GÉNÉRALES ALIGNÉES
+             ============================= #}
+          <div class="mb-3 d-flex justify-content-center">
+            <div class="form-check d-flex align-items-center gap-2 mb-0">
+              {{ form_widget(registrationForm.agreeTerms, {
+                attr: { class: 'form-check-input' }
+              }) }}
 
-          <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn">
+              <label class="form-check-label mb-0" for="{{ registrationForm.agreeTerms.vars.id }}">
+                J’accepte les
+                <a href="{{ path('app_cgu') }}" target="_blank">
+                  conditions générales
+                </a>
+              </label>
+            </div>
+          </div>
+
+          {{ form_errors(registrationForm.agreeTerms) }}
+
+          <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn mb-3">
             Créer un compte
           </button>
 
+          <section class="mb-3">
+            <div class="alert alert-success mb-3 text-align-center" role="alert">
+              <strong>Important</strong>: Recevez 20 EcoCrédits <strong>ECR</strong> dès votre inscription
+            </div>
+          </section>
 
           {{ form_end(registrationForm) }}
 

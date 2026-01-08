@@ -172,7 +172,7 @@ class AdminTrajetController extends AbstractController
         $this->addFlash(
             'success',
             sprintf(
-                'Versement de %s € effectué au conducteur %s.',
+                'Versement de %s EcoCrédits ECR effectué au conducteur %s.',
                 $trajet->getPayoutAmount(),
                 $conducteur->getPrenom()
             )

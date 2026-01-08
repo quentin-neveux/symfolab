@@ -7,12 +7,13 @@ use App\Entity\Vehicle;
 use App\Form\VehicleType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\FormType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Range;
 
 class TrajetType extends AbstractType
 {
@@ -21,13 +22,35 @@ class TrajetType extends AbstractType
         $user = $options['user'];
 
         $builder
-            ->add('villeDepart')
-            ->add('villeArrivee')
+            ->add('villeDepart', TextType::class, [
+                'label' => 'Ville de départ',
+            ])
+            ->add('villeArrivee', TextType::class, [
+                'label' => 'Ville d’arrivée',
+            ])
             ->add('dateDepart', DateTimeType::class, [
+                'label'  => 'Date et heure de départ',
                 'widget' => 'single_text',
             ])
-            ->add('price')
+
+            // ✅ TOKENS (1..15) — plus aucun float
+            ->add('tokenCost', ChoiceType::class, [
+                'label' => 'Coût du trajet (tokens)',
+                'choices' => array_combine(
+                    array_map(fn($i) => (string) $i, range(1, Trajet::MAX_TOKEN_COST)),
+                    range(1, Trajet::MAX_TOKEN_COST)
+                ),
+                'placeholder' => false,
+                'expanded' => false,
+                'multiple' => false,
+                'constraints' => [
+                    new Range(['min' => 1, 'max' => Trajet::MAX_TOKEN_COST]),
+                ],
+                'help' => 'Entre 1 et 15 tokens (frais plateforme : + ' . Trajet::PLATFORM_FEE_TOKENS . ' tokens à la réservation).',
+            ])
+
             ->add('commentaire', TextareaType::class, [
+                'label' => 'Commentaire',
                 'required' => false,
             ])
 

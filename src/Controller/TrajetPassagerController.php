@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Trajet;
+use App\Entity\TokenTransaction;
+use App\Entity\User;
 use App\Repository\TrajetPassagerRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class TrajetPassagerController extends AbstractController
 {
     public function __construct(
-        private MailerService $mailerService
+        private readonly MailerService $mailerService
     ) {}
 
     // ----------------------------------------------------------
@@ -39,13 +41,8 @@ class TrajetPassagerController extends AbstractController
         TrajetPassagerRepository $tpRepo
     ): Response {
         $user = $this->getUser();
-
-        // 🔒 tokens
-        if ($user->getTokens() < 2) {
-            $this->addFlash('warning', 'Solde de tokens insuffisant.');
-            return $this->redirectToRoute('app_trajet_detail', [
-                'id' => $trajet->getId()
-            ]);
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
         }
 
         // 🔒 déjà réservé (peu importe payé ou non : on évite doublon)
@@ -67,7 +64,23 @@ class TrajetPassagerController extends AbstractController
             ]);
         }
 
-        // ➜ paiement géré dans PaymentController
+        // 🔒 Solde tokens : coût trajet + fee plateforme
+        $totalCost = $trajet->getTotalTokenCost(); // tokenCost + 2
+        if ($user->getTokens() < $totalCost) {
+            $this->addFlash(
+                'warning',
+                sprintf('Solde de tokens insuffisant. Coût total : %d tokens (trajet %d + plateforme %d).',
+                    $totalCost,
+                    $trajet->getTokenCost(),
+                    Trajet::PLATFORM_FEE_TOKENS
+                )
+            );
+            return $this->redirectToRoute('app_trajet_detail', [
+                'id' => $trajet->getId()
+            ]);
+        }
+
+        // ➜ paiement géré dans PaymentController (il doit débiter TOTAL et créer TrajetPassager)
         return $this->redirectToRoute('trajet_payment', [
             'id' => $trajet->getId()
         ]);
@@ -84,6 +97,9 @@ class TrajetPassagerController extends AbstractController
         EntityManagerInterface $em
     ): Response {
         $user = $this->getUser();
+        if (!$user instanceof User) {
+            throw $this->createAccessDeniedException();
+        }
 
         $reservation = $tpRepo->findOneBy([
             'trajet'   => $trajet,
@@ -97,7 +113,7 @@ class TrajetPassagerController extends AbstractController
             ]);
         }
 
-        if ($trajet->getDateDepart() <= new \DateTime()) {
+        if ($trajet->getDateDepart() <= new \DateTimeImmutable()) {
             $this->addFlash('danger', 'Trajet déjà commencé.');
             return $this->redirectToRoute('app_trajet_detail', [
                 'id' => $trajet->getId()
@@ -107,21 +123,26 @@ class TrajetPassagerController extends AbstractController
         $em->beginTransaction();
 
         try {
-            // 💳 remboursement
-            $user->setTokens($user->getTokens() + 2);
+            // 💳 remboursement UNIQUEMENT si payé
+            $refundAmount = 0;
+            if ($reservation->isPaid()) {
+                $refundAmount = $reservation->getTotalTokensCharged();
 
-            $refund = new \App\Entity\TokenTransaction();
-            $refund->setUser($user);
-            $refund->setAmount(2);
-            $refund->setType('CREDIT');
-            $refund->setReason('REFUND_ANNULATION');
-            $refund->setTrajetId($trajet->getId());
-            $em->persist($refund);
+                $user->addTokens($refundAmount);
 
-            // ➕ place libérée
-            $trajet->setPlacesDisponibles(
-                $trajet->getPlacesDisponibles() + 1
-            );
+                $refund = new TokenTransaction();
+                $refund->setUser($user);
+                $refund->setAmount($refundAmount);
+                $refund->setType('CREDIT');
+                $refund->setReason('REFUND_ANNULATION');
+                $refund->setTrajetId($trajet->getId());
+                $em->persist($refund);
+            }
+
+            // ➕ place libérée (capée à la capacité passagers du véhicule)
+            $maxPassagers = max(0, $trajet->getVehicle()->getPlaces() - 1);
+            $newPlaces = min($maxPassagers, $trajet->getPlacesDisponibles() + 1);
+            $trajet->setPlacesDisponibles($newPlaces);
 
             $em->remove($reservation);
             $em->flush();
@@ -135,7 +156,12 @@ class TrajetPassagerController extends AbstractController
         // ✉️ mails
         $this->mailerService->notifyCancellationByPassenger($trajet, $user);
 
-        $this->addFlash('info', 'Réservation annulée.');
+        $this->addFlash(
+            'info',
+            $reservation->isPaid()
+                ? sprintf('Réservation annulée. %d tokens remboursés.', $reservation->getTotalTokensCharged())
+                : 'Réservation annulée.'
+        );
 
         return $this->redirectToRoute('app_trajet_detail', [
             'id' => $trajet->getId()

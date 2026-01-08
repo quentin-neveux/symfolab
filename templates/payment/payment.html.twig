@@ -27,9 +27,14 @@
                         Départ le {{ trajet.dateDepart|date('d/m/Y à H:i') }}
                     </p>
 
+                    {% set platformFee = 2 %}
+                    {% set totalTokens = trajet.tokenCost + platformFee %}
+
                     <div class="alert alert-info text-center">
-                        Montant à payer :
-                        <strong>{{ trajet.price }} €</strong>
+                        Coût du trajet :
+                        <strong>{{ trajet.tokenCost }} tokens</strong><br>
+                        Frais plateforme :
+                        <strong>{{ platformFee }} tokens</strong>
                     </div>
 
                     <form method="post"
@@ -39,23 +44,31 @@
                                name="_token"
                                value="{{ csrf_token('payment_trajet_' ~ trajet.id) }}">
 
-                        <div class="mb-4">
-                            <p class="fw-semibold mb-2">Moyen de paiement</p>
+                        <p class="fw-semibold text-center mt-3">
+                            Paiement en monnaie interne EcoRide
+                        </p>
 
-                            <div class="d-flex justify-content-between text-muted small">
-                                <span>💳 Carte bancaire</span>
-                                <span>🅿️ PayPal</span>
-                                <span>🟢 Google Pay</span>
-                            </div>
-                        </div>
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Ton solde actuel</span>
+                                <strong>{{ app.user.tokens }} tokens</strong>
+                            </li>
+
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Solde après réservation</span>
+                                <strong>{{ app.user.tokens - totalTokens }} tokens</strong>
+                            </li>
+                        </ul>
 
                         <div class="alert alert-warning small text-center">
-                            ⚠️ Paiement fictif — aucun débit réel.
+                            En confirmant, <strong>{{ totalTokens }} tokens</strong>
+                            seront débités de ton compte EcoRide
+                            ({{ trajet.tokenCost }} trajet + {{ platformFee }} frais plateforme).
                         </div>
 
                         <button type="submit"
                                 class="btn btn-ecoride w-100 py-2 fw-semibold rounded-pill">
-                            💳 Payer {{ trajet.price }} €
+                            ✔ Confirmer et débiter {{ totalTokens }} tokens
                         </button>
 
                     </form>
@@ -66,5 +79,4 @@
         </div>
     </div>
 </section>
-
 {% endblock %}

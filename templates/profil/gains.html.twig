@@ -26,7 +26,7 @@
       <div class="bg-white rounded shadow-sm p-4 mb-4 text-center">
         <span class="text-muted small">Gains cumulés</span>
         <h2 class="fw-bold text-success mb-0">
-          {{ earnings|number_format(2, ',', ' ') }} €
+          {{ earnings|number_format(2, ',', ' ') }} ECR
         </h2>
       </div>
 
@@ -58,7 +58,7 @@
                       {{ trajet.dateDepart|date('d/m/Y') }}
                     </td>
                     <td class="fw-semibold">
-                      {{ trajet.payoutAmount|number_format(2, ',', ' ') }} €
+                      {{ trajet.payoutAmount|number_format(2, ',', ' ') }} ECR
                     </td>
                     <td>
                       {% if trajet.payoutStatus == 'RELEASED' %}

@@ -24,7 +24,7 @@
             <td>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</td>
             <td>{{ trajet.conducteur.prenom }}</td>
             <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
-            <td>{{ trajet.payoutAmount }} €</td>
+            <td>{{ trajet.payoutAmount }} EcoCrédits ECR</td>
             <td>
               <form method="post"
                     action="{{ path('admin_trajets_litige_valider', { id: trajet.id }) }}"
