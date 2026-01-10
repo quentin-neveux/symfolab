@@ -1,0 +1,104 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block admin_content %}
+
+<div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+  <div>
+    <h2 class="text-success fw-bold mb-1">
+      Trajet #{{ trajet.id }}
+    </h2>
+    <div class="text-muted">
+      {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+      • {{ trajet.dateDepart|date('d/m/Y H:i') }}
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <a href="{{ path('admin_trajets_index') }}"
+       class="btn btn-outline-success rounded-pill px-3">
+      ← Retour
+    </a>
+
+    <a href="{{ path('app_trajet_detail', { id: trajet.id }) }}"
+       class="btn btn-outline-success rounded-pill px-3">
+      Voir côté site
+    </a>
+
+    <a href="{{ path('admin_trajets_edit', { id: trajet.id }) }}"
+       class="btn btn-success rounded-pill px-3">
+      Modifier
+    </a>
+  </div>
+</div>
+
+<div class="card shadow-sm rounded-4 p-4">
+  <div class="row g-4">
+
+    <div class="col-lg-6">
+      <h5 class="text-success fw-bold mb-3">Infos trajet</h5>
+
+      <div class="small text-muted mb-1">Départ</div>
+      <div class="fw-semibold mb-3">{{ trajet.villeDepart }}</div>
+
+      <div class="small text-muted mb-1">Arrivée</div>
+      <div class="fw-semibold mb-3">{{ trajet.villeArrivee }}</div>
+
+      <div class="small text-muted mb-1">Date / heure</div>
+      <div class="fw-semibold mb-3">{{ trajet.dateDepart|date('d/m/Y H:i') }}</div>
+
+      <div class="small text-muted mb-1">Coût</div>
+      <div class="fw-semibold mb-3">{{ trajet.tokenCost }} ECR</div>
+
+      <div class="small text-muted mb-1">Places dispo</div>
+      <div class="fw-semibold mb-3">{{ trajet.placesDisponibles }}</div>
+
+      {% if trajet.commentaire %}
+        <div class="small text-muted mb-1">Commentaire</div>
+        <div class="fst-italic text-secondary">{{ trajet.commentaire }}</div>
+      {% endif %}
+    </div>
+
+    <div class="col-lg-6">
+      <h5 class="text-success fw-bold mb-3">Conducteur</h5>
+
+      {% if trajet.conducteur %}
+        <div class="fw-semibold">
+          {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}
+        </div>
+        <div class="text-muted small">
+          {{ trajet.conducteur.email }}
+        </div>
+      {% else %}
+        <div class="text-muted fst-italic">Aucun conducteur associé.</div>
+      {% endif %}
+
+      <hr class="my-4">
+
+      <h5 class="text-success fw-bold mb-3">PLEINS POUVOIRS</h5>
+
+      <div class="d-flex gap-2">
+        <a href="{{ path('admin_trajets_edit', { id: trajet.id }) }}"
+           class="btn btn-success rounded-pill px-3">
+          Modifier
+        </a>
+
+        <form method="post"
+              action="{{ path('admin_trajets_delete', { id: trajet.id }) }}"
+              onsubmit="return confirm('Supprimer définitivement ce trajet ?');">
+          <input type="hidden" name="_token" value="{{ csrf_token('delete_trajet_' ~ trajet.id) }}">
+          <button type="submit" class="btn btn-danger rounded-pill px-3">
+            Supprimer
+          </button>
+        </form>
+      </div>
+
+      <div class="text-muted small mt-3">
+        Suppression = irréversible (sauf si tu X aux backups).
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}

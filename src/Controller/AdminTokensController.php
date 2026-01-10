@@ -25,23 +25,28 @@ class AdminTokensController extends AbstractController
     ): Response {
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
-        $search = trim($request->query->get('search', ''));
+        $search = trim((string) $request->query->get('search', ''));
 
         $qb = $em->getRepository(User::class)
             ->createQueryBuilder('u')
             ->orderBy('u.id', 'ASC');
 
         if ($search !== '') {
-            $qb->andWhere(
-                'u.email LIKE :s OR u.prenom LIKE :s OR u.nom LIKE :s OR CAST(u.id AS string) LIKE :s'
-            )
-            ->setParameter('s', '%' . $search . '%');
+            // Si c’est un ID → recherche exacte
+            if (ctype_digit($search)) {
+                $qb->andWhere('u.id = :id')
+                   ->setParameter('id', (int) $search);
+            } else {
+                // Sinon → recherche texte
+                $qb->andWhere('u.email LIKE :s OR u.prenom LIKE :s OR u.nom LIKE :s')
+                   ->setParameter('s', '%' . $search . '%');
+            }
         }
 
         $users = $paginator->paginate(
             $qb,
             $request->query->getInt('page', 1),
-            25 // 
+            25
         );
 
         $txRepo = $em->getRepository(TokenTransaction::class);
@@ -154,7 +159,7 @@ class AdminTokensController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $em->createQuery('DELETE FROM App\Entity\TokenTransaction t')
-           ->execute();
+            ->execute();
 
         $reset = new TokenTransaction();
         $reset->setAmount(0);

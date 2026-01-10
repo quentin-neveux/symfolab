@@ -24,7 +24,7 @@
             Tu signales : <strong>{{ target.prenom }} {{ target.nom }}</strong> (conducteur) — Trajet #{{ trajet.id }}
           </div>
 
-          <form method="post">
+          <form method="post" action="">
             <input type="hidden" name="_token" value="{{ csrf_token('dispute_' ~ trajet.id) }}"/>
 
             <div class="mb-3">

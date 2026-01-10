@@ -1,0 +1,90 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block admin_content %}
+
+<h2 class="text-success fw-bold mb-4">Signalement #{{ dispute.id }}</h2>
+
+{# <div class="alert alert-danger">DEBUG TEMPLATE V2</div> #}
+
+
+<div class="card shadow-sm rounded-4 p-4">
+
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="p-3 bg-light rounded-4">
+        <div class="mb-2"><strong>Trajet :</strong> #{{ dispute.trajet.id }}</div>
+        <div class="text-muted small">
+          {{ dispute.trajet.villeDepart ?? '' }} → {{ dispute.trajet.villeArrivee ?? '' }}
+        </div>
+        <div class="text-muted small mt-1">
+          Créé le {{ dispute.createdAt|date('d/m/Y H:i') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="p-3 bg-light rounded-4">
+        <div class="mb-1"><strong>Reporter :</strong> {{ dispute.reporter.email ?? '—' }}</div>
+
+      {# ✅ Tokens payés par le reporter (stockés si dispo, sinon fallback calcul) #}
+      {% set trajet = dispute.trajet %}
+      {% set computed = null %}
+      
+      {% if trajet and dispute.reporter %}
+        {% if trajet.conducteur and trajet.conducteur.id == dispute.reporter.id %}
+          {% set computed = 0 %}
+        {% else %}
+          {% set computed = (trajet.tokenCost ?? 0) + 2 %}
+        {% endif %}
+      {% endif %}
+      
+      {% set paid = dispute.reporterTokensPaid is not null ? dispute.reporterTokensPaid : computed %}
+      
+      <div class="mb-1">
+        <strong>Payé :</strong>
+        {% if paid is not null %}
+          {{ paid }} ECR
+          {% if trajet %}
+            <span class="text-muted small">(trajet {{ trajet.tokenCost ?? 0 }} + frais 2)</span>
+          {% endif %}
+        {% else %}
+          —
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+  <hr class="my-4">
+
+  <h5 class="fw-bold mb-2">Message</h5>
+  <div class="p-3 bg-light rounded-4">
+    {{ dispute.message ?: '—' }}
+  </div>
+
+  <hr class="my-4">
+
+  <div class="d-flex flex-wrap gap-2">
+    <form method="post" action="{{ path('admin_dispute_status', {id: dispute.id, status: 'IN_REVIEW'}) }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('dispute_status_' ~ dispute.id) }}">
+      <button class="btn btn-warning rounded-pill" type="submit">Mettre en revue</button>
+    </form>
+
+    <form method="post" action="{{ path('admin_dispute_status', {id: dispute.id, status: 'RESOLVED'}) }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('dispute_status_' ~ dispute.id) }}">
+      <button class="btn btn-success rounded-pill" type="submit">Résoudre</button>
+    </form>
+
+    <form method="post" action="{{ path('admin_dispute_status', {id: dispute.id, status: 'REJECTED'}) }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('dispute_status_' ~ dispute.id) }}">
+      <button class="btn btn-danger rounded-pill" type="submit">Rejeter</button>
+    </form>
+
+    <a class="btn btn-outline-secondary rounded-pill ms-auto" href="{{ path('admin_dispute_list') }}">
+      Retour liste
+    </a>
+  </div>
+
+</div>
+
+{% endblock %}

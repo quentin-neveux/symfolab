@@ -4,130 +4,208 @@
 
 {% block body %}
 
-<section class="hero-global hero-historique text-center text-white">
+<section class="hero-global hero-historique d-flex align-items-center text-center text-white position-relative">
   <div class="container">
-    <h2 class="hero-title mb-3 text-white">Historique</h2>
-    <h2 class="hero-tagline mb-4 text-white">Vos trajets passés et terminés</h2>
+    <h1 class="hero-title mb-3 text-white">Mes trajets</h1>
+    <h2 class="hero-tagline mb-4 text-white">À venir, en cours et passés</h2>
   </div>
 </section>
 
 <section class="py-5 bg-light">
-  <div class="container">
-    <div class="card shadow-sm rounded-4 border-0">
-      <div class="card-body">
+<div class="container">
+<div class="row justify-content-center">
+<div class="col-lg-10">
 
-        <h3 class="mb-4 text-success fw-bold">Trajets passés</h3>
+<div class="card ecoride-form shadow p-4 p-md-5 rounded-4">
 
-        <table class="table table-hover align-middle">
-          <thead class="table-success">
-            <tr>
-              <th>Départ</th>
-              <th>Arrivée</th>
-              <th>Date</th>
-              <th>Rôle</th>
-              <th>Statut</th>
-              <th class="text-center">Action</th>
-            </tr>
-          </thead>
+{# =========================================================
+   TRAJETS À VENIR
+========================================================= #}
+<h3 class="text-success fw-bold mb-1">Trajets à venir</h3>
+<p class="text-muted small mb-3">Clique sur une ligne pour ouvrir le détail.</p>
 
-          <tbody>
+{% if trajetsAvenir is empty %}
+  <div class="text-center text-muted py-4">Aucun trajet à venir.</div>
+{% else %}
+<div class="table-responsive rounded-4 shadow-sm bg-white mb-5">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-success">
+<tr>
+  <th>Départ</th>
+  <th>Arrivée</th>
+  <th>Date</th>
+  <th>Coût</th>
+  <th>Rôle</th>
+  <th class="text-end">Action</th>
+</tr>
+</thead>
+<tbody>
+{% for item in trajetsAvenir %}
+<tr class="clickable-row"
+    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+  <td>{{ item.villeDepart }}</td>
+  <td>{{ item.villeArrivee }}</td>
+  <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
+  <td>{{ item.tokenCost }} ECR</td>
+  <td>
+    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+      {{ item.role|capitalize }}
+    </span>
+  </td>
+  <td class="text-end text-success fw-semibold">Ouvrir →</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
 
-            {% for item in historiques %}
 
-              {% set trajet = item.trajet %}
-              {% set role = item.role %}
-              {% set reservation = item.reservation %}
+{# =========================================================
+   TRAJETS EN COURS / À CONFIRMER
+========================================================= #}
+<h3 class="text-warning fw-bold mb-1">Trajets en cours / à confirmer</h3>
+<p class="text-muted small mb-3">Clique sur une ligne pour ouvrir le détail.</p>
 
-              <tr class="clickable-row"
-                  data-href="{{ path('app_trajet_detail', { id: trajet.id }) }}">
+{% if trajetsAConfirmer is empty %}
+  <div class="text-center text-muted py-4">Aucun trajet à confirmer.</div>
+{% else %}
+<div class="table-responsive rounded-4 shadow-sm bg-white mb-5">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-warning">
+<tr>
+  <th>Départ</th>
+  <th>Arrivée</th>
+  <th>Date</th>
+  <th>Coût</th>
+  <th>Rôle</th>
+  <th>Statut</th>
+  <th class="text-end">Action</th>
+</tr>
+</thead>
+<tbody>
+{% for item in trajetsAConfirmer %}
+<tr class="clickable-row"
+    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+  <td>{{ item.villeDepart }}</td>
+  <td>{{ item.villeArrivee }}</td>
+  <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
+  <td>{{ item.tokenCost }} ECR</td>
 
-                <td>{{ trajet.villeDepart }}</td>
-                <td>{{ trajet.villeArrivee }}</td>
-                <td>{{ trajet.dateDepart|date('d/m/Y') }}</td>
+  <td>
+    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+      {{ item.role|capitalize }}
+    </span>
+  </td>
 
-                <!-- RÔLE -->
-                <td>
-                  {% if role == 'conducteur' %}
-                    <span class="badge bg-primary">Conducteur</span>
-                  {% else %}
-                    <span class="badge bg-info text-dark">Passager</span>
-                  {% endif %}
-                </td>
+  <td><span class="badge bg-warning text-dark">À confirmer</span></td>
 
-                <!-- STATUT -->
-                <td>
-                  {% if role == 'conducteur' %}
-                    {% if trajet.conducteurConfirmeFin %}
-                      <span class="badge bg-success">Terminé</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">En attente conducteur</span>
-                    {% endif %}
-                  {% else %}
-                    {% if reservation.passagerConfirmeFin %}
-                      <span class="badge bg-success">Terminé</span>
-                    {% else %}
-                      <span class="badge bg-warning text-dark">En attente</span>
-                    {% endif %}
-                  {% endif %}
-                </td>
+  <td class="text-end">
 
-                <!-- ACTIONS -->
-                <td class="text-center">
+    {% if item.role=='conducteur' and not item.conducteurConfirmeFin %}
+      <form method="post"
+            action="{{ path('trajet_arrivee',{id:item.id}) }}"
+            class="d-inline"
+            onsubmit="return confirm('Marquer ce trajet comme terminé ?');">
+        <button class="btn btn-success btn-sm rounded-pill px-3">Terminer</button>
+      </form>
 
-                  {% if role == 'conducteur' %}
-                    {% if not trajet.conducteurConfirmeFin %}
-                      <a href="{{ path('trajet_fin_conducteur', { id: trajet.id }) }}"
-                         class="btn btn-success btn-sm rounded-pill no-row-click">
-                        Valider fin
-                      </a>
-                    {% else %}
-                      <span class="text-success fw-semibold">✔ Validé</span>
-                    {% endif %}
-                  {% endif %}
+    {% elseif item.role=='passager' and not item.passagerConfirmeFin %}
+      <form method="post"
+            action="{{ path('trajet_passager_confirmer_fin',{id:item.reservationId}) }}"
+            class="d-inline"
+            onsubmit="return confirm('Confirmer la fin du trajet ?');">
+        <button class="btn btn-warning btn-sm rounded-pill px-3">Confirmer</button>
+      </form>
+    {% else %}
+      <span class="text-muted small">En attente</span>
+    {% endif %}
 
-                  {% if role == 'passager' %}
-                    {% if not reservation.passagerConfirmeFin %}
-                      <a href="{{ path('trajet_fin_passager', { id: trajet.id }) }}"
-                         class="btn btn-outline-success btn-sm rounded-pill no-row-click">
-                        J’ai terminé
-                      </a>
-                    {% else %}
-                      <span class="text-success fw-semibold">✔ Validé</span>
-                    {% endif %}
-                  {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
 
-                  {% if role == 'passager'
-                     and trajet.conducteurConfirmeFin
-                     and reservation.passagerConfirmeFin
-                     and reservation.isPaid
-                     and not reservation.aDejaNote %}
-                    <div class="mt-2">
-                      <a href="{{ path('app_review', { id: trajet.conducteur.id }) }}"
-                         class="btn btn-outline-primary btn-sm rounded-pill no-row-click">
-                        Noter ⭐
-                      </a>
-                    </div>
-                  {% elseif reservation and reservation.aDejaNote %}
-                    <p class="small text-muted mt-2">Déjà noté ✔</p>
-                  {% endif %}
 
-                </td>
-              </tr>
+{# =========================================================
+   TRAJETS PASSÉS
+========================================================= #}
+<h3 class="text-success fw-bold mb-1">Trajets passés</h3>
+<p class="text-muted small mb-3">Clique sur une ligne pour ouvrir le détail.</p>
 
-            {% else %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                  Aucun trajet terminé pour le moment.
-                </td>
-              </tr>
-            {% endfor %}
+{% if historiques is empty %}
+  <div class="text-center text-muted py-4">Aucun trajet terminé.</div>
+{% else %}
+<div class="table-responsive rounded-4 shadow-sm bg-white">
+<table class="table table-hover align-middle mb-0">
+<thead class="table-success">
+<tr>
+  <th>Départ</th>
+  <th>Arrivée</th>
+  <th>Date</th>
+  <th>Coût</th>
+  <th>Rôle</th>
+  <th>Statut</th>
+  <th class="text-end">Action</th>
+</tr>
+</thead>
+<tbody>
+{% for item in historiques %}
+<tr class="clickable-row"
+    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+  <td>{{ item.villeDepart }}</td>
+  <td>{{ item.villeArrivee }}</td>
+  <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
+  <td>{{ item.tokenCost }} ECR</td>
 
-          </tbody>
-        </table>
+  <td>
+    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+      {{ item.role|capitalize }}
+    </span>
+  </td>
 
-      </div>
-    </div>
-  </div>
+  <td>
+    <span class="badge {{ (item.conducteurConfirmeFin or item.passagerConfirmeFin)?'bg-success':'bg-warning text-dark' }}">
+      {{ (item.conducteurConfirmeFin or item.passagerConfirmeFin)?'Terminé':'En attente' }}
+    </span>
+  </td>
+
+  <td class="text-end text-success fw-semibold">
+    {% if item.role=='passager' and item.aDejaNote %}
+      <span class="text-muted small">Déjà noté ✓</span>
+    {% else %}
+      Ouvrir →
+    {% endif %}
+  </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% endif %}
+
+</div>
+</div>
+</div>
+</div>
 </section>
+
+{# =========================================================
+   JS GLOBAL LIGNES CLIQUABLES
+========================================================= #}
+<script>
+document.addEventListener('click', function(e){
+  const row = e.target.closest('.clickable-row');
+  if(!row) return;
+
+  if(e.target.closest('a,button,form,input,select,textarea,label')) return;
+
+  const href = row.dataset.href;
+  if(href) window.location.href = href;
+});
+</script>
 
 {% endblock %}

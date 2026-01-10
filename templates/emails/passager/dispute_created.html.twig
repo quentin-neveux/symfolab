@@ -1,0 +1,37 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block title %}Signalement envoyé — EcoRide{% endblock %}
+
+{% block body %}
+  <h2 style="margin:0 0 12px;">Signalement envoyé ✅</h2>
+
+  <p style="margin:0 0 14px;">
+    Bonjour {{ user.prenom ?? user.email }},
+  </p>
+
+  <p style="margin:0 0 14px;">
+    Ton signalement a bien été enregistré pour le trajet :
+    <strong>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</strong>
+    (trajet #{{ trajet.id }}).
+  </p>
+
+  <div style="padding:14px;border:1px solid #e6e6e6;border-radius:12px;margin:18px 0;">
+    <p style="margin:0 0 8px;"><strong>Raison :</strong> {{ dispute.reason }}</p>
+
+    {% if dispute.message %}
+      <p style="margin:0;"><strong>Détails :</strong><br>{{ dispute.message|nl2br }}</p>
+    {% else %}
+      <p style="margin:0;color:#666;">Aucun détail supplémentaire.</p>
+    {% endif %}
+  </div>
+
+  <p style="margin:0 0 14px;">
+    Notre équipe va analyser la situation. Tu recevras une notification si le statut change.
+  </p>
+
+  <p style="margin:0;">
+    <a href="{{ trajetUrl }}" style="display:inline-block;padding:10px 14px;border-radius:999px;text-decoration:none;border:1px solid #198754;color:#198754;">
+      Voir le trajet
+    </a>
+  </p>
+{% endblock %}

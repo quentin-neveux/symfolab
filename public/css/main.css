@@ -1946,6 +1946,14 @@
 .vehicle-filter-menu {
     display: none;
 }
+#trajet_newVehicle {
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
 
 /* ===============================
    Boutons de sélection - Places (version compacte)
@@ -2051,3 +2059,18 @@
     transform: translateX(-50%);
   }
 }
+
+tr.clickable-row { cursor: pointer; }
+tr.clickable-row td { position: relative; }
+tr.clickable-row:hover { background: rgba(0,0,0,0.02); }
+
+.admin-layout {
+    background: #ffffff !important;
+}
+
+.admin-trajet-show {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+}
+

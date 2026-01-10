@@ -1,0 +1,78 @@
+{% extends 'admin/_layout.html.twig' %}
+
+{% block admin_content %}
+
+<h2 class="text-success fw-bold mb-4">Signalements en cours</h2>
+
+{% if disputes is empty %}
+  <div class="alert alert-success mb-0">
+    Aucun signalement en attente 🎉
+  </div>
+{% else %}
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Trajet</th>
+          <th>Reporter</th>
+          <th>Cible</th>
+          <th>Raison</th>
+          <th>Statut</th>
+          <th>Créé</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for d in disputes %}
+        <tr>
+          <td class="fw-semibold">#{{ d.id }}</td>
+
+          <td>
+            <span class="fw-semibold">#{{ d.trajet.id }}</span><br>
+            <small class="text-muted">
+              {{ d.trajet.villeDepart ?? '' }} → {{ d.trajet.villeArrivee ?? '' }}
+            </small>
+          </td>
+
+          <td>
+            <small class="text-muted">{{ d.reporter.email ?? '—' }}</small>
+          </td>
+
+          <td>
+            <small class="text-muted">{{ d.target.email ?? '—' }}</small>
+          </td>
+
+          <td>
+            <span class="badge bg-secondary">{{ d.reason }}</span>
+          </td>
+
+          <td>
+            {% set st = d.status %}
+            <span class="badge
+              {{ st == 'OPEN' ? 'bg-danger'
+              : st == 'IN_REVIEW' ? 'bg-warning text-dark'
+              : st == 'RESOLVED' ? 'bg-success'
+              : 'bg-dark' }}">
+              {{ st }}
+            </span>
+          </td>
+
+          <td>
+            <small class="text-muted">{{ d.createdAt|date('d/m/Y H:i') }}</small>
+          </td>
+
+          <td class="text-end">
+            <a href="{{ path('admin_dispute_show', {id: d.id}) }}"
+               class="btn btn-sm btn-outline-success rounded-pill">
+              Ouvrir
+            </a>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}
+
+{% endblock %}

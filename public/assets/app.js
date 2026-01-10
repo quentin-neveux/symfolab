@@ -670,10 +670,21 @@ document.addEventListener("DOMContentLoaded", () => {
     document
       .querySelectorAll('#filters-panel-mobile input[type="checkbox"]:checked')
       .forEach(cb => {
-        params.append("energie[]", cb.value);
+      params.append("energie[]", cb.value);
       });
 
     globalThis.location.href = globalThis.location.pathname + "?" + params.toString();
+    });
+  })();
+
+  document.addEventListener('click', function (e) {
+    // Si tu as des boutons/liens dans la ligne, mets-leur la classe "no-row-click"
+    if (e.target.closest('.no-row-click')) return;
+
+    const row = e.target.closest('.clickable-row');
+    if (!row) return;
+
+    const href = row.dataset.href;
+    if (href) globalThis.location.href = href;
   });
-})();
 });

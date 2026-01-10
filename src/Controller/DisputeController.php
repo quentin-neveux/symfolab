@@ -3,9 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Dispute;
-use App\Entity\Review;
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
+use App\Repository\DisputeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,61 +20,84 @@ class DisputeController extends AbstractController
     public function signaler(
         Trajet $trajet,
         Request $request,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        DisputeRepository $disputeRepo
     ): Response {
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
-        // ✅ Sécurité : il faut avoir participé au trajet (passager) OU être conducteur
         $reservation = $em->getRepository(TrajetPassager::class)->findOneBy([
             'trajet' => $trajet,
             'passager' => $user,
         ]);
 
-        $isConducteur = ($trajet->getConducteur() && $trajet->getConducteur()->getId() === $user->getId());
+        $isConducteur = $trajet->getConducteur()?->getId() === $user->getId();
 
+        // ✅ Sécurité : passager du trajet OU conducteur
         if (!$reservation && !$isConducteur) {
-            $this->addFlash('danger', "Tu ne peux signaler que les trajets auxquels tu as participé.");
+            $this->addFlash('danger', "Accès refusé.");
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
 
-        // Target par défaut : conducteur (logique “signaler utilisateur/trajet” au moment de l’avis)
+        // ✅ Côté passager : signalement uniquement quand le trajet est terminable/notable
+        if (!$isConducteur && !$reservation?->peutNoter()) {
+            $this->addFlash('warning', "Le trajet n'est pas terminé.");
+            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+        }
+
+        // ✅ Anti-spam 1 : déjà un signalement actif (OPEN/IN_REVIEW)
+        $existingActive = $disputeRepo->findActiveForReporterAndTrajet($user->getId(), $trajet->getId());
+        if ($existingActive) {
+            $this->addFlash('info', 'Tu as déjà un signalement en cours pour ce trajet.');
+            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+        }
+
+        // ✅ Anti-spam 2 : cooldown 24h (même si résolu/rejeté)
+        $since = new \DateTimeImmutable('-24 hours');
+        if ($disputeRepo->hasRecentForReporterAndTrajet($user->getId(), $trajet->getId(), $since)) {
+            $this->addFlash('warning', 'Tu as déjà signalé ce trajet récemment. Réessaie plus tard.');
+            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+        }
+
         $target = $trajet->getConducteur();
-
-        // Si tu veux plus tard permettre de choisir “trajet” ou “utilisateur”, on étendra.
-        $reason = (string) $request->request->get('reason', '');
-        $message = (string) $request->request->get('message', '');
-
-        // Lien optionnel vers l'avis si déjà créé (ou si tu veux lier après coup)
-        $review = $em->getRepository(Review::class)->findOneBy([
-            'author' => $user,
-            'trajet' => $trajet,
-        ]);
 
         if ($request->isMethod('POST')) {
             if (!$this->isCsrfTokenValid('dispute_' . $trajet->getId(), (string) $request->request->get('_token'))) {
                 throw $this->createAccessDeniedException();
             }
 
+            $reason  = (string) $request->request->get('reason', '');
+            $message = (string) $request->request->get('message', '');
+
             if (trim($reason) === '') {
                 $this->addFlash('danger', 'Choisis une raison.');
                 return $this->redirectToRoute('trajet_signaler', ['id' => $trajet->getId()]);
             }
 
+            // ✅ Tokens payés par le reporter (figés au moment du signalement)
+            // Passager: tokenCost + 2 (frais plateforme). Conducteur: 0.
+            $reporterTokensPaid = 0;
+            if (!$isConducteur) {
+                $reporterTokensPaid = (int) $trajet->getTokenCost() + 2;
+            }
+
             $dispute = new Dispute();
-            $dispute->setTrajet($trajet);
-            $dispute->setReporter($user);
-            $dispute->setTarget($target);
-            $dispute->setReason($reason);
-            $dispute->setMessage(trim($message) !== '' ? $message : null);
-            $dispute->setReview($review);
+            $dispute
+                ->setTrajet($trajet)
+                ->setReporter($user)
+                ->setTarget($target)
+                ->setReason($reason)
+                ->setMessage($message)
+                ->setReporterTokensPaid($reporterTokensPaid);
 
             $em->persist($dispute);
             $em->flush();
 
-            $this->addFlash('success', 'Signalement envoyé. Un employé EcoRide va traiter la demande.');
+            $this->addFlash('success', 'Signalement envoyé.');
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
+dump(__FILE__);
+dump('TEMPLATE: admin/dispute/show.html.twig'); // ou le vrai path
 
         return $this->render('dispute/new.html.twig', [
             'trajet' => $trajet,

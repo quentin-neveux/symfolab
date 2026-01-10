@@ -17,6 +17,8 @@ services:
       - ./public:/var/www/html/public
       - ./docker:/var/www/html/docker
       - ./data:/var/www/html/data
+      - ./migrations:/var/www/html/migrations
+      - ./docker/php/conf.d/99-memory.ini:/usr/local/etc/php/conf.d/99-memory.ini:ro
 
     environment:
       APP_ENV: dev

@@ -1,208 +1,197 @@
+{# templates/trajet/proposer.html.twig #}
 {% extends 'base.html.twig' %}
 
 {% block title %}Proposer un trajet - EcoRide{% endblock %}
 
 {% block body %}
 
-<!-- =========================================================
- HERO
-========================================================= -->
 <section class="hero-global hero-proposer d-flex align-items-center text-center text-white position-relative">
-    <div class="container">
-        <h1 class="hero-title mb-3 text-white">Proposer un trajet</h1>
-        <h2 class="hero-tagline mb-4 text-white">
-            Partage ta route, réduis ton empreinte
-        </h2>
-    </div>
+  <div class="container">
+    <h1 class="hero-title mb-3 text-white">Proposer un trajet</h1>
+    <h2 class="hero-tagline mb-4 text-white">Partage ta route, réduis ton empreinte</h2>
+  </div>
 </section>
 
-<!-- =========================================================
- FORMULAIRE
-========================================================= -->
 <section class="proposer-section py-5 bg-light">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-9 col-lg-7">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-9 col-lg-7">
 
-                <div class="card ecoride-form shadow p-4 rounded-4">
+        <div class="card ecoride-form shadow p-4 rounded-4">
 
-                    <div class="text-center mb-4">
-                        <h2 class="fw-bold text-success">Créer ton trajet</h2>
-                        <p class="text-muted">
-                            Indique les détails de ton voyage.
-                        </p>
+          <div class="text-center mb-4">
+            <h2 class="fw-bold text-success">Créer ton trajet</h2>
+            <p class="text-muted mb-0">Indique les détails de ton voyage.</p>
+          </div>
+
+          {{ form_start(form, {
+            action: path('app_proposer_trajet'),
+            method: 'POST',
+            attr: { novalidate: 'novalidate' }
+          }) }}
+
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              {{ form_row(form.villeDepart) }}
+            </div>
+
+            <div class="col-md-6">
+              {{ form_row(form.villeArrivee) }}
+            </div>
+
+            <div class="col-12">
+              {{ form_row(form.dateDepart) }}
+            </div>
+
+            {# -------- VEHICULE -------- #}
+            <div class="col-12">
+              <h5 class="fw-semibold text-success mb-2">Véhicule</h5>
+
+              {{ form_row(form.vehicle) }}
+
+              <button class="btn btn-outline-success btn-sm mt-2"
+                      type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#collapseNewVehicle"
+                      aria-expanded="false"
+                      aria-controls="collapseNewVehicle"
+                      id="btnNewVehicle">
+                + Ajouter un nouveau véhicule
+              </button>
+
+              <div class="collapse mt-3" id="collapseNewVehicle">
+                <div class="border rounded-4 p-4 bg-white">
+
+                  <h6 class="fw-bold text-success mb-3">Nouveau véhicule</h6>
+
+                  <div class="row g-3">
+
+                    <div class="col-md-6">
+                      <div class="autocomplete-wrapper position-relative">
+                        {{ form_row(form.newVehicle.marque, {
+                          attr: {
+                            'data-vehicle-brand': true,
+                            'autocomplete': 'off'
+                          }
+                        }) }}
+                        <div class="autocomplete-list" data-brand-results></div>
+                      </div>
                     </div>
 
-                    {{ form_start(form, {
-                        action: path('app_proposer_trajet'),
-                        method: 'POST',
-                        attr: { novalidate: 'novalidate' }
-                    }) }}
-
-                    <div class="row g-3">
-
-                        <!-- VILLES -->
-                        <div class="col-md-6">
-                            {{ form_row(form.villeDepart) }}
-                        </div>
-
-                        <div class="col-md-6">
-                            {{ form_row(form.villeArrivee) }}
-                        </div>
-
-                        <!-- DATE -->
-                        <div class="col-12">
-                            {{ form_row(form.dateDepart) }}
-                        </div>
-
-                        <!-- =================================================
-                             VÉHICULE
-                        ================================================== -->
-                        <div class="col-12">
-                            <h5 class="fw-semibold text-success mb-2">
-                                Véhicule
-                            </h5>
-
-                            {{ form_row(form.vehicle) }}
-
-                            <button class="btn btn-outline-success btn-sm mt-2"
-                                    type="button"
-                                    data-bs-toggle="collapse"
-                                    data-bs-target="#collapseNewVehicle"
-                                    aria-expanded="false">
-                                + Ajouter un nouveau véhicule
-                            </button>
-
-                            <!-- COLLAPSE NOUVEAU VÉHICULE -->
-                            <div class="collapse mt-3" id="collapseNewVehicle">
-                                <div class="border rounded-4 p-4 bg-white">
-
-                                    <h6 class="fw-bold text-success mb-3">
-                                        Nouveau véhicule
-                                    </h6>
-
-                                    <div class="row g-3">
-
-                                        <!-- MARQUE -->
-                                        <div class="col-md-6">
-                                            <div class="autocomplete-wrapper position-relative">
-                                                {{ form_row(form.newVehicle.marque, {
-                                                    attr: {
-                                                        'data-vehicle-brand': true,
-                                                        'autocomplete': 'off'
-                                                    }
-                                                }) }}
-
-                                                <div class="autocomplete-list" data-brand-results></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- MODÈLE -->
-                                        <div class="col-md-6">
-                                            <div class="autocomplete-wrapper position-relative">
-                                                {{ form_row(form.newVehicle.modele, {
-                                                    attr: {
-                                                        'data-vehicle-model': true,
-                                                        'autocomplete': 'off'
-                                                    }
-                                                }) }}
-
-                                                <div class="autocomplete-list" data-model-results></div>
-                                            </div>
-                                        </div>
-
-                                        <!-- IMMATRICULATION -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.immatriculation) }}
-                                        </div>
-
-                                        <!-- ÉNERGIE -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.energie, {
-                                                attr: { 'data-vehicle-energy': true }
-                                            }) }}
-                                        </div>
-
-                                        <!-- DATE D’IMMATRICULATION -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.dateImmatriculation) }}
-                                        </div>
-
-                                        <!-- COULEUR -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.couleur) }}
-                                        </div>
-
-                                        <!-- TYPE DE VÉHICULE ✅ ICI UNIQUEMENT -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.type) }}
-                                        </div>
-
-                                        <!-- PLACES -->
-                                        <div class="col-md-6">
-                                            {{ form_row(form.newVehicle.places) }}
-                                        </div>
-
-                                    </div>
-
-                                    <small class="text-muted d-block mt-3">
-                                        Si ce formulaire est rempli, le véhicule sera automatiquement
-                                        enregistré sur ton compte.
-                                    </small>
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PLACES DISPONIBLES -->
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">
-                                Places disponibles
-                            </label>
-                            <div class="places-grid">
-                                {{ form_widget(form.placesDisponibles) }}
-                            </div>
-                            {{ form_errors(form.placesDisponibles) }}
-                        </div>
-
-                        <!-- COÛT EN TOKENS -->
-                        <div class="col-md-6">
-                            {{ form_row(form.tokenCost, {
-                                label: 'Coût du trajet (tokens)',
-                                help: 'Entre 1 et 15 tokens (frais plateforme : +2 tokens à la réservation).'
-                            }) }}
-                        </div>
-
-                        <!-- COMMENTAIRE -->
-                        <div class="col-12">
-                            {{ form_row(form.commentaire) }}
-                        </div>
-
+                    <div class="col-md-6">
+                      <div class="autocomplete-wrapper position-relative">
+                        {{ form_row(form.newVehicle.modele, {
+                          attr: {
+                            'data-vehicle-model': true,
+                            'autocomplete': 'off'
+                          }
+                        }) }}
+                        <div class="autocomplete-list" data-model-results></div>
+                      </div>
                     </div>
 
-                    <!-- AVERTISSEMENT -->
-                    <div class="alert alert-info mt-3">
-                        💡 Le passager paiera <strong>(coût du trajet + 2 tokens de frais plateforme)</strong> au moment de la réservation.
-                    </div>
-                    <!-- AVERTISSEMENT -->
-                    <div class="alert alert-info mt-3">
-                        💡 En proposant un trajet, vous serez également débité de <strong> 2 tokens</strong> de frais plateforme.
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.immatriculation) }}
                     </div>
 
-                    <!-- SUBMIT -->
-                    <div class="text-center mt-3">
-                        <button type="submit"
-                                class="btn btn-ecoride w-100 rounded-pill py-2">
-                            Publier mon trajet
-                        </button>
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.energie, { attr: { 'data-vehicle-energy': true } }) }}
                     </div>
 
-                    {{ form_end(form) }}
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.dateImmatriculation) }}
+                    </div>
+
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.couleur) }}
+                    </div>
+
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.type) }}
+                    </div>
+
+                    <div class="col-md-6">
+                      {{ form_row(form.newVehicle.places) }}
+                    </div>
+
+                  </div>
+
+                  <small class="text-muted d-block mt-3">
+                    Si ce formulaire est rempli, le véhicule sera automatiquement enregistré sur ton compte.
+                  </small>
 
                 </div>
+              </div>
             </div>
+
+            {# places dispo #}
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Places disponibles</label>
+              <div class="places-grid">
+                {{ form_widget(form.placesDisponibles) }}
+              </div>
+              {{ form_errors(form.placesDisponibles) }}
+            </div>
+
+            <div class="col-md-6">
+              {{ form_row(form.tokenCost, {
+                label: 'Coût du trajet (tokens)',
+                help: 'Entre 1 et 15 tokens (frais plateforme : +2 tokens à la réservation).'
+              }) }}
+            </div>
+
+            <div class="col-12">
+              {{ form_row(form.commentaire) }}
+            </div>
+
+          </div>
+
+          <div class="alert alert-info mt-3">
+            💡 Le passager paiera <strong>(coût du trajet + 2 tokens de frais plateforme)</strong> au moment de la réservation.
+          </div>
+
+          <div class="alert alert-info mt-3">
+            💡 En proposant un trajet, vous serez également débité de <strong>2 tokens</strong> de frais plateforme.
+          </div>
+
+          <div class="text-center mt-3">
+            <button type="submit" class="btn btn-ecoride w-100 rounded-pill py-2">
+              Publier mon trajet
+            </button>
+          </div>
+
+          {{ form_end(form) }}
+
         </div>
+      </div>
     </div>
+  </div>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const selectVehicle = document.querySelector('[name$="[vehicle]"]');
+    const collapseEl = document.getElementById('collapseNewVehicle');
+    const btn = document.getElementById('btnNewVehicle');
+
+    if (!selectVehicle || !collapseEl || !btn) return;
+
+    function sync() {
+      // Si un véhicule existant est choisi -> on ferme le collapse + on désactive le bouton
+      if (selectVehicle.value) {
+        collapseEl.classList.remove('show');
+        btn.setAttribute('disabled', 'disabled');
+        btn.classList.add('disabled');
+      } else {
+        btn.removeAttribute('disabled');
+        btn.classList.remove('disabled');
+      }
+    }
+
+    sync();
+    selectVehicle.addEventListener('change', sync);
+  });
+</script>
 
 {% endblock %}

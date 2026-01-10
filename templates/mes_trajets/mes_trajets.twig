@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mes trajets - EcoRide{% endblock %}
+
+{% block body %}
+
+<section class="hero-global hero-mes-trajets text-center text-white">
+  <div class="container">
+    <h1 class="hero-title">Mes trajets</h1>
+    <p class="hero-tagline">Trajets à venir, en cours et passés</p>
+  </div>
+</section>
+
+<section class="py-5 bg-light">
+  <div class="container">
+
+{% macro section(title, list) %}
+  <div class="mb-5">
+    <h3 class="text-success fw-bold mb-3">{{ title }}</h3>
+
+    {% if list is empty %}
+      <div class="text-muted small">Aucun trajet.</div>
+    {% else %}
+      <div class="d-grid gap-3">
+        {% for item in list %}
+          {% set trajet = item.trajet %}
+          {% set role = item.role %}
+
+          <a href="{{ path('app_trajet_detail', {id: trajet.id}) }}"
+             class="card shadow-sm rounded-4 text-decoration-none text-dark">
+
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+              <div>
+                <div class="fw-bold">
+                  {{ trajet.villeDepart }} → {{ trajet.villeArrivee }}
+                </div>
+                <div class="small text-muted">
+                  {{ trajet.dateDepart|date('d/m/Y H:i') }}
+                </div>
+                <div class="small text-muted">
+                  {{ trajet.tokenCost }} ECR
+                </div>
+              </div>
+
+              <div class="text-end">
+                {% if role == 'conducteur' %}
+                  <span class="badge bg-primary">Conducteur</span>
+                {% else %}
+                  <span class="badge bg-info text-dark">Passager</span>
+                {% endif %}
+              </div>
+
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{{ _self.section('À venir', trajetsAvenir) }}
+{{ _self.section('En cours', trajetsEnCours) }}
+{{ _self.section('Passés', trajetsPasses) }}
+
+  </div>
+</section>
+
+{% endblock %}

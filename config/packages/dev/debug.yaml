@@ -1,5 +1,16 @@
 when@dev:
-    debug:
-        # Forwards VarDumper Data clones to a centralized server allowing to inspect dumps on CLI or in your browser.
-        # See the "server:dump" command to start a new server.
-        dump_destination: "tcp://%env(VAR_DUMPER_SERVER)%"
+  debug:
+    dump_destination: "tcp://%env(VAR_DUMPER_SERVER)%"
+
+web_profiler:
+  toolbar: true
+  intercept_redirects: false
+
+framework:
+  profiler:
+    enabled: true
+    collect: true
+
+twig:
+  debug: true
+  strict_variables: true

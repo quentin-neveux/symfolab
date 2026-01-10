@@ -215,12 +215,35 @@ class TrajetPassager
     // =========================================================
 
     public function peutNoter(): bool
-    {
-        return
-            $this->isPaid &&
-            $this->trajet !== null &&
-            $this->trajet->isConducteurConfirmeFin() &&
-            $this->passagerConfirmeFin &&
-            !$this->aDejaNote;
+{
+    // déjà noté => non
+    if ($this->isADejaNote()) {
+        return false;
     }
+
+    // doit être payé => oui
+    if (!$this->isPaid()) {
+        return false;
+    }
+
+    $trajet = $this->getTrajet();
+    if (!$trajet) {
+        return false;
+    }
+
+    // fin confirmée côté passager
+    if (!$this->isPassagerConfirmeFin()) {
+        return false;
+    }
+
+    // fin confirmée côté conducteur OU flag finished
+    $conducteurOk = method_exists($trajet, 'isConducteurConfirmeFin') && $trajet->isConducteurConfirmeFin();
+    $finishedOk   = method_exists($trajet, 'isFinished') && $trajet->isFinished();
+
+    if (!$conducteurOk && !$finishedOk) {
+        return false;
+    }
+    return true;
 }
+}
+

@@ -16,6 +16,23 @@
         <div class="bg-white rounded-4 shadow-sm p-4 p-md-5">
             <div class="row g-5 align-items-start">
 
+                {# ===================== FLAGS ===================== #}
+                {% set isConducteur = app.user and trajet.conducteur and trajet.conducteur.id == app.user.id %}
+                {% set isPassager = reservation is not null %}
+
+                {# ✅ IMPORTANT : ne JAMAIS utiliser dateArrivee pour "terminé"
+                   (dateArrivee peut exister dès la création du trajet)
+                #}
+                {# Le trajet est "terminé" seulement si tu as un flag métier, pas via une date prévue #}
+                {% set isFinished =
+                  (trajet.conducteurConfirmeFin is defined and trajet.conducteurConfirmeFin)
+                  or (trajet.finished is defined and trajet.finished)
+                %}
+                
+                {# Optionnel : juste pour l'UI (trajet passé dans le temps) #}
+                {% set isPast = trajet.dateDepart < "now"|date %}
+                
+
                 {# ===================== COLONNE GAUCHE ===================== #}
                 <div class="col-lg-8">
 
@@ -111,15 +128,13 @@
                         {% endif %}
                     {% endif %}
 
-                    {# ===================== PASSAGERS (CONDUCTEUR SEULEMENT) ===================== #}
-                    {% set isConducteur = app.user and trajet.conducteur.id == app.user.id %}
-
-                    {% if isConducteur %}
+                    {# ===================== PASSAGERS (VISIBLE QUAND TERMINÉ OU CONDUCTEUR) ===================== #}
+                    {% if isConducteur or isFinished %}
                         <h4 class="text-success fw-bold mt-5 mb-3">Passagers</h4>
 
                         {% if passagers is empty %}
                             <p class="text-muted fst-italic">
-                                Aucun passager pour le moment.
+                                Aucun passager.
                             </p>
                         {% else %}
                             <ul class="list-group">
@@ -156,88 +171,114 @@
                 {# ===================== COLONNE DROITE ===================== #}
                 <div class="col-lg-4">
 
-                    {% set isPassager = reservation is not null %}
+                  {% set isPassager = reservation is not null %}
+                  {% set canReviewOrReport = isPassager and reservation.peutNoter() %}
 
-                    <div class="text-center mb-4">
-                        <h3 class="text-success fw-bold mb-1">
-                            {% if isConducteur %}
-                                Gestion du trajet
-                            {% elseif isPassager %}
-                                Participation au trajet
-                            {% else %}
-                                Réserver ce trajet
-                            {% endif %}
-                        </h3>
+                  <div class="text-center mb-4">
+                    <h3 class="text-success fw-bold mb-1">
+                      {% if isConducteur %}
+                        {% if isFinished %}Trajet terminé{% else %}Gestion du trajet{% endif %}
+                      {% elseif isPassager %}
+                        {% if isFinished %}Trajet terminé{% else %}Participation au trajet{% endif %}
+                      {% else %}
+                        Réserver ce trajet
+                      {% endif %}
+                    </h3>
 
-                        <p class="text-muted small mb-0">
-                            {% if not app.user %}
-                                Connexion requise
-                            {% elseif isConducteur %}
-                                Tu es le conducteur
-                            {% elseif isPassager %}
-                                Réservation confirmée
-                            {% endif %}
-                        </p>
-                    </div>
+                    <p class="text-muted small mb-0">
+                      {% if not app.user %}
+                        Connexion requise
+                      {% elseif isConducteur %}
+                        {% if isFinished %}Merci d'avoir conduit avec Ecoride !{% else %}Tu es le conducteur{% endif %}
+                      {% elseif isPassager %}
+                        {% if isFinished %}Merci d'avoir voyagé Ecoride !{% else %}Réservation confirmée{% endif %}
+                      {% endif %}
+                    </p>
+                  </div>
 
-                    <div class="d-grid gap-3">
+                  <div class="d-grid gap-3">
 
-                        {% if isConducteur %}
+                    {# ===================== CONDUCTEUR ===================== #}
+                    {% if isConducteur %}
 
-                            <a href="{{ path('app_trajet_edit', { id: trajet.id }) }}"
-                               class="btn btn-ecoride py-3 rounded-pill w-100">
-                                Modifier le trajet
-                            </a>
+                      {# ✅ Trajet terminé => plus d'actions conducteur #}
+                      {% if isFinished %}
+                        <div class="alert alert-success rounded-4 shadow-sm mb-0">
+                          Ce trajet est terminé. Les actions de modification/annulation ne sont plus disponibles.
+                        </div>
+                      {% else %}
+                        <a href="{{ path('app_trajet_edit', { id: trajet.id }) }}"
+                           class="btn btn-ecoride py-3 rounded-pill w-100">
+                          Modifier le trajet
+                        </a>
 
-                            <form method="post"
-                                  action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
-                                  onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
+                        <form method="post"
+                              action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
+                              onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
 
-                                <input type="hidden"
-                                       name="_token"
-                                       value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
+                          <input type="hidden"
+                                 name="_token"
+                                 value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
 
-                                <button type="submit"
-                                        class="btn btn-danger py-3 rounded-pill w-100">
-                                    Annuler le trajet
-                                </button>
-                            </form>
+                          <button type="submit"
+                                  class="btn btn-danger py-3 rounded-pill w-100">
+                            Annuler le trajet
+                          </button>
+                        </form>
+                      {% endif %}
 
-                        {% elseif isPassager %}
+                    {# ===================== PASSAGER ===================== #}
+                    {% elseif isPassager %}
 
-                            {# Trajet pas encore terminé → on peut annuler #}
-                            {% if not reservation.peutNoter() %}
-                                <a href="{{ path('trajet_annuler', { id: trajet.id }) }}"
-                                   class="btn btn-outline-danger py-3 rounded-pill">
-                                    Annuler ma participation
-                                </a>
-                            {% endif %}
+                    {# Trajet pas terminé => annulation possible #}
+                    {% if not isFinished and not reservation.peutNoter() %}
+                      <a href="{{ path('trajet_annuler', { id: trajet.id }) }}"
+                         class="btn btn-outline-danger py-3 rounded-pill">
+                        Annuler ma participation
+                      </a>
+                    {% endif %}
 
-                            {# Trajet terminé & conditions OK → on peut noter #}
-                            {% if reservation.peutNoter() %}
-                                <a href="{{ path('app_review_new', { id: trajet.id }) }}"
-                                   class="btn btn-success py-3 rounded-pill">
-                                    ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
-                                </a>
-                            {% endif %}
+                      {# ✅ Trajet terminé & conditions OK => avis + signalement #}
+                      {% if canReviewOrReport %}
+                        <a href="{{ path('app_review_new', { id: trajet.id }) }}"
+                           class="btn btn-success py-3 rounded-pill">
+                          ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
+                        </a>
 
-                        {% else %}
+                        <a href="{{ path('trajet_signaler', { id: trajet.id }) }}"
+                           class="btn btn-outline-danger py-3 rounded-pill">
+                          ⚠ Signaler le trajet / conducteur
+                        </a>
+                      {% endif %}
 
+                      {# Si trajets terminé mais pas "peutNoter", on informe (optionnel) #}
+                      {% if isFinished and not canReviewOrReport %}
+                        <div class="alert alert-success rounded-4 shadow-sm mb-0">
+                          Ce trajet est terminé.
+                        </div>
+                      {% endif %}
 
-                            <a href="{{ path('trajet_reserver_confirm', { id: trajet.id }) }}"
-                               class="btn btn-ecoride py-3 rounded-pill">
-                                Réserver ce trajet
-                            </a>
+                    {# ===================== VISITEUR / NON PASSAGER ===================== #}
+                    {% else %}
 
-                        {% endif %}
+                      {# Si trajet terminé => pas de réservation #}
+                      {% if isFinished %}
+                        <div class="alert alert-success rounded-4 shadow-sm mb-0">
+                          Ce trajet est terminé.
+                        </div>
+                      {% else %}
+                        <a href="{{ path('trajet_reserver_confirm', { id: trajet.id }) }}"
+                           class="btn btn-ecoride py-3 rounded-pill">
+                          Réserver ce trajet
+                        </a>
+                      {% endif %}
 
-                    </div>
+                    {% endif %}
 
+                  </div>
                 </div>
-
             </div>
         </div>
     </div>
 </section>
-
 {% endblock %}

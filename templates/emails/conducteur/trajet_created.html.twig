@@ -22,7 +22,7 @@
 
           <!-- TEXTE -->
           <p style="margin: 0 0 12px; font-size: 15px; line-height: 1.6;">
-            Merci <strong>{{ trajet.conducteur.prenom }}</strong>,
+            Merci <strong>{{ conducteurPrenom ?? 'à vous' }}</strong>,
           </p>
 
           <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6;">
@@ -36,13 +36,18 @@
             <tr>
               <td style="padding: 16px 18px; font-size: 14px; line-height: 1.6; color: #065f46;">
                 <p style="margin: 0 0 8px;">
-                  📍 <strong>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</strong>
+                  📍 <strong>{{ villeDepart ?? '' }} → {{ villeArrivee ?? '' }}</strong>
                 </p>
 
                 <p style="margin: 0;">
-                  📅 Départ le {{ trajet.dateDepart|date('d/m/Y') }}
-                  à {{ trajet.dateDepart|date('H:i') }}
+                  📅 Départ le {{ dateDepart ?? '—' }}
                 </p>
+
+                {% if tokenCost is defined %}
+                  <p style="margin: 8px 0 0;">
+                    💳 Coût : {{ tokenCost }} ECR / pers
+                  </p>
+                {% endif %}
               </td>
             </tr>
           </table>
