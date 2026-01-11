@@ -1,0 +1,44 @@
+services:
+  caddy:
+    image: caddy:2
+    container_name: symfolab_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - symfo
+    depends_on:
+      - nginx
+
+  nginx:
+    ports: []   # on annule ton 8888:80, seul Caddy est exposé
+
+  php:
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      # A remplacer par ton domaine (obligatoire pour HTTPS Let's Encrypt)
+      DEFAULT_URI: https://ton-domaine.fr
+      # Symfony derrière reverse proxy
+      TRUSTED_PROXIES: 127.0.0.1,REMOTE_ADDR
+      TRUSTED_HOSTS: ^(ton-domaine\.fr|www\.ton-domaine\.fr)$
+      # Mailer : en démo on garde mailpit
+      MAILER_DSN: smtp://mailpit:1025
+
+  mariadb:
+    ports: []   # DB non exposée publiquement
+
+  phpmyadmin:
+    ports: []   # pas exposé en public
+
+  mailpit:
+    ports: []   # pas exposé en public (accès via SSH tunnel)
+
+volumes:
+  caddy_data:
+  caddy_config:
