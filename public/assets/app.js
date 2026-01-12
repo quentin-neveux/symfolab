@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+
   /* ============================================================
      0) OUTILS (petits helpers)
   ============================================================ */
@@ -687,4 +687,79 @@ document.addEventListener("DOMContentLoaded", () => {
     const href = row.dataset.href;
     if (href) globalThis.location.href = href;
   });
-});
+
+  /* ============================================================
+     PANNEAU FILTRES MOBILE — TOGGLE
+     - #filtersToggleOpen
+     - #filtersToggleClose
+     - #filtersMobilePanel
+  ============================================================ */
+  (() => {
+    const openBtn = document.getElementById("filtersToggleOpen");
+    const closeBtn = document.getElementById("filtersToggleClose");
+    const panel = document.getElementById("filtersMobilePanel");
+
+    if (!openBtn || !closeBtn || !panel) return;
+
+    openBtn.addEventListener("click", () => {
+      panel.classList.add("is-open");
+      document.body.style.overflow = "hidden";
+    });
+
+    closeBtn.addEventListener("click", () => {
+      panel.classList.remove("is-open");
+      document.body.style.overflow = "";
+    });
+
+    /* ============================================================
+   AUTOCOMPLETE VILLES – SEARCHBAR
+  ============================================================ */
+    
+  const cityInputs = document.querySelectorAll(".search-city-autocomplete");
+    
+  cityInputs.forEach(input => {
+    let box;
+  
+    input.addEventListener("input", async () => {
+      const q = input.value.trim();
+    
+      if (q.length < 2) {
+        if (box) box.remove();
+        return;
+      }
+    
+      const res = await fetch(`/api/autocomplete/cities?q=${encodeURIComponent(q)}`);
+      const cities = await res.json();
+    
+      if (box) box.remove();
+    
+      box = document.createElement("div");
+      box.className = "autocomplete-box";
+      input.parentNode.appendChild(box);
+    
+      cities.forEach(city => {
+        const item = document.createElement("div");
+        item.className = "autocomplete-item";
+        item.textContent = city;
+      
+        item.addEventListener("click", () => {
+          input.value = city;
+          box.remove();
+        });
+      
+        box.appendChild(item);
+      });
+    });
+  
+    document.addEventListener("click", e => {
+      if (box && !input.contains(e.target)) {
+        box.remove();
+      }
+    });
+  });
+
+  })();
+
+
+
+
