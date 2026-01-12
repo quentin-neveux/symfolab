@@ -59,7 +59,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
             $firewallName
         );
 
-        if ($targetPath) {
+        if ($targetPath && !preg_match('#/index\.php#', $targetPath)) {
             return new RedirectResponse($targetPath);
         }
 
