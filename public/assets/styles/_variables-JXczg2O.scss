@@ -1,0 +1,27 @@
+/* ============================================================
+   ECORIDE — Variables globales
+   ============================================================ */
+
+:root {
+  --eco-primary:   #1b3f15;
+  --eco-secondary: #3f753f;
+  --eco-accent:    #ffc77e;
+  --eco-dark:      #0f240c;
+  --eco-light:     #f5f0e6;
+
+  --font-title: "Poppins", sans-serif;
+  --font-body:  "Roboto", sans-serif;
+
+  /* Sync Bootstrap */
+  --bs-primary:   var(--eco-primary);
+  --bs-secondary: var(--eco-secondary);
+  --bs-success:   var(--eco-secondary);
+  --bs-info:      #a6d6a6;
+  --bs-warning:   var(--eco-accent);
+  --bs-danger:    #cc6a00;
+  --bs-dark:      var(--eco-dark);
+  --bs-light:     var(--eco-light);
+
+  --bs-body-bg:   var(--eco-light);
+  --bs-body-color: var(--eco-dark);
+}

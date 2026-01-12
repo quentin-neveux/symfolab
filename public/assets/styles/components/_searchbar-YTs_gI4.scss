@@ -1,0 +1,158 @@
+/* ============================================================
+   ECORIDE — Barre de recherche (Version PRO)
+   Structure, champs, icônes, bouton, responsive
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   CONTENEUR PRINCIPAL
+------------------------------------------------------------- */
+
+.eco-searchbar {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: #fff;
+  border-radius: 2rem;
+  overflow: visible;
+  position: relative;
+  width: min(950px, 92%);
+  margin: 1.8rem auto 0;
+  padding: 0.3rem;
+  @include shadow(0.25);
+  @include transition(all);
+
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba(46, 109, 31, 0.2),
+      0 10px 28px rgba(0, 0, 0, 0.25);
+  }
+}
+
+/* ------------------------------------------------------------
+   CHAMPS (Départ / Arrivée / Date)
+------------------------------------------------------------- */
+
+.eco-search-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  height: 64px;
+  background: #fff;
+  border-right: 1px solid rgba(0, 0, 0, 0.04);
+  @include transition(background, box-shadow);
+
+  &:first-of-type {
+    border-radius: 2rem 0 0 2rem;
+  }
+
+  &:last-of-type {
+    border-right: none;
+    border-radius: 0;
+  }
+
+  &:focus-within {
+    background: #f8fff5;
+    box-shadow: inset 0 0 0 2px rgba(45, 105, 48, 0.25);
+  }
+
+  i {
+    font-size: 1.3rem;
+    color: var(--eco-secondary);
+    margin-right: 12px;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+  }
+
+  &:focus-within i {
+    opacity: 1;
+  }
+}
+
+/* ------------------------------------------------------------
+   INPUTS
+------------------------------------------------------------- */
+
+.eco-searchbar .form-control {
+  flex: 1;
+  border: none;
+  background: transparent;
+  box-shadow: none !important;
+  color: #222;
+  font-size: 1.05rem;
+  font-family: var(--font-title);
+  padding: 0.4rem 0;
+
+  &::placeholder {
+    color: #666;
+  }
+}
+
+/* ------------------------------------------------------------
+   BOUTON RECHERCHER
+------------------------------------------------------------- */
+
+.eco-search-btn {
+  background: linear-gradient(180deg, #2e6d1f 0%, #153110 100%);
+  color: #fff;
+  font-weight: 600;
+  font-family: var(--font-title);
+  border: none;
+  outline: none;
+  border-radius: 0 2rem 2rem 0;
+  padding: 0 2.5rem;
+  margin-left: -1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  @include transition(all);
+
+  &:hover {
+    background: linear-gradient(180deg, #3d852a 0%, #1d4b17 100%);
+    @include shadow(0.25);
+  }
+
+  &:active {
+    box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.4);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   RESPONSIVE
+------------------------------------------------------------- */
+
+@include responsive(md) {
+  .eco-searchbar {
+    flex-direction: column;
+    border-radius: 1.6rem;
+    padding: 1.2rem 1.3rem;
+    @include shadow(0.18);
+  }
+
+  .eco-search-field {
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 0.8rem 0.3rem;
+    height: auto;
+
+    &:last-of-type {
+      border-bottom: none;
+    }
+  }
+
+  .eco-search-btn {
+    width: 100%;
+    margin-top: 1rem;
+    border-radius: 1rem;
+    height: 52px;
+  }
+}

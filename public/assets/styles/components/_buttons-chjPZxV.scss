@@ -1,0 +1,242 @@
+/* ============================================================
+   ECORIDE — Boutons (Version PRO)
+   Principaux / Variantes / Admin / Retour / Funix
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   1. BOUTON PRINCIPAL ECORIDE
+------------------------------------------------------------- */
+
+.btn-ecoride {
+  background-color: var(--eco-primary);
+  border: none;
+  color: #fff;
+  font-weight: 400;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, box-shadow);
+  @include shadow(0.25);
+
+  &:hover {
+    background-color: var(--eco-secondary);
+    @include shadow(0.3);
+  }
+
+  &:active {
+    background-color: #2a4f24;
+    @include shadow(0.15);
+  }
+}
+
+/* Accent orange */
+.btn-ecoride-accent {
+  background-color: var(--eco-accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, box-shadow);
+  @include shadow(0.25);
+
+  &:hover {
+    background-color: #ffb955;
+    @include shadow(0.3);
+  }
+}
+
+/* Outline */
+.btn-ecoride-outline {
+  border: 2px solid var(--eco-secondary);
+  color: var(--eco-secondary);
+  background: transparent;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, color, box-shadow);
+
+  &:hover {
+    background-color: var(--eco-secondary);
+    color: #fff;
+    @include shadow(0.2);
+  }
+}
+
+/* ------------------------------------------------------------
+   2. VARIANTES ROUGES / ORANGES
+------------------------------------------------------------- */
+
+.btn-ecoride-red,
+.btn-ecoride-orange {
+  border: none;
+  color: #fff !important;
+  font-weight: 400;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, box-shadow, transform);
+  @include shadow(0.25);
+}
+
+/* Rouge */
+.btn-ecoride-red {
+  background-color: #cc5f14;
+
+  &:hover {
+    background-color: #ce8351;
+    @include shadow(0.28);
+  }
+
+  &:active {
+    background-color: #cc5f14;
+    @include shadow(0.2);
+    transform: translateY(0);
+  }
+}
+
+/* Rouge outline */
+.btn-ecoride-red-outline {
+  background: transparent;
+  border: 2px solid #ce8351;
+  color: #fff !important;
+  font-weight: 600;
+  @include transition(background, color, box-shadow);
+
+  &:hover {
+    background: #ce8351;
+    color: #fff !important;
+    @include shadow(0.18);
+  }
+}
+
+/* ------------------------------------------------------------
+   3. BOUTON ADMIN : MODIFIER
+------------------------------------------------------------- */
+
+.btn-modify {
+  background: #0e3b0a;
+  color: white;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  padding: 0.45rem 1.1rem;
+  border: 2px solid var(--eco-success);
+  @include shadow(0.1);
+  @include transition(background, transform, box-shadow);
+
+  &:hover {
+    background: var(--eco-success);
+    color: var(--bs-danger);
+    transform: translateY(-2px);
+    @include shadow(0.15);
+  }
+}
+
+/* ------------------------------------------------------------
+   4. BOUTON RETOUR
+------------------------------------------------------------- */
+
+.btn-nav-retour {
+  background-color: var(--eco-accent);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, box-shadow);
+  @include shadow(0.25);
+
+  &:hover {
+    background-color: #ffb955;
+    @include shadow(0.3);
+  }
+
+  &:active {
+    background-color: #2a4f24;
+    @include shadow(0.2);
+  }
+}
+
+/* Outline Retour */
+.btn-nav-retour-outline {
+  border: 2px solid var(--eco-secondary);
+  color: var(--eco-secondary);
+  background: transparent;
+  font-weight: 600;
+  border-radius: 50px;
+  padding: 0.65rem 1.6rem;
+  @include transition(background-color, color, box-shadow);
+
+  &:hover {
+    background-color: var(--eco-secondary);
+    color: #fff;
+    @include shadow(0.2);
+  }
+}
+
+/* ------------------------------------------------------------
+   5. BOUTONS SECONDAIRES : Accueil / Déconnexion
+------------------------------------------------------------- */
+
+.btn-back-home,
+.btn-logout {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  @include transition(all 0.3s);
+  background-color: transparent;
+  position: relative;
+}
+
+/* Retour */
+.btn-back-home {
+  color: var(--eco-secondary);
+
+  &:hover {
+    color: #fff;
+    background-color: var(--eco-secondary);
+    transform: translateY(-2px);
+    @include shadow(0.15);
+  }
+}
+
+/* Déconnexion */
+.btn-logout {
+  color: #ff9f20;
+
+  &:hover {
+    color: #fff;
+    background-color: #cc0000;
+    transform: translateY(-2px);
+    @include shadow(0.3);
+  }
+}
+
+/* ------------------------------------------------------------
+   6. STYLE "FUNIX" — effet pressé / relief
+------------------------------------------------------------- */
+
+.btn-funix {
+  background: linear-gradient(180deg, #357a25 0%, #204b16 100%);
+  color: #fff;
+  font-weight: 500;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.5rem 1.2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.1s ease-in-out;
+
+  &:hover {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(180deg, #2e6d1f 0%, #153110 100%);
+  }
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow: inset 0 3px 4px rgba(0, 0, 0, 0.35);
+    background: linear-gradient(180deg, #214a16 0%, #0d1c07 100%);
+  }
+}
