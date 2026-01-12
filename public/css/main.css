@@ -1817,6 +1817,11 @@
 
 /* ===== AUTOCOMPLETE ECORIDE ===== */
 
+@media (max-width: 1023px){
+  .eco-search-field{ position: relative; z-index: 99999; }
+  .autocomplete-list{ z-index: 999999; }
+}
+
 .eco-search-field{ position:relative; }
 
 .autocomplete-list{
