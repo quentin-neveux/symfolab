@@ -970,29 +970,6 @@
   pointer-events: none;
 }
 
-/* ============================================================
-   HERO — BASE (obligatoire pour que les background + ::after soient stables)
-============================================================ */
-.hero-global,
-.hero-home,
-.hero-connexion,
-.hero-inscription,
-.hero-recherche,
-.hero-historique,
-.hero-profil,
-.hero-covoiturer,
-.hero-presse,
-.hero-contact,
-.hero-proposer,
-.hero-apropos,
-.hero-404{
-  position: relative;            /* pour que ::after se place correctement */
-  background-size: cover;        /* évite l’image “étirée bizarre” */
-  background-position: center;   /* garde le cadrage propre */
-  background-repeat: no-repeat;
-}
-
-
 /* Padding spécifique home */
 .hero-home {
   overflow: visible !important;
@@ -1840,31 +1817,20 @@
 
 /* ===== AUTOCOMPLETE ECORIDE ===== */
 
-@media (max-width: 1023px){
-  .eco-search-field{ position: relative; z-index: 99999; }
-  .autocomplete-list{ z-index: 999999; }
+.autocomplete-list {
+    position: absolute;
+    top: 100%;               /* Juste sous l'input */
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    border-radius: 12px;
+    margin-top: 6px;
+    list-style: none;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    max-height: 220px;
+    overflow-y: auto;
+    z-index: 99999;          /* Passe devant tout le hero */
 }
-
-.eco-search-field{ position:relative; }
-
-.autocomplete-list{
-  position:absolute;
-  top:calc(100% + 6px);
-  left:0;
-  right:0;
-  background:#fff;
-  border-radius:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.15);
-  padding:0;
-  margin:0;
-  list-style:none;
-  z-index:9999;
-  overflow:hidden;
-  max-height:240px;
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
 
 .autocomplete-list:empty {
     display: none;
@@ -1940,26 +1906,6 @@
 
 .autocomplete-item:hover {
   background: #e9f7ef;
-}
-
-.autocomplete-box{
-  position:absolute;
-  background:white;
-  width:100%;
-  border-radius:12px;
-  box-shadow:0 6px 20px rgba(0,0,0,0.15);
-  margin-top:6px;
-  z-index:999;
-  overflow:hidden;
-}
-
-.autocomplete-item{
-  padding:10px 14px;
-  cursor:pointer;
-}
-
-.autocomplete-item:hover{
-  background:#f2f2f2;
 }
 
 
