@@ -30,4 +30,24 @@ class TrajetRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
     }
+
+    /**
+     * Recherche des trajets par villes avec trim des espaces
+     *
+     * @param string $villeDepart
+     * @param string $villeArrivee
+     * @return Trajet[]
+     */
+    public function searchByVilles(string $villeDepart, string $villeArrivee): array
+    {
+        $qb = $this->createQueryBuilder('t');
+
+        $qb->andWhere('TRIM(t.villeDepart) LIKE :depart')
+           ->andWhere('TRIM(t.villeArrivee) LIKE :arrivee')
+           ->setParameter('depart', trim($villeDepart) . '%')
+           ->setParameter('arrivee', trim($villeArrivee) . '%')
+           ->orderBy('t.dateDepart', 'ASC');
+
+        return $qb->getQuery()->getResult();
+    }
 }

@@ -20,25 +20,25 @@ class RechercheController extends AbstractController
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         // --------------------------------------------------
-        // PARAMÈTRES DE BASE
+        // PARAMÈTRES DE BASE + trim()
         // --------------------------------------------------
         $villeDepart  = $request->query->get('ville_depart');
         $villeArrivee = $request->query->get('ville_arrivee');
         $dateDepart   = $request->query->get('date_depart');
+
+        $villeDepart  = $villeDepart  ? trim($villeDepart)  : null;
+        $villeArrivee = $villeArrivee ? trim($villeArrivee) : null;
 
         // --------------------------------------------------
         // FILTRES
         // --------------------------------------------------
         $sort     = $request->query->get('sort', 'depart_asc');
         $energies = $request->query->all('energie');
-
-        // ⚠️ On garde le nom "prix_max" dans l'URL pour éviter de casser le front,
-        // mais ça représente désormais un plafond de TOKENS.
         $tokenMaxRaw = $request->query->get('prix_max');
 
         // Sécurité : si aucune recherche → retour page covoiturer
         if (!$villeDepart && !$villeArrivee && !$dateDepart) {
-            return $this->redirectToRoute('app_covoiturer');
+            return $this->redirectToRoute('app_home');
         }
 
         // --------------------------------------------------
@@ -54,24 +54,23 @@ class RechercheController extends AbstractController
             ->setParameter('now', new \DateTime());
 
         // --------------------------------------------------
-        // FILTRES DE RECHERCHE
+        // FILTRES DE RECHERCHE AVEC TRIM()
         // --------------------------------------------------
         if ($villeDepart) {
             $qb
-                ->andWhere('LOWER(t.villeDepart) LIKE LOWER(:vd)')
-                ->setParameter('vd', '%' . $villeDepart . '%');
+                ->andWhere('LOWER(TRIM(t.villeDepart)) LIKE LOWER(:vd)')
+                ->setParameter('vd', $villeDepart . '%');
         }
 
         if ($villeArrivee) {
             $qb
-                ->andWhere('LOWER(t.villeArrivee) LIKE LOWER(:va)')
-                ->setParameter('va', '%' . $villeArrivee . '%');
+                ->andWhere('LOWER(TRIM(t.villeArrivee)) LIKE LOWER(:va)')
+                ->setParameter('va', $villeArrivee . '%');
         }
 
         if ($dateDepart) {
             $start = (new \DateTime($dateDepart))->setTime(0, 0, 0);
             $end   = (new \DateTime($dateDepart))->setTime(23, 59, 59);
-
             $qb
                 ->andWhere('t.dateDepart BETWEEN :start AND :end')
                 ->setParameter('start', $start)
@@ -91,7 +90,6 @@ class RechercheController extends AbstractController
         // FILTRE TOKENS (ancien "prix_max")
         // --------------------------------------------------
         $tokenMax = null;
-
         if ($tokenMaxRaw !== null && $tokenMaxRaw !== '') {
             $tokenMax = (int) $tokenMaxRaw;
             if ($tokenMax > 0) {
@@ -106,10 +104,8 @@ class RechercheController extends AbstractController
         // --------------------------------------------------
         switch ($sort) {
             case 'prix_asc':
-                // ⚠️ compat UI : "prix_asc" = tri par TOKENS
                 $qb->orderBy('t.tokenCost', 'ASC');
                 break;
-
             case 'depart_asc':
             default:
                 $qb->orderBy('t.dateDepart', 'ASC');
@@ -125,7 +121,6 @@ class RechercheController extends AbstractController
         // SUGGESTION SI AUCUN RÉSULTAT
         // --------------------------------------------------
         $trajetSuggestion = null;
-
         if (!$trajets) {
             $qb2 = $em->getRepository(Trajet::class)->createQueryBuilder('ts')
                 ->leftJoin('ts.vehicle', 'v2')
@@ -138,14 +133,14 @@ class RechercheController extends AbstractController
 
             if ($villeDepart) {
                 $qb2
-                    ->andWhere('LOWER(ts.villeDepart) LIKE LOWER(:vd)')
-                    ->setParameter('vd', '%' . $villeDepart . '%');
+                    ->andWhere('LOWER(TRIM(ts.villeDepart)) LIKE LOWER(:vd)')
+                    ->setParameter('vd', $villeDepart . '%');
             }
 
             if ($villeArrivee) {
                 $qb2
-                    ->andWhere('LOWER(ts.villeArrivee) LIKE LOWER(:va)')
-                    ->setParameter('va', '%' . $villeArrivee . '%');
+                    ->andWhere('LOWER(TRIM(ts.villeArrivee)) LIKE LOWER(:va)')
+                    ->setParameter('va', $villeArrivee . '%');
             }
 
             if ($dateDepart) {
