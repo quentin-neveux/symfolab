@@ -970,6 +970,29 @@
   pointer-events: none;
 }
 
+/* ============================================================
+   HERO — BASE (obligatoire pour que les background + ::after soient stables)
+============================================================ */
+.hero-global,
+.hero-home,
+.hero-connexion,
+.hero-inscription,
+.hero-recherche,
+.hero-historique,
+.hero-profil,
+.hero-covoiturer,
+.hero-presse,
+.hero-contact,
+.hero-proposer,
+.hero-apropos,
+.hero-404{
+  position: relative;            /* pour que ::after se place correctement */
+  background-size: cover;        /* évite l’image “étirée bizarre” */
+  background-position: center;   /* garde le cadrage propre */
+  background-repeat: no-repeat;
+}
+
+
 /* Padding spécifique home */
 .hero-home {
   overflow: visible !important;
