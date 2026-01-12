@@ -1,0 +1,94 @@
+/* ============================================================
+   ECORIDE — Profil utilisateur (Version PRO)
+   Avatar, progress bar, sous-navigation, trajets
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   AVATAR PROFIL
+------------------------------------------------------------- */
+
+.profile-avatar {
+  background-color: var(--eco-secondary);
+  color: #fff;
+  font-size: 1.5rem;
+  font-weight: 600;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  @include shadow(0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  span {
+    font-size: 1.6rem;
+  }
+}
+
+/* ------------------------------------------------------------
+   PROGRESS BAR
+------------------------------------------------------------- */
+
+.progress-bar {
+  border-radius: 10px;
+}
+
+/* ------------------------------------------------------------
+   BARRE D’ONGLETS (SOUS-NAVIGATION DU PROFIL)
+------------------------------------------------------------- */
+
+.profile-subnav {
+  background: #fff;
+  border: none;
+  @include shadow(0.05);
+
+  .nav {
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .nav-link {
+    color: #496c59;
+    font-weight: 500;
+    font-size: 1rem;
+    position: relative;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      color: var(--eco-success);
+    }
+
+    &.active {
+      color: var(--eco-secondary);
+    }
+
+    /* underline animé */
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 0;
+      width: 0%;
+      height: 2.5px;
+      background-color: var(--eco-secondary);
+      border-radius: 1px;
+      transition: width 0.3s ease;
+    }
+
+    &.active::after {
+      width: 100%;
+    }
+  }
+}
+
+/* ------------------------------------------------------------
+   UTILITAIRES
+------------------------------------------------------------- */
+
+.bg-white {
+  background-color: #fff !important;
+}

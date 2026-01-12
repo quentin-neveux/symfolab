@@ -68,7 +68,7 @@ document.addEventListener("DOMContentLoaded", () => {
 })();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
+
   /* ============================================================
      0) OUTILS (petits helpers)
   ============================================================ */
@@ -687,4 +687,85 @@ document.addEventListener("DOMContentLoaded", () => {
     const href = row.dataset.href;
     if (href) globalThis.location.href = href;
   });
-});
+
+/* ============================================================
+   PANNEAU FILTRES MOBILE — TOGGLE
+   - #filtersToggleOpen
+   - #filtersToggleClose
+   - #filtersMobilePanel
+============================================================ */
+
+(() => {
+  const openBtn = document.getElementById("filtersToggleOpen");
+  const closeBtn = document.getElementById("filtersToggleClose");
+  const panel = document.getElementById("filtersMobilePanel");
+
+  // Si les éléments n'existent pas sur la page, on ne fait rien (sans casser le reste)
+  if (!openBtn || !closeBtn || !panel) return;
+
+  openBtn.addEventListener("click", () => {
+    panel.classList.add("is-open");
+    document.body.style.overflow = "hidden";
+  });
+
+  closeBtn.addEventListener("click", () => {
+    panel.classList.remove("is-open");
+    document.body.style.overflow = "";
+  });
+})();
+
+/* ============================================================
+   AUTOCOMPLETE VILLES — SEARCHBAR
+   - input: #ville-depart -> list: #ville-depart-list
+   - input: #ville-arrivee -> list: #ville-arrivee-list
+============================================================ */
+
+(() => {
+  function setupCityAutocomplete(inputId, listId) {
+    const input = document.getElementById(inputId);
+    const list = document.getElementById(listId);
+
+    if (!input || !list) return;
+
+    input.addEventListener("input", async () => {
+      const q = input.value.trim();
+
+      if (q.length < 2) {
+        list.innerHTML = "";
+        return;
+      }
+
+      const res = await fetch(`/api/autocomplete/cities?q=${encodeURIComponent(q)}`);
+      const cities = await res.json();
+
+      list.innerHTML = "";
+
+      cities.forEach(city => {
+        const li = document.createElement("li");
+        li.className = "autocomplete-item";
+        li.textContent = city;
+
+        li.addEventListener("click", () => {
+          input.value = city;
+          list.innerHTML = "";
+        });
+
+        list.appendChild(li);
+      });
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!input.contains(e.target) && !list.contains(e.target)) {
+        list.innerHTML = "";
+      }
+    });
+  }
+
+  setupCityAutocomplete("ville-depart", "ville-depart-list");
+  setupCityAutocomplete("ville-arrivee", "ville-arrivee-list");
+})();
+
+
+
+
+

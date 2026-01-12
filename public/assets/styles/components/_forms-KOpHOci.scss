@@ -1,0 +1,170 @@
+/* ============================================================
+   ECORIDE — Formulaires (Version PRO)
+   Cartes, inputs, labels, textarea, password toggle
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   CARTE DE FORMULAIRE PRINCIPALE
+------------------------------------------------------------- */
+
+.card.ecoride-form {
+  background: #fffdf8;
+  border: 1px solid rgba(27, 63, 21, 0.1);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  position: relative;
+  @include shadow(0.08);
+  @include transition(transform, box-shadow);
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 199, 126, 0.1),
+      rgba(63, 117, 63, 0.05)
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  h2 {
+    font-family: var(--font-title);
+    color: white;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: 0.5px;
+    z-index: 1;
+  }
+}
+
+/* ------------------------------------------------------------
+   LABELS / TEXTES AIDE
+------------------------------------------------------------- */
+
+.card.ecoride-form label {
+  font-weight: 500;
+  color: var(--eco-dark);
+  font-size: 0.95rem;
+}
+
+.card.ecoride-form .form-text {
+  font-size: 0.85rem;
+  color: rgb(35, 161, 30);
+}
+
+/* ------------------------------------------------------------
+   INPUTS — UNIFORMISATION
+------------------------------------------------------------- */
+
+.card.ecoride-form .form-control {
+  border-radius: 10px;
+  border: 1.5px solid rgba(63, 117, 63, 0.25);
+  padding: 0.75rem 1rem;
+  background: #fff;
+  @include transition(all);
+
+  &:focus {
+    border-color: var(--eco-secondary);
+    box-shadow: 0 0 0 4px rgba(63, 117, 63, 0.15);
+    background: #fffffb;
+  }
+}
+
+/* Bouton principal dans un formulaire */
+.card.ecoride-form .btn-ecoride {
+  width: 100%;
+  font-size: 1rem;
+  border-radius: 50px;
+  margin-top: 1rem;
+}
+
+/* Liens internes (connexion, conditions...) */
+.card.ecoride-form .form-check-label a,
+.card.ecoride-form p.text-center a {
+  color: var(--eco-secondary);
+  font-weight: 500;
+  text-decoration: underline dotted;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--eco-accent);
+    text-decoration: underline solid;
+  }
+}
+
+/* ------------------------------------------------------------
+   INPUTS GLOBALS (utilisés hors card)
+------------------------------------------------------------- */
+
+.eco-input {
+  border: 1.5px solid #ddd;
+  border-radius: 50px;
+  padding: 12px 18px;
+  background-color: #fff;
+  width: 100%;
+  @include transition(all);
+
+  &:hover {
+    border-color: var(--eco-secondary);
+  }
+
+  &:focus {
+    border-color: var(--eco-success);
+    box-shadow: 0 0 0 3px rgba(71, 185, 81, 0.25);
+    outline: none;
+  }
+}
+
+/* Textarea carré */
+.eco-textarea {
+  border: 1.5px solid #ddd;
+  border-radius: 12px;
+  padding: 12px 18px;
+  min-height: 110px;
+  resize: vertical;
+  width: 100%;
+  @include transition(all);
+
+  &:focus {
+    border-color: var(--eco-success);
+    box-shadow: 0 0 0 3px rgba(71, 185, 81, 0.25);
+    outline: none;
+  }
+}
+
+/* ------------------------------------------------------------
+   PASSWORD INPUT — MODE "ŒIL"
+------------------------------------------------------------- */
+
+.eco-input-wrapper {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 45px !important;
+}
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  color: #5f5f5f;
+  font-size: 1.2rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--eco-primary);
+  }
+}

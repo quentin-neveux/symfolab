@@ -1,0 +1,109 @@
+/* ============================================================
+   ECORIDE — Footer (Version PRO)
+   Structure, liens, brand, réseaux, bouton contact
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   STRUCTURE GLOBALE
+------------------------------------------------------------- */
+
+.footer-ecoride {
+  background: var(--eco-dark);
+  color: var(--eco-light);
+  padding: 1.5rem 0;
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Séparateur décoratif */
+.footer-divider {
+  width: 80px;
+  height: 2px;
+  border: none;
+  background: var(--eco-accent);
+  margin: 0.8rem auto;
+  opacity: 0.9;
+}
+
+/* ------------------------------------------------------------
+   BRAND ECORIDE
+------------------------------------------------------------- */
+
+.footer-ecoride .footer-brand {
+  font-family: var(--font-title);
+  letter-spacing: 0.5px;
+
+  a {
+    font-weight: 700;
+    font-size: 1.5rem;
+    text-transform: capitalize;
+    background: linear-gradient(
+      90deg,
+      #ffffff 0%,
+      #ffe1b0 40%,
+      #ff9e2b 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    @include transition(transform, filter);
+
+    &:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+  }
+}
+
+/* ------------------------------------------------------------
+   LIENS DU FOOTER
+------------------------------------------------------------- */
+
+.footer-ecoride .footer-link {
+  color: #f8f9fa;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+
+  &:hover {
+    opacity: 0.7;
+  }
+}
+
+/* ------------------------------------------------------------
+   RÉSEAUX SOCIAUX
+------------------------------------------------------------- */
+
+.social-link {
+  color: var(--eco-light);
+  font-size: 1.4rem;
+  transition: transform 0.25s ease, color 0.25s ease;
+
+  &:hover {
+    color: var(--eco-accent);
+    transform: translateY(-2px);
+  }
+}
+
+/* ------------------------------------------------------------
+   BOUTON "NOUS CONTACTER"
+------------------------------------------------------------- */
+
+.btn-contact-footer {
+  background: transparent;
+  color: var(--eco-accent);
+  font-weight: 500;
+  border-radius: 50px;
+  padding: 0.5rem 1.4rem;
+  border: 2px solid var(--eco-accent);
+  @include transition(all);
+
+  &:hover {
+    background: var(--eco-accent);
+    color: var(--eco-dark);
+    transform: translateY(-2px);
+  }
+}

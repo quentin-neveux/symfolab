@@ -1,0 +1,76 @@
+/* ============================================================
+   ECORIDE — Utilities & Global Fixes (Version PRO)
+   Cookies banner, accordions, backgrounds, helpers
+   ============================================================ */
+
+@use "../variables" as *;
+@use "../mixins" as *;
+
+/* ------------------------------------------------------------
+   BANDEAU COOKIES ECORIDE
+------------------------------------------------------------- */
+
+.cookie-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: var(--eco-dark);
+  color: #fff;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(100%);
+  @include transition(transform, opacity);
+
+  &.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  p {
+    margin: 0;
+    flex: 1;
+  }
+
+  .btn {
+    border-radius: 50px;
+    padding: 6px 18px;
+  }
+
+  .btn-success {
+    background: var(--eco-secondary);
+    border: none;
+  }
+
+  .btn-outline-light {
+    border: 1px solid #fff;
+    color: #fff;
+  }
+}
+
+/* ------------------------------------------------------------
+   ACCORDION BOOTSTRAP — FIXES
+------------------------------------------------------------- */
+
+.accordion-button:focus {
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--eco-light);
+  color: var(--eco-primary);
+  box-shadow: none !important;
+}
+
+/* ------------------------------------------------------------
+   BACKGROUND UTILITAIRE
+------------------------------------------------------------- */
+
+.bg-ecoride {
+  background-color: rgba(60, 109, 53, 0.4039215686);
+}
