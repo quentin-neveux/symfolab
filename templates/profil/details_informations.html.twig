@@ -7,24 +7,26 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-      {# =============================
-         EN-TÊTE PROFIL PUBLIC
+        {# =============================
+         EN-TÊTE PROFIL
          ============================= #}
       <div class="profile-header d-flex flex-wrap align-items-center p-4 rounded shadow-sm mb-4 bg-white">
+
         {# Avatar #}
         <div class="me-4 mb-3 mb-md-0">
-          {% if user.photo %}
-            <img src="{{ asset('uploads/photos/' ~ user.photo) }}"
+          {% if app.user.photo %}
+            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
                  class="rounded-circle shadow-sm"
                  alt="Photo de profil"
                  width="110" height="110">
           {% else %}
             <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                  style="width:110px;height:110px;font-size:2rem;">
-              {% set initials = (user.prenom|first ~ user.nom|first)|upper %}
+              {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
               <span>{{ initials }}</span>
             </div>
           {% endif %}
+        </div>
         </div>
 
         {# Nom + ancienneté #}
