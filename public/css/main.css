@@ -1796,8 +1796,8 @@
 }
 
 .avatar-circle {
-  width: 42px;
-  height: 42px;
+  width: 110px;
+  height: 110px;
   border-radius: 50%;
   background: #e8f5e8;
   display: flex;
@@ -1806,6 +1806,13 @@
   color: var(--eco-primary);
   font-weight: bold;
   font-size: 0.95rem;
+}
+.avatar-img{
+  width:100%;
+  height:100%;
+  object-fit:cover;         /* <- garde le ratio, remplit le cercle en rognant */
+  object-position:center;
+  display:block;
 }
 
 /* ===== AUTOCOMPLETE ECORIDE ===== */
