@@ -1817,20 +1817,26 @@
 
 /* ===== AUTOCOMPLETE ECORIDE ===== */
 
-.autocomplete-list {
-    position: absolute;
-    top: 100%;               /* Juste sous l'input */
-    left: 0;
-    width: 100%;
-    background: #ffffff;
-    border-radius: 12px;
-    margin-top: 6px;
-    list-style: none;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
-    max-height: 220px;
-    overflow-y: auto;
-    z-index: 99999;          /* Passe devant tout le hero */
+.eco-search-field{ position:relative; }
+
+.autocomplete-list{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  background:#fff;
+  border-radius:12px;
+  box-shadow:0 6px 20px rgba(0,0,0,0.15);
+  padding:0;
+  margin:0;
+  list-style:none;
+  z-index:9999;
+  overflow:hidden;
+  max-height:240px;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
 }
+
 
 .autocomplete-list:empty {
     display: none;
