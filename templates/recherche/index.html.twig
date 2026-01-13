@@ -191,15 +191,16 @@
     {# SUGGESTION DE TRAJET #}
 
     {% if trajetSuggestion %}
-        <div class="alert alert-success text-center mt-3">
-            Prochain trajet disponible :
-            <strong>{{ trajetSuggestion.dateDepart|date('d/m H:i') }}</strong><br>
-            <a href="{{ path('app_trajet_detail', {id: trajetSuggestion.id}) }}" 
-               class="btn btn-ecoride mt-2 rounded-pill">
-               Voir ce trajet
-            </a>
-        </div>
-    {% endif %}
+    <div class="alert alert-success text-center mt-3">
+        Prochain trajet disponible :
+        <strong>{{ trajetSuggestion.dateDepart|date('d/m H:i') }}</strong><br>
+        <a href="{{ path('app_trajet_detail', {id: trajetSuggestion.id}) }}" 
+           class="btn btn-ecoride mt-2 rounded-pill">
+           Voir ce trajet
+        </a>
+    </div>
+{% endif %}
+
 
 {% else %}
 
