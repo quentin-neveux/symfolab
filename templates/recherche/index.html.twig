@@ -12,13 +12,9 @@
 
 {# date_depart peut être string (GET) ou DateTime (controller) ou null #}
 {% set date_value =
-  date_depart is not defined or date_depart is null
+  date_depart is not defined or date_depart is null or date_depart is iterable or date_depart is same as(false) or date_depart is same as(true)
     ? ''
-    : (date_depart is iterable ? '' : (date_depart is same as(false) ? '' : (date_depart is same as(true) ? '' : (
-        date_depart is date
-          ? date_depart|date('Y-m-d')
-          : date_depart
-      )))
+    : (date_depart is date ? date_depart|date('Y-m-d') : date_depart)
 %}
 
 {% set date_label =

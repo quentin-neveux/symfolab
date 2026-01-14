@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Repository\CityRepository;
+use Doctrine\DBAL\Exception\TableNotFoundException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,10 +20,18 @@ class CityAutocompleteController extends AbstractController
             return $this->json([]);
         }
 
-        $rows = $cityRepository->suggest($q, 30);
+        try {
+            $rows = $cityRepository->suggest($q, 30);
+        } catch (TableNotFoundException $e) {
+            // En prod si la table n'existe pas encore : on évite le 500
+            return $this->json([]);
+        } catch (\Throwable $e) {
+            // Optionnel: éviter de casser le site pour une erreur non critique
+            return $this->json([]);
+        }
 
         $out = array_map(
-            fn($r) => sprintf('%s (%s)', $r['name'], $r['country']),
+            static fn ($r) => sprintf('%s (%s)', $r['name'], $r['country']),
             $rows
         );
 
