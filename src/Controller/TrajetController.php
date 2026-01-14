@@ -78,7 +78,7 @@ class TrajetController extends AbstractController
             $mailer->notifyTrajetCreated($trajet);
 
             $this->addFlash('success', 'Ton trajet a bien été publié.');
-            return $this->redirectToRoute('app_trajet_detail', [
+            return $this->redirectToRoute('app_mes_trajets', [
                 'id' => $trajet->getId()
             ]);
             
