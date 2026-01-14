@@ -24,99 +24,105 @@ class TrajetController extends AbstractController
     use TargetPathTrait;
 
     // ==========================================================
-    // 🟢 PROPOSER UN TRAJET
-    // ==========================================================
-    #[Route('/profil/proposer-trajet', name: 'app_proposer_trajet')]
-    public function proposer(Request $request, EntityManagerInterface $em, MailerService $mailer): Response
-    {
-        $user = $this->getUser();
+// 🟢 PROPOSER UN TRAJET
+// ==========================================================
+#[Route('/profil/proposer-trajet', name: 'app_proposer_trajet')]
+public function proposer(
+    Request $request,
+    EntityManagerInterface $em,
+    MailerService $mailer
+): Response {
+    $user = $this->getUser();
 
-        if (!$user) {
-            $this->saveTargetPath($request->getSession(), 'main', $request->getUri());
-            return $this->redirectToRoute('app_connexion');
+    if (!$user) {
+        $this->saveTargetPath($request->getSession(), 'main', $request->getUri());
+        return $this->redirectToRoute('app_connexion');
+    }
+
+    $trajet = new Trajet();
+    $trajet->setConducteur($user);
+
+    $form = $this->createForm(TrajetType::class, $trajet, ['user' => $user]);
+    $form->handleRequest($request);
+
+    if ($form->isSubmitted() && $form->isValid()) {
+
+        // 1) Véhicule (création éventuelle)
+        $newVehicle = $form->has('newVehicle') ? $form->get('newVehicle')->getData() : null;
+
+        if ($newVehicle) {
+            $newVehicle->setOwner($user);
+            $em->persist($newVehicle);
+            $trajet->setVehicle($newVehicle);
         }
 
-        $trajet = new Trajet();
-        $trajet->setConducteur($user);
+        if (!$trajet->getVehicle()) {
+            $this->addFlash('danger', 'Tu dois sélectionner ou ajouter un véhicule.');
+            return $this->redirectToRoute('app_proposer_trajet');
+        }
 
-        $form = $this->createForm(TrajetType::class, $trajet, ['user' => $user]);
-        $form->handleRequest($request);
+        // 2) Vérif tokens conducteur
+        $fee = defined(Trajet::class . '::PLATFORM_FEE_TOKENS') ? Trajet::PLATFORM_FEE_TOKENS : 2;
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($user->getTokens() < $fee) {
+            $this->addFlash('danger', 'Il te faut au moins ' . $fee . ' tokens pour publier un trajet.');
+            return $this->redirectToRoute('app_mes_trajets');
+        }
 
-            $newVehicle = $form->get('newVehicle')->getData();
+        // 3) Transaction DB atomique
+        $em->beginTransaction();
+        try {
+            // --- Débit conducteur
+            $user->setTokens($user->getTokens() - $fee);
 
-            if ($newVehicle) {
-                $newVehicle->setOwner($user);
-                $em->persist($newVehicle);
-                $trajet->setVehicle($newVehicle);
+            // --- Crédit plateforme (user id 501)
+            $platform = $em->getRepository(\App\Entity\User::class)->find(501);
+            if (!$platform) {
+                throw new \RuntimeException('Compte plateforme introuvable (id=501).');
             }
+            $platform->setTokens($platform->getTokens() + $fee);
 
-            if (!$trajet->getVehicle()) {
-                $this->addFlash('danger', 'Tu dois sélectionner ou ajouter un véhicule.');
-                return $this->redirectToRoute('app_proposer_trajet');
-            }
-
-            if ($user->getTokens() < 2) {
-                $this->addFlash('danger', 'Il te faut au moins 2 tokens pour publier un trajet.');
-                return $this->redirectToRoute('app_mes_trajets');
-            }
-
-            $user->setTokens($user->getTokens() - 2);
-
-            $tx = new TokenTransaction();
-            $tx->setUser($user);
-            $tx->setAmount(2);
-            $tx->setType('DEBIT');
-            $tx->setReason('CREATION_TRAJET');
-            $tx->setTrajetId(null);
-            $em->persist($tx);
-
+            // --- On persiste le trajet d'abord pour avoir son ID
             $em->persist($trajet);
+            $em->flush(); // => $trajet->getId() existe
+
+            // --- Logs compta (token_transaction)
+            $txDriver = new TokenTransaction();
+            $txDriver->setUser($user);
+            $txDriver->setAmount($fee);
+            $txDriver->setType('DEBIT');
+            $txDriver->setReason('CREATION_TRAJET_PLATFORM_FEE');
+            $txDriver->setTrajetId($trajet->getId());
+            $em->persist($txDriver);
+
+            $txPlatform = new TokenTransaction();
+            $txPlatform->setUser($platform);
+            $txPlatform->setAmount($fee);
+            $txPlatform->setType('CREDIT');
+            $txPlatform->setReason('PLATFORM_FEE_TRAJET_CREATED');
+            $txPlatform->setTrajetId($trajet->getId());
+            $em->persist($txPlatform);
+
             $em->flush();
+            $em->commit();
 
-            $mailer->notifyTrajetCreated($trajet);
-
-            $this->addFlash('success', 'Ton trajet a bien été publié.');
-            return $this->redirectToRoute('app_mes_trajets', [
-                'id' => $trajet->getId()
-            ]);
-            
+        } catch (\Throwable $e) {
+            $em->rollback();
+            throw $e;
         }
 
-        return $this->render('trajet/proposer.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        // Mail après commit (évite de “mailer ok / db ko”)
+        $mailer->notifyTrajetCreated($trajet);
+
+        $this->addFlash('success', 'Bravo, ton trajet a bien été publié ✅');
+        return $this->redirectToRoute('app_mes_trajets');
     }
 
-    // ==========================================================
-    // 🔍 DÉTAIL TRAJET
-    // ==========================================================
-    #[Route('/trajet/{id}', name: 'app_trajet_detail')]
-    public function detail(Trajet $trajet, EntityManagerInterface $em, ReviewRepository $reviewRepo): Response
-    {
-        $user = $this->getUser();
-        $reservation = null;
+    return $this->render('trajet/proposer.html.twig', [
+        'form' => $form->createView(),
+    ]);
+}
 
-        if ($user) {
-            $reservation = $em->getRepository(TrajetPassager::class)
-                ->findOneBy(['trajet' => $trajet, 'passager' => $user]);
-        }
-
-        $passagers = $em->getRepository(TrajetPassager::class)
-            ->findBy(['trajet' => $trajet]);
-
-        $averageRating = $reviewRepo->getAverageRatingForUser(
-            $trajet->getConducteur()->getId()
-        );
-
-        return $this->render('trajet/detail.html.twig', [
-            'trajet'        => $trajet,
-            'reservation'   => $reservation,
-            'passagers'     => $passagers,
-            'averageRating' => $averageRating,
-        ]);
-    }
 
     // ==========================================================
     // 📜 HISTORIQUE
