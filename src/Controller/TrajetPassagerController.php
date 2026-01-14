@@ -9,6 +9,7 @@ use App\Repository\TrajetPassagerRepository;
 use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -69,7 +70,8 @@ class TrajetPassagerController extends AbstractController
         if ($user->getTokens() < $totalCost) {
             $this->addFlash(
                 'warning',
-                sprintf('Solde de tokens insuffisant. Coût total : %d tokens (trajet %d + plateforme %d).',
+                sprintf(
+                    'Solde de tokens insuffisant. Coût total : %d tokens (trajet %d + plateforme %d).',
                     $totalCost,
                     $trajet->getTokenCost(),
                     Trajet::PLATFORM_FEE_TOKENS
@@ -87,11 +89,12 @@ class TrajetPassagerController extends AbstractController
     }
 
     // ----------------------------------------------------------
-    // ❌ ANNULER UNE RÉSERVATION (PASSAGER)
+    // ❌ ANNULER UNE RÉSERVATION (PASSAGER) + CSRF + POST ONLY + REDIRECT DYNAMIQUE
     // ----------------------------------------------------------
     #[IsGranted('ROLE_USER')]
-    #[Route('/trajet/{id}/annuler', name: 'trajet_annuler')]
+    #[Route('/trajet/{id}/annuler', name: 'trajet_annuler', methods: ['POST'])]
     public function annuler(
+        Request $request,
         Trajet $trajet,
         TrajetPassagerRepository $tpRepo,
         EntityManagerInterface $em
@@ -99,6 +102,12 @@ class TrajetPassagerController extends AbstractController
         $user = $this->getUser();
         if (!$user instanceof User) {
             throw $this->createAccessDeniedException();
+        }
+
+        // ✅ CSRF
+        $token = (string) $request->request->get('_token');
+        if (!$this->isCsrfTokenValid('annuler_trajet_' . $trajet->getId(), $token)) {
+            throw $this->createAccessDeniedException('Token CSRF invalide.');
         }
 
         $reservation = $tpRepo->findOneBy([
@@ -124,7 +133,6 @@ class TrajetPassagerController extends AbstractController
 
         try {
             // 💳 remboursement UNIQUEMENT si payé
-            $refundAmount = 0;
             if ($reservation->isPaid()) {
                 $refundAmount = $reservation->getTotalTokensCharged();
 
@@ -163,8 +171,12 @@ class TrajetPassagerController extends AbstractController
                 : 'Réservation annulée.'
         );
 
-        return $this->redirectToRoute('app_trajet_detail', [
-            'id' => $trajet->getId()
-        ]);
+        // ✅ Redirect dynamique (fourni par le form) sinon home
+        $redirect = (string) $request->request->get('redirect', '');
+        if ($redirect) {
+            return $this->redirect($redirect);
+        }
+
+        return $this->redirectToRoute('app_home');
     }
 }
