@@ -66,7 +66,7 @@ public function proposer(
 
         if ($user->getTokens() < $fee) {
             $this->addFlash('danger', 'Il te faut au moins ' . $fee . ' tokens pour publier un trajet.');
-            return $this->redirectToRoute('app_mes_trajets');
+            return $this->redirectToRoute('trajet_historique');
         }
 
         // 3) Transaction DB atomique
@@ -294,7 +294,7 @@ return $this->render('historique/historique.html.twig', [
 
         if (!$user || $trajet->getConducteur() !== $user) {
             $this->addFlash('danger', 'Tu ne peux modifier que tes trajets.');
-            return $this->redirectToRoute('app_mes_trajets');
+            return $this->redirectToRoute('trajet_historique');
         }
 
         $form = $this->createForm(TrajetEditType::class, $trajet, ['user' => $user]);
@@ -326,7 +326,7 @@ public function annulerTrajetConducteur(
 
     if (!$user || $trajet->getConducteur() !== $user) {
         $this->addFlash('danger', 'Action non autorisée.');
-        return $this->redirectToRoute('app_mes_trajets');
+        return $this->redirectToRoute('trajet_historique');
     }
 
     // ✅ CSRF
