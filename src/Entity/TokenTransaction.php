@@ -14,12 +14,13 @@ class TokenTransaction
     private ?int $id = null;
 
     // 🔗 Utilisateur concerné (null possible pour opérations plateforme)
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?User $user = null;
 
-    // 🔢 Nombre de tokens (+ ou -)
+    // 🔢 Nombre de tokens
     #[ORM\Column(type: 'integer')]
-    private int $amount;
+    private int $amount = 0;
 
     /**
      * Type de transaction :
@@ -27,11 +28,11 @@ class TokenTransaction
      * - CREDIT
      */
     #[ORM\Column(length: 20)]
-    private string $type;
+    private string $type = 'DEBIT';
 
     // 🧠 Raison métier (RESERVATION, PAYMENT, ADMIN, REFUND, etc.)
     #[ORM\Column(length: 50)]
-    private string $reason;
+    private string $reason = '';
 
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
@@ -101,6 +102,13 @@ class TokenTransaction
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    // ✅ Ajouté : utile si tu veux forcer une date (et évite ton 500)
+    public function setCreatedAt(\DateTimeImmutable $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
     }
 
     public function getTrajetId(): ?int
