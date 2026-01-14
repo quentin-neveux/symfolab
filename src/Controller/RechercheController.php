@@ -167,7 +167,6 @@ class RechercheController extends AbstractController
 
             $trajetSuggestion = $qb2->getQuery()->getOneOrNullResult();
         }
-dd($trajetSuggestion);  // Vérifie ici si $trajetSuggestion contient bien des données
 
         // --------------------------------------------------
         // RENDER
