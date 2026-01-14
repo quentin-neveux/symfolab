@@ -32,65 +32,22 @@ class TrajetRepository extends ServiceEntityRepository
     }
 
     /**
-     * Recherche des trajets par villes (trim + startsWith)
+     * Recherche des trajets par villes avec trim des espaces
      *
+     * @param string $villeDepart
+     * @param string $villeArrivee
      * @return Trajet[]
      */
     public function searchByVilles(string $villeDepart, string $villeArrivee): array
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('TRIM(t.villeDepart) LIKE :depart')
-            ->andWhere('TRIM(t.villeArrivee) LIKE :arrivee')
-            ->setParameter('depart', trim($villeDepart) . '%')
-            ->setParameter('arrivee', trim($villeArrivee) . '%')
-            ->orderBy('t.dateDepart', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
+        $qb = $this->createQueryBuilder('t');
 
-    /**
-     * Suggestions de villes (autocomplete) via villeDepart + villeArrivee
-     *
-     * @return string[]
-     */
-    public function findCitySuggestions(string $q, int $limit = 10): array
-    {
-        $q = trim($q);
-        if ($q === '') {
-            return [];
-        }
+        $qb->andWhere('TRIM(t.villeDepart) LIKE :depart')
+           ->andWhere('TRIM(t.villeArrivee) LIKE :arrivee')
+           ->setParameter('depart', trim($villeDepart) . '%')
+           ->setParameter('arrivee', trim($villeArrivee) . '%')
+           ->orderBy('t.dateDepart', 'ASC');
 
-        $qLower = mb_strtolower($q);
-        $qLike = $qLower . '%';
-
-        // On récupère un peu plus, puis on déduplique côté PHP.
-        $rows = $this->createQueryBuilder('t')
-            ->select('DISTINCT TRIM(LOWER(t.villeDepart)) AS vd, TRIM(LOWER(t.villeArrivee)) AS va')
-            ->andWhere('LOWER(TRIM(t.villeDepart)) LIKE :q OR LOWER(TRIM(t.villeArrivee)) LIKE :q')
-            ->setParameter('q', $qLike)
-            ->setMaxResults($limit * 3)
-            ->getQuery()
-            ->getArrayResult();
-
-        $set = [];
-        foreach ($rows as $r) {
-            $vd = $r['vd'] ?? null;
-            $va = $r['va'] ?? null;
-
-            if ($vd && str_starts_with($vd, $qLower)) {
-                $set[$vd] = true;
-            }
-            if ($va && str_starts_with($va, $qLower)) {
-                $set[$va] = true;
-            }
-        }
-
-        $cities = array_slice(array_keys($set), 0, $limit);
-
-        // Casse "propre" (Paris, Saint-Étienne, etc.)
-        return array_map(
-            fn (string $c) => mb_convert_case($c, MB_CASE_TITLE, 'UTF-8'),
-            $cities
-        );
+        return $qb->getQuery()->getResult();
     }
 }
