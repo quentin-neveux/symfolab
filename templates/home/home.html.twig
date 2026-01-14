@@ -11,52 +11,53 @@
     <h1 class="hero-title-ecoride mb-3">EcoRide</h1>
     <h2 class="hero-tagline-eco mb-3">Changeons d'air, pas de Terre</h2>
     <p class="lead mb-2">Covoiturez écologique ! C'est simple et convivial.</p>
-    <form id="search-form" action="{{ path('app_recherche') }}" method="get" class="mx-auto mb-4">
-  <div class="eco-searchbar">
-    <!-- 🟢 Ville de départ -->
-    <div class="eco-search-field position-relative">
-      <i class="bi bi-geo-alt text-success me-2"></i>
-      <input
-        type="text"
-        id="ville-depart"
-        class="form-control"
-        name="ville_depart"
-        placeholder="Départ"
-        autocomplete="off"
-        required
-      >
-      <ul id="ville-depart-list" class="autocomplete-list" aria-label="Suggestions départ"></ul>
+  <form id="search-form" action="{{ path('app_recherche') }}" method="get" class="mx-auto mb-4">
+    <div class="eco-searchbar">
+      <!-- 🟢 Ville de départ -->
+      <div class="eco-search-field position-relative">
+        <i class="bi bi-geo-alt text-success me-2"></i>
+        <input
+          type="text"
+          id="ville-depart"
+          class="form-control"
+          name="ville_depart"
+          placeholder="Départ"
+          autocomplete="off"
+          required
+        >
+        <ul id="ville-depart-list" class="autocomplete-list" aria-label="Suggestions départ"></ul>
+      </div>
+      <!-- 🟢 Ville d'arrivée -->
+      <div class="eco-search-field position-relative">
+        <i class="bi bi-flag text-success me-2"></i>
+        <input
+          type="text"
+          id="ville-arrivee"
+          class="form-control"
+          name="ville_arrivee"
+          placeholder="Arrivée"
+          autocomplete="off"
+          required
+        >
+        <ul id="ville-arrivee-list" class="autocomplete-list" aria-label="Suggestions arrivée"></ul>
+      </div>
+      <!-- 📅 Date -->
+      <div class="eco-search-field">
+        <i class="bi bi-calendar-event text-success me-2"></i>
+        <input
+          type="date"
+          class="form-control"
+          name="date_depart"
+        >
+      </div>
+      <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="1">
+      <!-- 🔍 Bouton -->
+      <button type="submit" class="eco-search-btn">
+        Rechercher
+      </button>
     </div>
-    <!-- 🟢 Ville d'arrivée -->
-    <div class="eco-search-field position-relative">
-      <i class="bi bi-flag text-success me-2"></i>
-      <input
-        type="text"
-        id="ville-arrivee"
-        class="form-control"
-        name="ville_arrivee"
-        placeholder="Arrivée"
-        autocomplete="off"
-        required
-      >
-      <ul id="ville-arrivee-list" class="autocomplete-list" aria-label="Suggestions arrivée"></ul>
-    </div>
-    <!-- 📅 Date -->
-    <div class="eco-search-field">
-      <i class="bi bi-calendar-event text-success me-2"></i>
-      <input
-        type="date"
-        class="form-control"
-        name="date_depart"
-      >
-    </div>
-    <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="1">
-    <!-- 🔍 Bouton -->
-    <button type="submit" class="eco-search-btn">
-      Rechercher
-    </button>
-  </div>
-</form>
+  </form>
+</section
 
 
 <!-- ============================================================
