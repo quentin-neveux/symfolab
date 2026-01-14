@@ -306,89 +306,159 @@ return $this->render('historique/historique.html.twig', [
     }
 
     // ==========================================================
-    // ❌ ANNULER TRAJET (CONDUCTEUR)
-    // ==========================================================
-    #[Route('/trajet/{id}/annuler-conducteur', name: 'trajet_annuler_conducteur', methods: ['POST'])]
-    public function annulerTrajetConducteur(
-        Trajet $trajet,
-        EntityManagerInterface $em,
-        MailerService $mailer
-    ): Response {
-        $user = $this->getUser();
+// ❌ ANNULER TRAJET (CONDUCTEUR)
+// ==========================================================
+#[Route('/trajet/{id}/annuler-conducteur', name: 'trajet_annuler_conducteur', methods: ['POST'])]
+public function annulerTrajetConducteur(
+    Trajet $trajet,
+    \Symfony\Component\HttpFoundation\Request $request,
+    EntityManagerInterface $em,
+    MailerService $mailer
+): Response {
+    $user = $this->getUser();
 
-        if (!$user || $trajet->getConducteur() !== $user) {
-            $this->addFlash('danger', 'Action non autorisée.');
-            return $this->redirectToRoute('app_mes_trajets');
+    if (!$user || $trajet->getConducteur() !== $user) {
+        $this->addFlash('danger', 'Action non autorisée.');
+        return $this->redirectToRoute('app_mes_trajets');
+    }
+
+    // ✅ CSRF
+    if (!$this->isCsrfTokenValid('annuler_trajet_' . $trajet->getId(), (string) $request->request->get('_token'))) {
+        $this->addFlash('danger', 'Token CSRF invalide.');
+        return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+    }
+
+    if ($trajet->getDateDepart() <= new \DateTimeImmutable()) {
+        $this->addFlash('danger', 'Le trajet a déjà commencé.');
+        return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+    }
+
+    $em->beginTransaction();
+
+    try {
+        // ===============================
+        // 1) Remboursement fee conducteur (2 tokens) + débit plateforme
+        // ===============================
+        $alreadyRefunded = $em->getRepository(TokenTransaction::class)->findOneBy([
+            'user'     => $user,
+            'type'     => 'CREDIT',
+            'reason'   => 'REFUND_FEE_TRAJET_ANNULE',
+            'trajetId' => $trajet->getId(),
+        ]);
+
+        if (!$alreadyRefunded) {
+            // ➕ conducteur +2
+            $user->setTokens($user->getTokens() + Trajet::PLATFORM_FEE_TOKENS);
+
+            $refundDriver = new TokenTransaction();
+            $refundDriver->setUser($user);
+            $refundDriver->setAmount(Trajet::PLATFORM_FEE_TOKENS);
+            $refundDriver->setType('CREDIT');
+            $refundDriver->setReason('REFUND_FEE_TRAJET_ANNULE');
+            $refundDriver->setTrajetId($trajet->getId());
+            $refundDriver->setCreatedAt(new \DateTimeImmutable());
+            $em->persist($refundDriver);
+
+            // ➖ plateforme -2 (user id 510)
+            $platform = $em->getRepository(User::class)->find(510);
+            if (!$platform) {
+                throw new \RuntimeException('Compte plateforme introuvable (id=510).');
+            }
+
+            $platform->setTokens($platform->getTokens() - Trajet::PLATFORM_FEE_TOKENS);
+
+            $platformDebit = new TokenTransaction();
+            $platformDebit->setUser($platform);
+            $platformDebit->setAmount(Trajet::PLATFORM_FEE_TOKENS);
+            $platformDebit->setType('DEBIT');
+            $platformDebit->setReason('REFUND_PLATFORM_FEE');
+            $platformDebit->setTrajetId($trajet->getId());
+            $platformDebit->setCreatedAt(new \DateTimeImmutable());
+            $em->persist($platformDebit);
         }
 
-        if ($trajet->getDateDepart() <= new \DateTime()) {
-            $this->addFlash('danger', 'Le trajet a déjà commencé.');
-            return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
-        }
+        // ===============================
+        // 2) Remboursement passagers + suppression réservations
+        // ===============================
+        $reservations = $em->getRepository(TrajetPassager::class)->findBy(['trajet' => $trajet]);
 
-        $em->beginTransaction();
+        foreach ($reservations as $reservation) {
+            $passager = $reservation->getPassager();
 
-        try {
-            $reservations = $em->getRepository(TrajetPassager::class)
-                ->findBy(['trajet' => $trajet]);
+            if ($passager && method_exists($reservation, 'isPaid') && $reservation->isPaid()) {
+                // 💳 rembourse le vrai montant (trajet + fee plateforme)
+                $amount = method_exists($reservation, 'getTotalTokensCharged')
+                    ? (int) $reservation->getTotalTokensCharged()
+                    : 0;
 
-            foreach ($reservations as $reservation) {
-                $passager = $reservation->getPassager();
-
-                if ($passager) {
-                    $passager->setTokens($passager->getTokens() + 2);
+                if ($amount > 0) {
+                    $passager->setTokens($passager->getTokens() + $amount);
 
                     $refund = new TokenTransaction();
                     $refund->setUser($passager);
-                    $refund->setAmount(2);
+                    $refund->setAmount($amount);
                     $refund->setType('CREDIT');
-                    $refund->setReason('REFUND_ANNULATION_CONDUCTEUR');
+                    $refund->setReason('REFUND_TRAJET_ANNULE_PAR_CONDUCTEUR');
                     $refund->setTrajetId($trajet->getId());
+                    $refund->setCreatedAt(new \DateTimeImmutable());
                     $em->persist($refund);
                 }
-
-                $em->remove($reservation);
             }
 
-            $mailer->notifyCancellationByConducteur($trajet);
-
-            $em->remove($trajet);
-            $em->flush();
-            $em->commit();
-
-        } catch (\Throwable $e) {
-            $em->rollback();
-            throw $e;
+            $em->remove($reservation);
         }
 
-        $this->addFlash('info', 'Le trajet a été annulé.');
-        return $this->redirectToRoute('trajet_historique');
-    }
+        // ===============================
+        // 3) Email + suppression trajet
+        // ===============================
+        $mailer->notifyCancellationByConducteur($trajet);
 
-    // ==========================================================
-    // 🏁 ARRIVÉE À DESTINATION (CONDUCTEUR)
-    // ==========================================================
-    #[Route('/trajet/{id}/arrivee', name: 'trajet_arrivee', methods: ['POST'])]
-    public function arriveeDestination(
-        Trajet $trajet,
-        EntityManagerInterface $em,
-        MailerService $mailer
-    ): Response {
-        $user = $this->getUser();
-
-        if (!$user || $trajet->getConducteur() !== $user) {
-            $this->addFlash('danger', 'Action non autorisée.');
-            return $this->redirectToRoute('trajet_historique');
-        }
-
-        $trajet->setConducteurConfirmeFin(true);
+        $em->remove($trajet);
         $em->flush();
+        $em->commit();
 
-        // $mailer->notifyTrajetClosedToPassengers($trajet);
+    } catch (\Throwable $e) {
+        $em->rollback();
+        throw $e;
+    }
 
-        $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
+    $this->addFlash('success', 'Le trajet a été annulé. Les remboursements ont été effectués.');
+    return $this->redirectToRoute('app_home'); // ou 'trajet_historique' si tu préfères
+}
+
+
+// ==========================================================
+// 🏁 ARRIVÉE À DESTINATION (CONDUCTEUR)
+// ==========================================================
+#[Route('/trajet/{id}/arrivee', name: 'trajet_arrivee', methods: ['POST'])]
+public function arriveeDestination(
+    Trajet $trajet,
+    \Symfony\Component\HttpFoundation\Request $request,
+    EntityManagerInterface $em,
+    MailerService $mailer
+): Response {
+    $user = $this->getUser();
+
+    if (!$user || $trajet->getConducteur() !== $user) {
+        $this->addFlash('danger', 'Action non autorisée.');
         return $this->redirectToRoute('trajet_historique');
     }
+
+    // (optionnel mais recommandé) CSRF aussi ici
+    // if (!$this->isCsrfTokenValid('arrivee_trajet_' . $trajet->getId(), (string) $request->request->get('_token'))) {
+    //     $this->addFlash('danger', 'Token CSRF invalide.');
+    //     return $this->redirectToRoute('trajet_historique');
+    // }
+
+    $trajet->setConducteurConfirmeFin(true);
+    $em->flush();
+
+    // $mailer->notifyTrajetClosedToPassengers($trajet);
+
+    $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
+    return $this->redirectToRoute('trajet_historique');
+}
+
 
     // ==========================================================
 // ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
