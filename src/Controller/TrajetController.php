@@ -118,7 +118,7 @@ public function proposer(
         return $this->redirectToRoute('app_historique');
     }
 
-    return $this->render('trajet/proposer.html.twig', [
+    return $this->render('historique/historique.html.twig', [
         'form' => $form->createView(),
     ]);
 }
