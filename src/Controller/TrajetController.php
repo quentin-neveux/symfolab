@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
 use App\Entity\Vehicle;
