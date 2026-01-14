@@ -4,26 +4,13 @@
 
 {% block body %}
 
-{# ==========================
-   SAFE DEFAULTS (anti-null)
-========================== #}
+{# SAFE DEFAULTS (anti-null) #}
 {% set vd = ville_depart|default('') %}
 {% set va = ville_arrivee|default('') %}
 
-{# date_depart peut être string (GET) ou DateTime (controller) ou '' / null #}
-{% set date_value = '' %}
-{% set date_label = 'Dates flexibles' %}
+{# date_depart : on garde juste la string GET (ou vide) #}
+{% set date_value = app.request.query.get('date_depart')|default('') %}
 
-{% if date_depart is defined and date_depart is not empty %}
-  {% if date_depart is date %}
-    {% set date_value = date_depart|date('Y-m-d') %}
-    {% set date_label = date_depart|date('d/m/Y') %}
-  {% else %}
-    {# String venant du GET (ex: 2026-01-15) #}
-    {% set date_value = date_depart %}
-    {% set date_label = date_depart %}
-  {% endif %}
-{% endif %}
 
 {# ============================================================
    HEADER COMPACT MOBILE
@@ -40,10 +27,6 @@
         <i class="bi bi-sliders"></i> Filtrer
       </button>
     </div>
-
-    <p class="text-muted small mt-1">
-      {{ date_label }}
-    </p>
 
     <p class="fw-bold text-success mb-0 mt-3">
       {{ trajets is defined ? (trajets|length) : 0 }} trajet(s) disponible(s)
@@ -152,7 +135,7 @@
 
         {% if trajets is not defined or trajets is empty %}
 
-          <p class="text-muted text-center">Aucun trajet trouvé pour cette date.</p>
+          <p class="text-muted text-center">Aucun trajet trouvé.</p>
 
           <form id="search-form" action="{{ path('app_recherche') }}" method="get" class="mx-auto mb-4">
             <div class="eco-searchbar">
