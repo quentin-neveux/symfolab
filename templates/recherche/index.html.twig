@@ -10,15 +10,16 @@
 {% set vd = ville_depart|default('') %}
 {% set va = ville_arrivee|default('') %}
 
-{# date_depart peut être string (GET) ou DateTime (controller) ou null #}
+{# date_depart peut être string (GET) ou DateTime (controller) ou '' / null #}
 {% set date_value = '' %}
 {% set date_label = 'Dates flexibles' %}
 
-{% if date_depart is defined and date_depart is not null and date_depart is not same as(false) %}
+{% if date_depart is defined and date_depart is not empty %}
   {% if date_depart is date %}
     {% set date_value = date_depart|date('Y-m-d') %}
     {% set date_label = date_depart|date('d/m/Y') %}
   {% else %}
+    {# String venant du GET (ex: 2026-01-15) #}
     {% set date_value = date_depart %}
     {% set date_label = date_depart %}
   {% endif %}
@@ -87,12 +88,14 @@
             <h4 class="text-success fw-bold mb-3">Trier par</h4>
 
             <label class="d-block mb-2">
-              <input type="radio" name="sort" value="depart_asc" {% if app.request.get('sort') is null or app.request.get('sort') == 'depart_asc' %}checked{% endif %}>
+              <input type="radio" name="sort" value="depart_asc"
+                     {% if app.request.query.get('sort') is null or app.request.query.get('sort') == 'depart_asc' %}checked{% endif %}>
               Départ le plus tôt
             </label>
 
             <label class="d-block mb-2">
-              <input type="radio" name="sort" value="prix_asc" {% if app.request.get('sort') == 'prix_asc' %}checked{% endif %}>
+              <input type="radio" name="sort" value="prix_asc"
+                     {% if app.request.query.get('sort') == 'prix_asc' %}checked{% endif %}>
               Prix le plus bas
             </label>
 
@@ -100,8 +103,7 @@
 
             <h4 class="text-success fw-bold mb-3">Type de véhicule</h4>
 
-            {# ⚠️ FIX: get('energie') renvoie parfois string/null -> on normalise en array #}
-            {% set energies = app.request.query.all('energie') %}
+            {% set energies = app.request.query.all('energie')|default([]) %}
 
             <label class="d-block mb-2 ms-3">
               <input type="checkbox" name="energie[]" value="Électrique" {% if 'Électrique' in energies %}checked{% endif %}>
@@ -128,7 +130,7 @@
               class="form-control mb-3"
               name="prix_max"
               placeholder="ex : 50"
-              value="{{ app.request.get('prix_max')|default('') }}"
+              value="{{ app.request.query.get('prix_max')|default('') }}"
             >
 
             <div class="mt-4">
@@ -165,9 +167,7 @@
                   placeholder="Départ"
                   autocomplete="off"
                   required
-                  value="{{ vd }}"
                 >
-                <ul id="ville-depart-list" class="autocomplete-list" aria-label="Suggestions départ"></ul>
               </div>
 
               <div class="eco-search-field position-relative">
@@ -180,17 +180,15 @@
                   placeholder="Arrivée"
                   autocomplete="off"
                   required
-                  value="{{ va }}"
                 >
-                <ul id="ville-arrivee-list" class="autocomplete-list" aria-label="Suggestions arrivée"></ul>
               </div>
 
               <div class="eco-search-field">
                 <i class="bi bi-calendar-event text-success me-2"></i>
-                <input type="date" class="form-control" name="date_depart" value="{{ date_value }}">
+                <input type="date" class="form-control" name="date_depart">
               </div>
 
-              <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="{{ app.request.get('nb_passagers')|default('1') }}">
+              <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="1">
 
               <button type="submit" class="eco-search-btn">
                 Rechercher
