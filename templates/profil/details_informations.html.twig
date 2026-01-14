@@ -7,43 +7,53 @@
   <div class="row justify-content-center">
     <div class="col-lg-8">
 
-        {# ============================= EN-TÊTE PROFIL ============================= #}
-        <div class="profile-header d-flex flex-wrap align-items-center p-4 rounded shadow-sm mb-4 bg-white">
-          {# Avatar #}
-          <div class="me-4 mb-3 mb-md-0">
-            {% if app.user.photo %}
-              <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}" class="rounded-circle shadow-sm" alt="Profil" width="110" height="110">
-            {% else %}
-              <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width:110px;height:110px;font-size:2rem;">
-                {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
-                <span>{{ initials }}</span>
-              </div>
-            {% endif %}
-          </div>
+        {# =============================
+         EN-TÊTE PROFIL
+         ============================= #}
+      <div class="profile-header d-flex flex-wrap align-items-center p-4 rounded shadow-sm mb-4 bg-white">
 
-          {# Nom + ancienneté #}
-          <div class="flex-grow-1">
-            <h3 class="mb-1">{{ user.prenom }} {{ user.nom }}</h3>
-            <p class="text-muted mb-1">
-              Membre EcoRide depuis {{ user.createdAt|date('m/Y') }}
-            </p>
-            <p class="text-muted small mb-0">
-              Profil public visible uniquement aux membres connectés.
-            </p>
-          </div>
-
-          {# Note moyenne #}
-          {% if averageRating is defined and averageRating %}
-            <div class="d-flex align-items-center ms-md-4 mt-3 mt-md-0">
-              <span class="fw-bold me-2">{{ averageRating }}/5</span>
-              <span class="text-warning" style="font-size:1.3rem;">
-                {% for i in 1..5 %}
-                  {% if i <= averageRating %}★{% else %}☆{% endif %}
-                {% endfor %}
-              </span>
+        {# Avatar #}
+        <div class="me-4 mb-3 mb-md-0">
+          {% if app.user.photo %}
+            <img src="{{ asset('uploads/photos/' ~ app.user.photo) }}"
+                 class="rounded-circle shadow-sm"
+                 alt="Photo de profil"
+                 width="110" height="110">
+          {% else %}
+            <div class="profile-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
+                 style="width:110px;height:110px;font-size:2rem;">
+              {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+              <span>{{ initials }}</span>
             </div>
           {% endif %}
         </div>
+        </div>
+
+        {# Nom + ancienneté #}
+        <div class="flex-grow-1">
+          <h3 class="mb-1">{{ user.prenom }} {{ user.nom }}</h3>
+
+          <p class="text-muted mb-1">
+            Membre EcoRide depuis {{ user.createdAt|date('m/Y') }}
+          </p>
+
+          <p class="text-muted small mb-0">
+            Profil public visible uniquement aux membres connectés.
+          </p>
+        </div>
+
+        {# Note moyenne #}
+        {% if averageRating is defined and averageRating %}
+          <div class="d-flex align-items-center ms-md-4 mt-3 mt-md-0">
+            <span class="fw-bold me-2">{{ averageRating }}/5</span>
+            <span class="text-warning" style="font-size:1.3rem;">
+              {% for i in 1..5 %}
+                {% if i <= averageRating %}★{% else %}☆{% endif %}
+              {% endfor %}
+            </span>
+          </div>
+        {% endif %}
+      </div>
 
       {# =============================
          À PROPOS
