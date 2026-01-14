@@ -356,7 +356,7 @@ public function annulerTrajetConducteur(
             $refundDriver->setType('CREDIT');
             $refundDriver->setReason('REFUND_FEE_TRAJET_ANNULE');
             $refundDriver->setTrajetId($trajet->getId());
-            $refundDriver->setCreatedAt(new \DateTimeImmutable());
+            
             $em->persist($refundDriver);
 
             // ➖ plateforme -2 (user id 501)
@@ -373,7 +373,7 @@ public function annulerTrajetConducteur(
             $platformDebit->setType('DEBIT');
             $platformDebit->setReason('REFUND_PLATFORM_FEE');
             $platformDebit->setTrajetId($trajet->getId());
-            $platformDebit->setCreatedAt(new \DateTimeImmutable());
+            
             $em->persist($platformDebit);
         }
 
