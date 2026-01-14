@@ -312,7 +312,7 @@ return $this->render('historique/historique.html.twig', [
         ]);
     }
 
-    // ==========================================================
+// ==========================================================
 // ❌ ANNULER TRAJET (CONDUCTEUR)
 // ==========================================================
 #[Route('/trajet/{id}/annuler-conducteur', name: 'trajet_annuler_conducteur', methods: ['POST'])]
@@ -344,7 +344,7 @@ public function annulerTrajetConducteur(
 
     try {
         // ===============================
-        // 1) Remboursement fee conducteur (2 tokens) + débit plateforme
+        // 1) Remboursement conducteur (fee 2 tokens) — simple, sans “compte plateforme”
         // ===============================
         $alreadyRefunded = $em->getRepository(TokenTransaction::class)->findOneBy([
             'user'     => $user,
@@ -354,7 +354,6 @@ public function annulerTrajetConducteur(
         ]);
 
         if (!$alreadyRefunded) {
-            // ➕ conducteur +2
             $user->setTokens($user->getTokens() + Trajet::PLATFORM_FEE_TOKENS);
 
             $refundDriver = new TokenTransaction();
@@ -363,25 +362,8 @@ public function annulerTrajetConducteur(
             $refundDriver->setType('CREDIT');
             $refundDriver->setReason('REFUND_FEE_TRAJET_ANNULE');
             $refundDriver->setTrajetId($trajet->getId());
-            
+            // createdAt géré par __construct()
             $em->persist($refundDriver);
-
-            // ➖ plateforme -2 (user id 501)
-            $platform = $em->getRepository(User::class)->find(501);
-            if (!$platform) {
-                throw new \RuntimeException('Compte plateforme introuvable (id=501).');
-            }
-
-            $platform->setTokens($platform->getTokens() - Trajet::PLATFORM_FEE_TOKENS);
-
-            $platformDebit = new TokenTransaction();
-            $platformDebit->setUser($platform);
-            $platformDebit->setAmount(Trajet::PLATFORM_FEE_TOKENS);
-            $platformDebit->setType('DEBIT');
-            $platformDebit->setReason('REFUND_PLATFORM_FEE');
-            $platformDebit->setTrajetId($trajet->getId());
-            
-            $em->persist($platformDebit);
         }
 
         // ===============================
@@ -392,8 +374,9 @@ public function annulerTrajetConducteur(
         foreach ($reservations as $reservation) {
             $passager = $reservation->getPassager();
 
+            // On rembourse seulement si "paid"
             if ($passager && method_exists($reservation, 'isPaid') && $reservation->isPaid()) {
-                // 💳 rembourse le vrai montant (trajet + fee plateforme)
+
                 $amount = method_exists($reservation, 'getTotalTokensCharged')
                     ? (int) $reservation->getTotalTokensCharged()
                     : 0;
@@ -407,7 +390,7 @@ public function annulerTrajetConducteur(
                     $refund->setType('CREDIT');
                     $refund->setReason('REFUND_TRAJET_ANNULE_PAR_CONDUCTEUR');
                     $refund->setTrajetId($trajet->getId());
-                    $refund->setCreatedAt(new \DateTimeImmutable());
+                    // createdAt géré par __construct()
                     $em->persist($refund);
                 }
             }
@@ -430,8 +413,9 @@ public function annulerTrajetConducteur(
     }
 
     $this->addFlash('success', 'Le trajet a été annulé. Les remboursements ont été effectués.');
-    return $this->redirectToRoute('app_home'); // ou 'trajet_historique' si tu préfères
+    return $this->redirectToRoute('app_home');
 }
+
 
 
 // ==========================================================
