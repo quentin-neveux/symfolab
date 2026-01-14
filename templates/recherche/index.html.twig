@@ -11,21 +11,18 @@
 {% set va = ville_arrivee|default('') %}
 
 {# date_depart peut être string (GET) ou DateTime (controller) ou null #}
-{% set date_value =
-  date_depart is not defined or date_depart is null or date_depart is iterable or date_depart is same as(false) or date_depart is same as(true)
-    ? ''
-    : (date_depart is date ? date_depart|date('Y-m-d') : date_depart)
-%}
+{% set date_value = '' %}
+{% set date_label = 'Dates flexibles' %}
 
-{% set date_label =
-  date_depart is not defined or date_depart is null or date_value == ''
-    ? 'Dates flexibles'
-    : (
-        date_depart is date
-          ? date_depart|date('d/m/Y')
-          : date_value
-      )
-%}
+{% if date_depart is defined and date_depart is not null and date_depart is not same as(false) %}
+  {% if date_depart is date %}
+    {% set date_value = date_depart|date('Y-m-d') %}
+    {% set date_label = date_depart|date('d/m/Y') %}
+  {% else %}
+    {% set date_value = date_depart %}
+    {% set date_label = date_depart %}
+  {% endif %}
+{% endif %}
 
 {# ============================================================
    HEADER COMPACT MOBILE
@@ -54,7 +51,6 @@
   </div>
 </section>
 
-
 {# ============================================================
    HEADER DESKTOP
 ============================================================ #}
@@ -68,7 +64,6 @@
     </p>
   </div>
 </section>
-
 
 {# ============================================================
    CONTENU
@@ -105,7 +100,8 @@
 
             <h4 class="text-success fw-bold mb-3">Type de véhicule</h4>
 
-            {% set energies = app.request.get('energie') ?? [] %}
+            {# ⚠️ FIX: get('energie') renvoie parfois string/null -> on normalise en array #}
+            {% set energies = app.request.query.all('energie') %}
 
             <label class="d-block mb-2 ms-3">
               <input type="checkbox" name="energie[]" value="Électrique" {% if 'Électrique' in energies %}checked{% endif %}>
@@ -147,7 +143,6 @@
         </div>
       </aside>
 
-
       {# ============================================================
          LISTE DES TRAJETS
       ============================================================ #}
@@ -170,6 +165,7 @@
                   placeholder="Départ"
                   autocomplete="off"
                   required
+                  value="{{ vd }}"
                 >
                 <ul id="ville-depart-list" class="autocomplete-list" aria-label="Suggestions départ"></ul>
               </div>
@@ -184,16 +180,17 @@
                   placeholder="Arrivée"
                   autocomplete="off"
                   required
+                  value="{{ va }}"
                 >
                 <ul id="ville-arrivee-list" class="autocomplete-list" aria-label="Suggestions arrivée"></ul>
               </div>
 
               <div class="eco-search-field">
                 <i class="bi bi-calendar-event text-success me-2"></i>
-                <input type="date" class="form-control" name="date_depart">
+                <input type="date" class="form-control" name="date_depart" value="{{ date_value }}">
               </div>
 
-              <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="1">
+              <input type="hidden" name="nb_passagers" id="nb-passagers-input" value="{{ app.request.get('nb_passagers')|default('1') }}">
 
               <button type="submit" class="eco-search-btn">
                 Rechercher
@@ -288,7 +285,6 @@
     </div>
   </div>
 </section>
-
 
 {# ============================================================
    FILTRES MOBILE
