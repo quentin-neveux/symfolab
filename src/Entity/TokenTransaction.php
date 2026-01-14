@@ -14,11 +14,10 @@ class TokenTransaction
     private ?int $id = null;
 
     // 🔗 Utilisateur concerné (null possible pour opérations plateforme)
-    #[ORM\ManyToOne(targetEntity: User::class)]
-    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne]
     private ?User $user = null;
 
-    // 🔢 Nombre de tokens
+    // 🔢 Nombre de tokens (+ ou -)
     #[ORM\Column(type: 'integer')]
     private int $amount = 0;
 
@@ -104,7 +103,7 @@ class TokenTransaction
         return $this->createdAt;
     }
 
-    // ✅ Ajouté : utile si tu veux forcer une date (et évite ton 500)
+    // ✅ Ajout : pour éviter ton 500
     public function setCreatedAt(\DateTimeImmutable $createdAt): self
     {
         $this->createdAt = $createdAt;
