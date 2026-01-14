@@ -205,7 +205,7 @@
 
                     {# ===================== CONDUCTEUR ===================== #}
                     {% if isConducteur %}
-                    
+
                       {# ✅ Trajet terminé => plus d'actions conducteur #}
                       {% if isFinished %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
@@ -216,73 +216,70 @@
                            class="btn btn-ecoride py-3 rounded-pill w-100">
                           Modifier le trajet
                         </a>
-                    
+
                         <form method="post"
                               action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
                               onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
-                    
+
                           <input type="hidden"
                                  name="_token"
                                  value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
-                    
+
                           <button type="submit"
                                   class="btn btn-danger py-3 rounded-pill w-100">
                             Annuler le trajet
                           </button>
                         </form>
                       {% endif %}
-                    
+
                     {# ===================== PASSAGER ===================== #}
                     {% elseif isPassager %}
-                    
+
                       {# Trajet pas terminé => annulation possible #}
                       {% if not isFinished and not reservation.peutNoter() %}
                         <form method="post"
                               action="{{ path('trajet_annuler', { id: trajet.id }) }}"
                               onsubmit="return confirm('Voulez-vous vraiment annuler votre participation ?');"
                               class="d-grid">
-                    
+
                           <input type="hidden"
                                  name="_token"
                                  value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
-                    
+
                           {# Redirection après annulation #}
                           <input type="hidden"
                                  name="redirect"
                                  value="{{ path('app_home') }}">
-                    
+
                           <button type="submit"
                                   class="btn btn-outline-danger py-3 rounded-pill">
                             Annuler ma participation
                           </button>
                         </form>
                       {% endif %}
+                    {# ✅ Trajet terminé & conditions OK => avis + signalement #}
+                    {% if canReviewOrReport %}
+                      <a href="{{ path('app_review_new', { id: trajet.id }) }}"
+                         class="btn btn-success py-3 rounded-pill">
+                        ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
+                      </a>
                     
-                      {# ✅ Trajet terminé & conditions OK => avis + signalement #}
-                      {% if canReviewOrReport %}
-                        <a href="{{ path('app_review_new', { id: trajet.id }) }}"
-                           class="btn btn-success py-3 rounded-pill">
-                          ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
-                        </a>
+                      <a href="{{ path('trajet_signaler', { id: trajet.id }) }}"
+                         class="btn btn-outline-danger py-3 rounded-pill">
+                        ⚠ Signaler le trajet / conducteur
+                      </a>
+                    {% endif %}
                     
-                        <a href="{{ path('trajet_signaler', { id: trajet.id }) }}"
-                           class="btn btn-outline-danger py-3 rounded-pill">
-                          ⚠ Signaler le trajet / conducteur
-                        </a>
-                      {% endif %}
-                    
-                      {# Si trajets terminé mais pas "peutNoter", on informe (optionnel) #}
-                      {% if isFinished and not canReviewOrReport %}
-                        <div class="alert alert-success rounded-4 shadow-sm mb-0">
-                          Ce trajet est terminé.
-                        </div>
-                      {% endif %}
-                    
+                    {# Si trajets terminé mais pas "peutNoter", on informe (optionnel) #}
+                    {% if isFinished and not canReviewOrReport %}
+                      <div class="alert alert-success rounded-4 shadow-sm mb-0">
+                        Ce trajet est terminé.
+                      </div>
                     {% endif %}
                     
                     {# ===================== VISITEUR / NON PASSAGER ===================== #}
                     {% else %}
-
+                    
                       {# Si trajet terminé => pas de réservation #}
                       {% if isFinished %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
@@ -294,8 +291,9 @@
                           Réserver ce trajet
                         </a>
                       {% endif %}
-
+                    
                     {% endif %}
+                    
 
                   </div>
                 </div>
