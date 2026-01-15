@@ -226,6 +226,8 @@
                           Modifier le trajet
                         </a>
 
+                        {#  Annulation uniquement avant départ #}
+                        {% if not hasStarted %}
                         <form method="post"
                               action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
                               onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
@@ -248,7 +250,7 @@
                     {% elseif isPassager %}
 
                       {# 1) Tant que conducteur n'a pas terminé : annulation possible #}
-                      {% if not conducteurClosed %}
+                      {% if not conducteurClosed and not reservation.passagerConfirmeFin %}
                         <form method="post"
                               action="{{ path('trajet_annuler', { id: trajet.id }) }}"
                               onsubmit="return confirm('Voulez-vous vraiment annuler votre participation ?');"
