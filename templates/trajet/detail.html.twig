@@ -172,15 +172,29 @@
                 {# ===================== COLONNE DROITE ===================== #}
                 <div class="col-lg-4">
 
-                  {# isPassager déjà défini #}
-                  {% set canReviewOrReport = reservation and reservation.peutNoter() %}
+                  {% set isConducteur = app.user and trajet.conducteur and trajet.conducteur.id == app.user.id %}
+                  {% set isPassager = reservation is not null %}
+
+                  {# ✅ Terminé = dépend du rôle #}
+                  {% set isDone =
+                    isConducteur
+                      ? (trajet.conducteurConfirmeFin is defined and trajet.conducteurConfirmeFin)
+                      : (
+                          isPassager
+                          and (trajet.conducteurConfirmeFin is defined and trajet.conducteurConfirmeFin)
+                          and (reservation.passagerConfirmeFin is defined and reservation.passagerConfirmeFin)
+                        )
+                  %}
+
+                  {# ✅ “Clôturé conducteur” = conducteur a cliqué Terminer #}
+                  {% set conducteurClosed = (trajet.conducteurConfirmeFin is defined and trajet.conducteurConfirmeFin) %}
 
                   <div class="text-center mb-4">
                     <h3 class="text-success fw-bold mb-1">
                       {% if isConducteur %}
-                        {% if isFinished %}Trajet terminé{% else %}Gestion du trajet{% endif %}
+                        {% if conducteurClosed %}Trajet terminé{% else %}Gestion du trajet{% endif %}
                       {% elseif isPassager %}
-                        {% if isFinished %}Trajet terminé{% else %}Participation au trajet{% endif %}
+                        {% if isDone %}Trajet terminé{% elseif conducteurClosed %}Fin à confirmer{% else %}Participation au trajet{% endif %}
                       {% else %}
                         Réserver ce trajet
                       {% endif %}
@@ -190,9 +204,9 @@
                       {% if not app.user %}
                         Connexion requise
                       {% elseif isConducteur %}
-                        {% if isFinished %}Merci d'avoir conduit avec Ecoride !{% else %}Tu es le conducteur{% endif %}
+                        {% if conducteurClosed %}Merci d'avoir conduit avec EcoRide !{% else %}Tu es le conducteur{% endif %}
                       {% elseif isPassager %}
-                        {% if isFinished %}Merci d'avoir voyagé Ecoride !{% else %}Réservation confirmée{% endif %}
+                        {% if isDone %}Merci d'avoir voyagé EcoRide !{% elseif conducteurClosed %}Confirme la fin pour débloquer la note{% else %}Réservation confirmée{% endif %}
                       {% endif %}
                     </p>
                   </div>
@@ -202,7 +216,7 @@
                     {# ===================== CONDUCTEUR ===================== #}
                     {% if isConducteur %}
 
-                      {% if isFinished %}
+                      {% if conducteurClosed %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
                           Ce trajet est terminé. Les actions de modification/annulation ne sont plus disponibles.
                         </div>
@@ -215,14 +229,17 @@
                         <form method="post"
                               action="{{ path('trajet_annuler_conducteur', { id: trajet.id }) }}"
                               onsubmit="return confirm('Es-tu sûr de vouloir annuler ce trajet ?');">
-
-                          <input type="hidden"
-                                 name="_token"
-                                 value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
-
-                          <button type="submit"
-                                  class="btn btn-danger py-3 rounded-pill w-100">
+                          <input type="hidden" name="_token" value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
+                          <button type="submit" class="btn btn-danger py-3 rounded-pill w-100">
                             Annuler le trajet
+                          </button>
+                        </form>
+
+                        <form method="post"
+                              action="{{ path('trajet_arrivee', { id: trajet.id }) }}"
+                              onsubmit="return confirm('Marquer ce trajet comme terminé ?');">
+                          <button type="submit" class="btn btn-success py-3 rounded-pill w-100">
+                            Terminer
                           </button>
                         </form>
                       {% endif %}
@@ -230,30 +247,33 @@
                     {# ===================== PASSAGER ===================== #}
                     {% elseif isPassager %}
 
-                      {# Trajet pas terminé => annulation possible #}
-                      {% if not isFinished and reservation and not reservation.peutNoter() %}
+                      {# 1) Tant que conducteur n'a pas terminé : annulation possible #}
+                      {% if not conducteurClosed %}
                         <form method="post"
                               action="{{ path('trajet_annuler', { id: trajet.id }) }}"
                               onsubmit="return confirm('Voulez-vous vraiment annuler votre participation ?');"
                               class="d-grid">
-
-                          <input type="hidden"
-                                 name="_token"
-                                 value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
-
-                          <input type="hidden"
-                                 name="redirect"
-                                 value="{{ path('app_home') }}">
-
-                          <button type="submit"
-                                  class="btn btn-outline-danger py-3 rounded-pill">
+                          <input type="hidden" name="_token" value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
+                          <input type="hidden" name="redirect" value="{{ path('app_home') }}">
+                          <button type="submit" class="btn btn-outline-danger py-3 rounded-pill">
                             Annuler ma participation
                           </button>
                         </form>
                       {% endif %}
 
-                      {# ✅ Trajet terminé & conditions OK => avis + signalement #}
-                      {% if canReviewOrReport %}
+                      {# 2) Conducteur a terminé : le passager doit confirmer #}
+                      {% if canConfirmEnd %}
+                        <form method="post"
+                              action="{{ path('trajet_passager_confirmer_fin', { id: reservation.id }) }}"
+                              onsubmit="return confirm('Confirmer la fin du trajet ?');">
+                          <button type="submit" class="btn btn-success py-3 rounded-pill w-100">
+                            ✅ Confirmer la fin du trajet
+                          </button>
+                        </form>
+                      {% endif %}
+
+                      {# 3) Après confirmation des 2 côtés : avis + signalement #}
+                      {% if canReview %}
                         <a href="{{ path('app_review_new', { id: trajet.id }) }}"
                            class="btn btn-success py-3 rounded-pill">
                           ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
@@ -265,7 +285,8 @@
                         </a>
                       {% endif %}
 
-                      {% if isFinished and not canReviewOrReport %}
+                      {# 4) Terminé mais déjà noté #}
+                      {% if isDone and not canReview %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
                           Ce trajet est terminé.
                         </div>
@@ -274,7 +295,7 @@
                     {# ===================== VISITEUR / NON PASSAGER ===================== #}
                     {% else %}
 
-                      {% if isFinished %}
+                      {% if conducteurClosed %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
                           Ce trajet est terminé.
                         </div>
@@ -289,6 +310,7 @@
 
                   </div>
                 </div>
+
             </div>
         </div>
     </div>
