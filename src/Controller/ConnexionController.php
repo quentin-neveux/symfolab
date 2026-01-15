@@ -25,7 +25,7 @@ final class ConnexionController extends AbstractController
             }
 
             // Sinon, redirection par défaut vers le profil
-            return $this->redirectToRoute('app_profil');
+            return $this->redirectToRoute('app_home');
         }
 
         // Récupère la dernière erreur et le dernier identifiant saisi
