@@ -253,9 +253,9 @@ return $this->render('historique/historique.html.twig', [
     }
 
     // ==========================================================
-    // 🔧 FLATTEN
-    // ==========================================================
-    private function flattenTrajetForView(Trajet $trajet, string $role, ?TrajetPassager $reservation): array
+// 🔧 FLATTEN
+// ==========================================================
+private function flattenTrajetForView(Trajet $trajet, string $role, ?TrajetPassager $reservation): array
 {
     $dateDepart = $trajet->getDateDepart();
 
@@ -269,6 +269,17 @@ return $this->render('historique/historique.html.twig', [
         }
     }
 
+    $conducteurConfirmeFin = (bool) $trajet->isConducteurConfirmeFin();
+    $passagerConfirmeFin   = $reservation ? (bool) $reservation->isPassagerConfirmeFin() : false;
+
+    // ✅ Terminé "métier"
+    // - côté passager : les 2 confirmations sont nécessaires
+    // - côté conducteur : son action "Terminer" suffit à passer en "Passé" pour lui
+    $isDoneForPassenger = $conducteurConfirmeFin && $passagerConfirmeFin;
+    $isDoneForDriver    = $conducteurConfirmeFin;
+
+    $isDone = ($role === 'passager') ? $isDoneForPassenger : $isDoneForDriver;
+
     return [
         'id' => (int) $trajet->getId(),
 
@@ -281,14 +292,17 @@ return $this->render('historique/historique.html.twig', [
 
         'role' => $role,
 
-        'conducteurConfirmeFin' => (bool) $trajet->isConducteurConfirmeFin(),
-        'passagerConfirmeFin'   => $reservation ? (bool) $reservation->isPassagerConfirmeFin() : false,
+        'conducteurConfirme	                 imeFin' => $conducteurConfirmeFin,
+        'passagerConfirmeFin'   => $passagerConfirmeFin,
+
+        // ✅ Statut centralisé pour le Twig (ne dépend plus du temps)
+        'isDone' => $isDone,
 
         // ✅ indispensable pour le bouton "Confirmer" (route trajet_passager_confirmer_fin)
         'reservationId' => $reservation?->getId(),
 
-    'aDejaNote' => $aDejaNote,
-];
+        'aDejaNote' => $aDejaNote,
+    ];
 }
 
 // ==========================================================

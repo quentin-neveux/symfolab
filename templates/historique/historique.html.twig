@@ -42,13 +42,13 @@
 <tbody>
 {% for item in trajetsAvenir %}
 <tr class="clickable-row"
-    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+    data-href="{{ path('app_trajet_detail', {id: item.id}) }}">
   <td>{{ item.villeDepart }}</td>
   <td>{{ item.villeArrivee }}</td>
   <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
   <td>{{ item.tokenCost }} ECR</td>
   <td>
-    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+    <span class="badge {{ item.role == 'conducteur' ? 'bg-primary' : 'bg-info text-dark' }}">
       {{ item.role|capitalize }}
     </span>
   </td>
@@ -85,20 +85,20 @@
 <tbody>
 {% for item in trajetsAConfirmer %}
 <tr class="clickable-row"
-    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+    data-href="{{ path('app_trajet_detail', {id: item.id}) }}">
   <td>{{ item.villeDepart }}</td>
   <td>{{ item.villeArrivee }}</td>
   <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
   <td>{{ item.tokenCost }} ECR</td>
 
   <td>
-    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+    <span class="badge {{ item.role == 'conducteur' ? 'bg-primary' : 'bg-info text-dark' }}">
       {{ item.role|capitalize }}
     </span>
   </td>
 
-  {# ✅ STATUT METIER #}
-  {% set estVraimentTermine = item.finished %}
+  {# ✅ STATUT METIER (pas de date, pas de "finished" inexistant) #}
+  {% set estVraimentTermine = item.isDone %}
   <td>
     <span class="badge {{ estVraimentTermine ? 'bg-success' : 'bg-warning text-dark' }}">
       {{ estVraimentTermine ? 'Terminé' : 'En cours' }}
@@ -107,17 +107,17 @@
 
   <td class="text-end">
 
-    {# ✅ Conducteur : bouton terminer si pas encore confirmé #}
-    {% if item.role=='conducteur' and not item.conducteurConfirmeFin %}
+    {# ✅ Conducteur : bouton Terminer si pas encore confirmé #}
+    {% if item.role == 'conducteur' and not item.conducteurConfirmeFin %}
       <form method="post"
-            action="{{ path('trajet_arrivee',{id:item.id}) }}"
+            action="{{ path('trajet_arrivee', {id: item.id}) }}"
             class="d-inline"
             onsubmit="return confirm('Marquer ce trajet comme terminé ?');">
         <button class="btn btn-success btn-sm rounded-pill px-3">Terminer</button>
       </form>
 
-    {# ✅ Passager : annulation possible tant que trajet pas terminé (finished=false) #}
-    {% elseif item.role=='passager' and not estVraimentTermine %}
+    {# ✅ Passager : annulation possible tant que pas terminé POUR LUI (2 confirmations) #}
+    {% elseif item.role == 'passager' and not item.isDone %}
       <form method="post"
             action="{{ path('trajet_annuler', {id: item.id}) }}"
             class="d-inline"
@@ -164,20 +164,20 @@
 <tbody>
 {% for item in historiques %}
 <tr class="clickable-row"
-    data-href="{{ path('app_trajet_detail',{id:item.id}) }}">
+    data-href="{{ path('app_trajet_detail', {id: item.id}) }}">
   <td>{{ item.villeDepart }}</td>
   <td>{{ item.villeArrivee }}</td>
   <td>{{ item.dateDepart|date('d/m/Y H:i') }}</td>
   <td>{{ item.tokenCost }} ECR</td>
 
   <td>
-    <span class="badge {{ item.role=='conducteur'?'bg-primary':'bg-info text-dark' }}">
+    <span class="badge {{ item.role == 'conducteur' ? 'bg-primary' : 'bg-info text-dark' }}">
       {{ item.role|capitalize }}
     </span>
   </td>
 
   {# ✅ STATUT METIER #}
-  {% set estVraimentTermine = item.finished %}
+  {% set estVraimentTermine = item.isDone %}
   <td>
     <span class="badge {{ estVraimentTermine ? 'bg-success' : 'bg-secondary' }}">
       {{ estVraimentTermine ? 'Terminé' : 'Passé' }}
@@ -185,7 +185,7 @@
   </td>
 
   <td class="text-end text-success fw-semibold">
-    {% if item.role=='passager' and item.aDejaNote %}
+    {% if item.role == 'passager' and item.aDejaNote %}
       <span class="text-muted small">Déjà noté ✓</span>
     {% else %}
       Ouvrir →
