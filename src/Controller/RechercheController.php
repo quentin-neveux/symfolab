@@ -9,34 +9,43 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class RechercheController extends AbstractController
 {
     // ======================================================================
     // 🔍 PAGE DE RECHERCHE
     // ======================================================================
-    #[Route('/recherche', name: 'app_recherche')]
+    #[Route('/recherche', name: 'app_recherche', methods: ['GET'])]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
         // --------------------------------------------------
-        // PARAMÈTRES DE BASE + trim()
+        // PARAMÈTRES + trim + normalisation ("" => null)
         // --------------------------------------------------
-        $villeDepart  = $request->query->get('ville_depart');
-        $villeArrivee = $request->query->get('ville_arrivee');
-        $dateDepart   = $request->query->get('date_depart');
+        $villeDepartRaw  = trim((string) $request->query->get('ville_depart', ''));
+        $villeArriveeRaw = trim((string) $request->query->get('ville_arrivee', ''));
+        $dateDepartRaw   = trim((string) $request->query->get('date_depart', ''));
 
-        $villeDepart  = $villeDepart  ? trim($villeDepart)  : null;
-        $villeArrivee = $villeArrivee ? trim($villeArrivee) : null;
+        $villeDepart  = $villeDepartRaw !== '' ? $villeDepartRaw : null;
+        $villeArrivee = $villeArriveeRaw !== '' ? $villeArriveeRaw : null;
+        $dateDepart   = $dateDepartRaw !== '' ? $dateDepartRaw : null; // string "YYYY-MM-DD" ou null
 
         // --------------------------------------------------
         // FILTRES
         // --------------------------------------------------
-        $sort        = $request->query->get('sort', 'depart_asc');
-        $energies    = $request->query->all('energie');
+        $sort        = (string) $request->query->get('sort', 'depart_asc');
+        $energies    = (array) $request->query->all('energie');
         $tokenMaxRaw = $request->query->get('prix_max');
 
-        // Sécurité : si aucune recherche → retour page covoiturer
+        $tokenMax = null;
+        if ($tokenMaxRaw !== null && $tokenMaxRaw !== '') {
+            $tmp = (int) $tokenMaxRaw;
+            if ($tmp > 0) {
+                $tokenMax = $tmp;
+            }
+        }
+
+        // Sécurité : si aucune recherche → retour home
         if (!$villeDepart && !$villeArrivee && !$dateDepart) {
             return $this->redirectToRoute('app_home');
         }
@@ -44,64 +53,47 @@ class RechercheController extends AbstractController
         // --------------------------------------------------
         // QUERY BUILDER PRINCIPAL
         // --------------------------------------------------
-        $qb = $em->getRepository(Trajet::class)->createQueryBuilder('t');
-
-        $qb
+        $qb = $em->getRepository(Trajet::class)->createQueryBuilder('t')
             ->leftJoin('t.vehicle', 'v')
             ->addSelect('v')
             ->andWhere('t.dateDepart > :now')
             ->andWhere('t.placesDisponibles > 0')
             ->setParameter('now', new \DateTimeImmutable());
 
-        // --------------------------------------------------
-        // FILTRES DE RECHERCHE AVEC TRIM()
-        // --------------------------------------------------
+        // Filtres départ/arrivée (trim + case-insensitive)
         if ($villeDepart) {
-            $qb
-                ->andWhere('LOWER(TRIM(t.villeDepart)) LIKE LOWER(:vd)')
-                ->setParameter('vd', $villeDepart . '%');
+            $qb->andWhere('LOWER(TRIM(t.villeDepart)) LIKE LOWER(:vd)')
+               ->setParameter('vd', $villeDepart . '%');
         }
 
         if ($villeArrivee) {
-            $qb
-                ->andWhere('LOWER(TRIM(t.villeArrivee)) LIKE LOWER(:va)')
-                ->setParameter('va', $villeArrivee . '%');
+            $qb->andWhere('LOWER(TRIM(t.villeArrivee)) LIKE LOWER(:va)')
+               ->setParameter('va', $villeArrivee . '%');
         }
 
+        // Filtre date exact (uniquement si date renseignée)
         if ($dateDepart) {
             $start = (new \DateTimeImmutable($dateDepart))->setTime(0, 0, 0);
             $end   = (new \DateTimeImmutable($dateDepart))->setTime(23, 59, 59);
-            $qb
-                ->andWhere('t.dateDepart BETWEEN :start AND :end')
-                ->setParameter('start', $start)
-                ->setParameter('end', $end);
+
+            $qb->andWhere('t.dateDepart BETWEEN :start AND :end')
+               ->setParameter('start', $start)
+               ->setParameter('end', $end);
         }
 
-        // --------------------------------------------------
-        // FILTRE ÉNERGIE
-        // --------------------------------------------------
+        // Filtre énergie
         if (!empty($energies)) {
-            $qb
-                ->andWhere('v.energie IN (:energies)')
-                ->setParameter('energies', $energies);
+            $qb->andWhere('v.energie IN (:energies)')
+               ->setParameter('energies', $energies);
         }
 
-        // --------------------------------------------------
-        // FILTRE TOKENS (ancien "prix_max")
-        // --------------------------------------------------
-        $tokenMax = null;
-        if ($tokenMaxRaw !== null && $tokenMaxRaw !== '') {
-            $tokenMax = (int) $tokenMaxRaw;
-            if ($tokenMax > 0) {
-                $qb
-                    ->andWhere('t.tokenCost <= :tokenMax')
-                    ->setParameter('tokenMax', $tokenMax);
-            }
+        // Filtre tokens max
+        if ($tokenMax !== null) {
+            $qb->andWhere('t.tokenCost <= :tokenMax')
+               ->setParameter('tokenMax', $tokenMax);
         }
 
-        // --------------------------------------------------
-        // TRI
-        // --------------------------------------------------
+        // Tri
         switch ($sort) {
             case 'prix_asc':
                 $qb->orderBy('t.tokenCost', 'ASC');
@@ -112,15 +104,12 @@ class RechercheController extends AbstractController
                 break;
         }
 
-        // --------------------------------------------------
-        // EXÉCUTION
-        // --------------------------------------------------
+        // Exécution
         $trajets = $qb->getQuery()->getResult();
 
         // --------------------------------------------------
         // ✅ FALLBACK : mêmes villes, autres dates (prochains trajets)
-        // - uniquement si une date a été saisie ET aucun résultat
-        // - on garde les mêmes filtres (energie, tokenMax)
+        // 👉 UNIQUEMENT si une date a été saisie ET aucun résultat
         // --------------------------------------------------
         $trajetsFallback = [];
         $fallbackActive = false;
@@ -136,40 +125,40 @@ class RechercheController extends AbstractController
                 ->setParameter('now', new \DateTimeImmutable());
 
             if ($villeDepart) {
-                $qbFallback
-                    ->andWhere('LOWER(TRIM(tf.villeDepart)) LIKE LOWER(:vd_fb)')
-                    ->setParameter('vd_fb', $villeDepart . '%');
+                $qbFallback->andWhere('LOWER(TRIM(tf.villeDepart)) LIKE LOWER(:vd_fb)')
+                           ->setParameter('vd_fb', $villeDepart . '%');
             }
 
             if ($villeArrivee) {
-                $qbFallback
-                    ->andWhere('LOWER(TRIM(tf.villeArrivee)) LIKE LOWER(:va_fb)')
-                    ->setParameter('va_fb', $villeArrivee . '%');
+                $qbFallback->andWhere('LOWER(TRIM(tf.villeArrivee)) LIKE LOWER(:va_fb)')
+                           ->setParameter('va_fb', $villeArrivee . '%');
             }
 
             if (!empty($energies)) {
-                $qbFallback
-                    ->andWhere('vf.energie IN (:energies_fb)')
-                    ->setParameter('energies_fb', $energies);
+                $qbFallback->andWhere('vf.energie IN (:energies_fb)')
+                           ->setParameter('energies_fb', $energies);
             }
 
-            if ($tokenMax !== null && $tokenMax > 0) {
-                $qbFallback
-                    ->andWhere('tf.tokenCost <= :tokenMax_fb')
-                    ->setParameter('tokenMax_fb', $tokenMax);
+            if ($tokenMax !== null) {
+                $qbFallback->andWhere('tf.tokenCost <= :tokenMax_fb')
+                           ->setParameter('tokenMax_fb', $tokenMax);
             }
 
-            // ✅ IMPORTANT : ici on NE remet PAS le filtre de date exact
-            $qbFallback
-                ->orderBy('tf.dateDepart', 'ASC')
-                ->setMaxResults(10);
+            // ✅ on ne remet PAS le filtre date exact
+            $qbFallback->orderBy('tf.dateDepart', 'ASC')
+                       ->setMaxResults(10);
 
             $trajetsFallback = $qbFallback->getQuery()->getResult();
         }
 
         // --------------------------------------------------
-        // SUGGESTION (1 seul trajet) - on laisse, mais on l'aligne :
-        // si fallback existe, suggestion devient le 1er du fallback
+        // ✅ SUGGESTION (1 seul trajet)
+        // Règle : uniquement utile si pas de trajets
+        // - si fallback existe : 1er fallback
+        // - sinon : 1er trajet futur (mêmes villes si possible)
+        // ⚠️ IMPORTANT : si date pas renseignée, on ne veut PAS déclencher des suggestions "date" :
+        // on laisse quand même la suggestion possible mais seulement si aucun trajet.
+        // (Ton twig peut choisir de l’afficher uniquement si date_value non vide.)
         // --------------------------------------------------
         $trajetSuggestion = null;
 
@@ -187,28 +176,22 @@ class RechercheController extends AbstractController
                     ->setMaxResults(1);
 
                 if ($villeDepart) {
-                    $qb2
-                        ->andWhere('LOWER(TRIM(ts.villeDepart)) LIKE LOWER(:vd_sug)')
+                    $qb2->andWhere('LOWER(TRIM(ts.villeDepart)) LIKE LOWER(:vd_sug)')
                         ->setParameter('vd_sug', $villeDepart . '%');
                 }
 
                 if ($villeArrivee) {
-                    $qb2
-                        ->andWhere('LOWER(TRIM(ts.villeArrivee)) LIKE LOWER(:va_sug)')
+                    $qb2->andWhere('LOWER(TRIM(ts.villeArrivee)) LIKE LOWER(:va_sug)')
                         ->setParameter('va_sug', $villeArrivee . '%');
                 }
 
-                // ⚠️ ici on ne filtre PAS sur la date exacte non plus,
-                // sinon ta suggestion redevient inutile quand la date ne matche pas.
                 if (!empty($energies)) {
-                    $qb2
-                        ->andWhere('v2.energie IN (:energies_sug)')
+                    $qb2->andWhere('v2.energie IN (:energies_sug)')
                         ->setParameter('energies_sug', $energies);
                 }
 
-                if ($tokenMax !== null && $tokenMax > 0) {
-                    $qb2
-                        ->andWhere('ts.tokenCost <= :tokenMax_sug')
+                if ($tokenMax !== null) {
+                    $qb2->andWhere('ts.tokenCost <= :tokenMax_sug')
                         ->setParameter('tokenMax_sug', $tokenMax);
                 }
 
@@ -216,11 +199,10 @@ class RechercheController extends AbstractController
             }
         }
 
-        // --------------------------------------------------
-        // RENDER
-        // --------------------------------------------------
         return $this->render('recherche/index.html.twig', [
             'trajets'          => $trajets,
+
+            // fallback = liste “prochains trajets même route”
             'trajetsFallback'  => $trajetsFallback,
             'fallbackActive'   => $fallbackActive,
 
@@ -235,13 +217,12 @@ class RechercheController extends AbstractController
     // ======================================================================
     // 🔵 DETAIL TRAJET
     // ======================================================================
-    #[Route('/trajet/{id}', name: 'app_trajet_detail', requirements: ['id' => '\d+'])]
+    #[Route('/trajet/{id}', name: 'app_trajet_detail', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function detail(
         Trajet $trajet,
         Request $request,
         EntityManagerInterface $em
     ): Response {
-
         if (!$this->getUser()) {
             $request->getSession()->set(
                 'redirect_after_login',
@@ -254,41 +235,33 @@ class RechercheController extends AbstractController
         /** @var \App\Entity\User $user */
         $user = $this->getUser();
 
-        // --------------------------------------------------
-        // AVIS CONDUCTEUR
-        // --------------------------------------------------
+        // Avis conducteur
         $reviewRepo = $em->getRepository(Review::class);
         $averageRating = $reviewRepo->getAverageRatingForUser($trajet->getConducteur()->getId());
         $reviews = $reviewRepo->getReviewsForUser($trajet->getConducteur()->getId());
 
-        // --------------------------------------------------
-        // RÉSERVATION
-        // --------------------------------------------------
+        // Réservation passager
         $reservation = $em->getRepository(TrajetPassager::class)->findOneBy([
             'trajet'   => $trajet,
-            'passager' => $user
+            'passager' => $user,
         ]);
 
-        // --------------------------------------------------
-        // PASSAGERS (pour la liste côté Twig)
-        // --------------------------------------------------
+        // Passagers (liste)
         $passagers = $em->getRepository(TrajetPassager::class)->findBy([
-            'trajet' => $trajet
+            'trajet' => $trajet,
         ]);
 
         $canConfirmEnd = false;
         $canReview = false;
 
         if ($reservation) {
-
-            // ✅ le passager peut confirmer la fin si le conducteur a confirmé (et lui pas encore)
+            // le passager peut confirmer la fin si le conducteur a confirmé (et lui pas encore)
             if (!$reservation->isPassagerConfirmeFin() && $trajet->isConducteurConfirmeFin()) {
                 $canConfirmEnd = true;
             }
 
-            // ✅ avis uniquement quand le trajet est VRAIMENT terminé (finished=true)
+            // avis uniquement quand le trajet est vraiment terminé
             if ($trajet->isFinished() && $user !== $trajet->getConducteur()) {
-
                 $existingReview = $reviewRepo->findOneBy([
                     'author' => $user,
                     'target' => $trajet->getConducteur(),
