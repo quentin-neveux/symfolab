@@ -24,7 +24,7 @@ final class ConnexionController extends AbstractController
                 return $this->redirect($url);
             }
 
-            // Sinon, redirection par défaut vers le profil
+            // Sinon, redirection par défaut vers le home
             return $this->redirectToRoute('app_home');
         }
 

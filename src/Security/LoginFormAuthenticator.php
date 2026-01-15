@@ -65,7 +65,7 @@ class LoginFormAuthenticator extends AbstractLoginFormAuthenticator
 
         // fallback propre
         return new RedirectResponse(
-            $this->urlGenerator->generate('app_profil')
+            $this->urlGenerator->generate('app_home')
         );
     }
 
