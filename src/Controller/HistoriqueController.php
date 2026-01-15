@@ -53,7 +53,7 @@ $averageRating = $reviewRepo->getAverageRatingForUser(
     $trajet->getConducteur()->getId()
 );
 
-return $this->render('historique/trajet_show.html.twig', [
+return $this->render('historique/historique.html.twig', [
     'trajet'        => $trajet,
     'reservation'   => $reservation,
     'passagers'     => $passagers,
