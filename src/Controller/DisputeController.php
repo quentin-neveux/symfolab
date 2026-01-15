@@ -96,8 +96,8 @@ class DisputeController extends AbstractController
             $this->addFlash('success', 'Signalement envoyé.');
             return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
         }
-dump(__FILE__);
-dump('TEMPLATE: admin/dispute/show.html.twig'); // ou le vrai path
+// dump(__FILE__);
+// dump('TEMPLATE: admin/dispute/show.html.twig'); // ou le vrai path
 
         return $this->render('dispute/new.html.twig', [
             'trajet' => $trajet,
