@@ -97,15 +97,17 @@
     </span>
   </td>
 
-  {% set estTermine = item.conducteurConfirmeFin or item.passagerConfirmeFin %}
+  {# ✅ STATUT METIER #}
+  {% set estVraimentTermine = item.finished %}
   <td>
-    <span class="badge {{ estTermine ? 'bg-success' : 'bg-warning text-dark' }}">
-      {{ estTermine ? 'Terminé' : 'En cours' }}
+    <span class="badge {{ estVraimentTermine ? 'bg-success' : 'bg-warning text-dark' }}">
+      {{ estVraimentTermine ? 'Terminé' : 'En cours' }}
     </span>
   </td>
 
   <td class="text-end">
 
+    {# ✅ Conducteur : bouton terminer si pas encore confirmé #}
     {% if item.role=='conducteur' and not item.conducteurConfirmeFin %}
       <form method="post"
             action="{{ path('trajet_arrivee',{id:item.id}) }}"
@@ -114,7 +116,8 @@
         <button class="btn btn-success btn-sm rounded-pill px-3">Terminer</button>
       </form>
 
-    {% elseif item.role=='passager' and not estTermine %}
+    {# ✅ Passager : annulation possible tant que trajet pas terminé (finished=false) #}
+    {% elseif item.role=='passager' and not estVraimentTermine %}
       <form method="post"
             action="{{ path('trajet_annuler', {id: item.id}) }}"
             class="d-inline"
@@ -123,6 +126,7 @@
         <input type="hidden" name="redirect" value="{{ path('app_home') }}">
         <button class="btn btn-outline-danger btn-sm rounded-pill px-3">Annuler</button>
       </form>
+
     {% else %}
       <span class="text-muted small">En attente</span>
     {% endif %}
@@ -172,10 +176,11 @@
     </span>
   </td>
 
-  {% set estTermine = item.conducteurConfirmeFin or item.passagerConfirmeFin %}
+  {# ✅ STATUT METIER #}
+  {% set estVraimentTermine = item.finished %}
   <td>
-    <span class="badge {{ estTermine ? 'bg-success' : 'bg-warning text-dark' }}">
-      {{ estTermine ? 'Terminé' : 'En attente' }}
+    <span class="badge {{ estVraimentTermine ? 'bg-success' : 'bg-secondary' }}">
+      {{ estVraimentTermine ? 'Terminé' : 'Passé' }}
     </span>
   </td>
 

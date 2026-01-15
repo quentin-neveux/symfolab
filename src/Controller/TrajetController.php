@@ -157,45 +157,47 @@ public function proposer(
             ->setParameter('limit', $limit)
             ->getQuery()->getResult();
 
-        // EN COURS
-        $trajetsAConfirmerConducteur = $trajetRepo->createQueryBuilder('t')
-            ->andWhere('t.conducteur = :u')
-            ->andWhere('t.dateDepart <= :limit')
-            ->andWhere('t.dateArrivee IS NULL')
-            ->andWhere('(t.conducteurConfirmeFin = false OR t.conducteurConfirmeFin IS NULL)')
-            ->setParameter('u', $user)
-            ->setParameter('limit', (new \DateTimeImmutable())->modify('+1 hour'))
-            ->orderBy('t.dateDepart', 'DESC')
-            ->getQuery()
-            ->getResult();
-         
+// EN COURS (pas fini)
+$trajetsAConfirmerConducteur = $trajetRepo->createQueryBuilder('t')
+    ->andWhere('t.conducteur = :u')
+    ->andWhere('t.dateDepart <= :limit')
+    ->andWhere('(t.finished = false OR t.finished IS NULL)')
+    ->setParameter('u', $user)
+    ->setParameter('limit', $limit)
+    ->orderBy('t.dateDepart', 'DESC')
+    ->getQuery()
+    ->getResult();
 
-        $reservationsAConfirmerPassager = $tpRepo->createQueryBuilder('tp')
-            ->leftJoin('tp.trajet', 't')
-            ->addSelect('t')
-            ->andWhere('tp.passager = :u')
-            ->andWhere('t.dateDepart <= :limit')
-            ->andWhere('t.dateArrivee IS NULL')
-            ->andWhere('(tp.passagerConfirmeFin = false OR tp.passagerConfirmeFin IS NULL)')
-            ->setParameter('u', $user)
-            ->setParameter('limit', (new \DateTimeImmutable())->modify('+1 hour'))
-            ->orderBy('t.dateDepart', 'DESC')
-            ->getQuery()
-            ->getResult();
+$reservationsAConfirmerPassager = $tpRepo->createQueryBuilder('tp')
+    ->leftJoin('tp.trajet', 't')
+    ->addSelect('t')
+    ->andWhere('tp.passager = :u')
+    ->andWhere('t.dateDepart <= :limit')
+    ->andWhere('(t.finished = false OR t.finished IS NULL)')
+    ->setParameter('u', $user)
+    ->setParameter('limit', $limit)
+    ->orderBy('t.dateDepart', 'DESC')
+    ->getQuery()
+    ->getResult();
 
-        // PASSES
-        $trajetsPassesConducteur = $trajetRepo->createQueryBuilder('t')
-            ->andWhere('t.conducteur = :u')
-            ->andWhere('t.dateArrivee IS NOT NULL OR t.conducteurConfirmeFin = true')
-            ->setParameter('u', $user)
-            ->getQuery()->getResult();
+// PASSÉS = terminés réels (finished=true)
+$trajetsPassesConducteur = $trajetRepo->createQueryBuilder('t')
+    ->andWhere('t.conducteur = :u')
+    ->andWhere('t.finished = true')
+    ->setParameter('u', $user)
+    ->orderBy('t.dateDepart', 'DESC')
+    ->getQuery()
+    ->getResult();
 
-        $reservationsPassesPassager = $tpRepo->createQueryBuilder('tp')
-            ->leftJoin('tp.trajet', 't')->addSelect('t')
-            ->andWhere('tp.passager = :u')
-            ->andWhere('t.dateArrivee IS NOT NULL OR tp.passagerConfirmeFin = true')
-            ->setParameter('u', $user)
-            ->getQuery()->getResult();
+$reservationsPassesPassager = $tpRepo->createQueryBuilder('tp')
+    ->leftJoin('tp.trajet', 't')->addSelect('t')
+    ->andWhere('tp.passager = :u')
+    ->andWhere('t.finished = true')
+    ->setParameter('u', $user)
+    ->orderBy('t.dateDepart', 'DESC')
+    ->getQuery()
+    ->getResult();
+
 
 // =========================
 // FUSION
