@@ -157,46 +157,54 @@ public function proposer(
             ->setParameter('limit', $limit)
             ->getQuery()->getResult();
 
-// EN COURS (pas fini)
-$trajetsAConfirmerConducteur = $trajetRepo->createQueryBuilder('t')
+// EN COURS / PASSÉS (on récupère tout <= limit, puis on split en PHP via isFinished())
+$trajetsConducteurAvantLimit = $trajetRepo->createQueryBuilder('t')
     ->andWhere('t.conducteur = :u')
     ->andWhere('t.dateDepart <= :limit')
-    ->andWhere('(t.finished = false OR t.finished IS NULL)')
     ->setParameter('u', $user)
     ->setParameter('limit', $limit)
     ->orderBy('t.dateDepart', 'DESC')
     ->getQuery()
     ->getResult();
 
-$reservationsAConfirmerPassager = $tpRepo->createQueryBuilder('tp')
+$reservationsPassagerAvantLimit = $tpRepo->createQueryBuilder('tp')
     ->leftJoin('tp.trajet', 't')
     ->addSelect('t')
     ->andWhere('tp.passager = :u')
     ->andWhere('t.dateDepart <= :limit')
-    ->andWhere('(t.finished = false OR t.finished IS NULL)')
     ->setParameter('u', $user)
     ->setParameter('limit', $limit)
     ->orderBy('t.dateDepart', 'DESC')
     ->getQuery()
     ->getResult();
 
-// PASSÉS = terminés réels (finished=true)
-$trajetsPassesConducteur = $trajetRepo->createQueryBuilder('t')
-    ->andWhere('t.conducteur = :u')
-    ->andWhere('t.finished = true')
-    ->setParameter('u', $user)
-    ->orderBy('t.dateDepart', 'DESC')
-    ->getQuery()
-    ->getResult();
+// Split conducteur
+$trajetsAConfirmerConducteur = [];
+$trajetsPassesConducteur = [];
 
-$reservationsPassesPassager = $tpRepo->createQueryBuilder('tp')
-    ->leftJoin('tp.trajet', 't')->addSelect('t')
-    ->andWhere('tp.passager = :u')
-    ->andWhere('t.finished = true')
-    ->setParameter('u', $user)
-    ->orderBy('t.dateDepart', 'DESC')
-    ->getQuery()
-    ->getResult();
+foreach ($trajetsConducteurAvantLimit as $t) {
+    if ($t->isFinished()) {
+        $trajetsPassesConducteur[] = $t;
+    } else {
+        $trajetsAConfirmerConducteur[] = $t;
+    }
+}
+
+// Split passager
+$reservationsAConfirmerPassager = [];
+$reservationsPassesPassager = [];
+
+foreach ($reservationsPassagerAvantLimit as $r) {
+    $t = $r->getTrajet();
+    if (!$t) continue;
+
+    if ($t->isFinished()) {
+        $reservationsPassesPassager[] = $r;
+    } else {
+        $reservationsAConfirmerPassager[] = $r;
+    }
+}
+
 
 
 // =========================
