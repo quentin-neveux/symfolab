@@ -20,18 +20,16 @@
                 {% set isConducteur = app.user and trajet.conducteur and trajet.conducteur.id == app.user.id %}
                 {% set isPassager = reservation is not null %}
 
-                {# ✅ IMPORTANT : ne JAMAIS utiliser dateArrivee pour "terminé"
-                   (dateArrivee peut exister dès la création du trajet)
-                #}
-                {# Le trajet est "terminé" seulement si tu as un flag métier, pas via une date prévue #}
-                {% set isFinished =
-                  (trajet.conducteurConfirmeFin is defined and trajet.conducteurConfirmeFin)
-                  or (trajet.finished is defined and trajet.finished)
-                %}
-                
-                {# Optionnel : juste pour l'UI (trajet passé dans le temps) #}
-                {% set isPast = trajet.dateDepart < "now"|date %}
-                
+                {# ✅ Trajet terminé = uniquement flag métier finished #}
+                {% set isFinished = trajet.finished %}
+
+                {# ✅ Optionnel UI : trajet dans le passé (DateTime vs DateTime) #}
+                {% set isPast = trajet.dateDepart < date('now') %}
+
+                {# ✅ Passagers : on garde la variable controller si elle existe, sinon fallback sur relation #}
+                {% if passagers is not defined %}
+                    {% set passagers = trajet.trajetPassagers is defined ? trajet.trajetPassagers : [] %}
+                {% endif %}
 
                 {# ===================== COLONNE GAUCHE ===================== #}
                 <div class="col-lg-8">
@@ -65,9 +63,9 @@
 
                     {# ===================== CONDUCTEUR ===================== #}
                     <h4 class="text-success fw-bold mb-3">Conducteur</h4>
-                    
+
                     <div class="d-flex gap-3 align-items-start mb-4">
-                    
+
                         {% if trajet.conducteur.photo %}
                             <img src="{{ asset('uploads/photos/' ~ trajet.conducteur.photo) }}"
                                  class="rounded shadow-sm conducteur-photo"
@@ -79,12 +77,12 @@
                                 {{ (initialPrenom ~ initialNom)|trim ?: '?' }}
                             </div>
                         {% endif %}
-                    
+
                         <div>
                             <p class="fw-semibold mb-1">
                                 {{ trajet.conducteur.prenom }} {{ trajet.conducteur.nom }}
                             </p>
-                    
+
                             {% if averageRating %}
                                 <div class="d-flex align-items-center">
                                     <span class="fw-semibold me-2">{{ averageRating }}/5</span>
@@ -97,8 +95,7 @@
                             {% else %}
                                 <p class="text-muted fst-italic mb-0">Aucune note</p>
                             {% endif %}
-                    
-                            {# Lien vers profil public conducteur (uniquement si connecté) #}
+
                             {% if app.user %}
                                 <div class="mt-2">
                                     <a href="{{ path('app_profil_public', { id: trajet.conducteur.id }) }}"
@@ -109,7 +106,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     {% if trajet.conducteur.telephone %}
                         {% set canSeePhone =
                             app.user and (
@@ -117,7 +114,7 @@
                                 or reservation
                             )
                         %}
-                    
+
                         {% if canSeePhone %}
                             <div class="mt-2 mb-4">
                                 <span class="fw-semibold">Téléphone :</span>
@@ -131,7 +128,6 @@
                             </div>
                         {% endif %}
                     {% endif %}
-                    
 
                     {# ===================== PASSAGERS (VISIBLE QUAND TERMINÉ OU CONDUCTEUR) ===================== #}
                     {% if isConducteur or isFinished %}
@@ -176,8 +172,8 @@
                 {# ===================== COLONNE DROITE ===================== #}
                 <div class="col-lg-4">
 
-                  {% set isPassager = reservation is not null %}
-                  {% set canReviewOrReport = isPassager and reservation.peutNoter() %}
+                  {# isPassager déjà défini #}
+                  {% set canReviewOrReport = reservation and reservation.peutNoter() %}
 
                   <div class="text-center mb-4">
                     <h3 class="text-success fw-bold mb-1">
@@ -206,7 +202,6 @@
                     {# ===================== CONDUCTEUR ===================== #}
                     {% if isConducteur %}
 
-                      {# ✅ Trajet terminé => plus d'actions conducteur #}
                       {% if isFinished %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
                           Ce trajet est terminé. Les actions de modification/annulation ne sont plus disponibles.
@@ -236,7 +231,7 @@
                     {% elseif isPassager %}
 
                       {# Trajet pas terminé => annulation possible #}
-                      {% if not isFinished and not reservation.peutNoter() %}
+                      {% if not isFinished and reservation and not reservation.peutNoter() %}
                         <form method="post"
                               action="{{ path('trajet_annuler', { id: trajet.id }) }}"
                               onsubmit="return confirm('Voulez-vous vraiment annuler votre participation ?');"
@@ -246,7 +241,6 @@
                                  name="_token"
                                  value="{{ csrf_token('annuler_trajet_' ~ trajet.id) }}">
 
-                          {# Redirection après annulation #}
                           <input type="hidden"
                                  name="redirect"
                                  value="{{ path('app_home') }}">
@@ -257,30 +251,29 @@
                           </button>
                         </form>
                       {% endif %}
-                    {# ✅ Trajet terminé & conditions OK => avis + signalement #}
-                    {% if canReviewOrReport %}
-                      <a href="{{ path('app_review_new', { id: trajet.id }) }}"
-                         class="btn btn-success py-3 rounded-pill">
-                        ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
-                      </a>
-                    
-                      <a href="{{ path('trajet_signaler', { id: trajet.id }) }}"
-                         class="btn btn-outline-danger py-3 rounded-pill">
-                        ⚠ Signaler le trajet / conducteur
-                      </a>
-                    {% endif %}
-                    
-                    {# Si trajets terminé mais pas "peutNoter", on informe (optionnel) #}
-                    {% if isFinished and not canReviewOrReport %}
-                      <div class="alert alert-success rounded-4 shadow-sm mb-0">
-                        Ce trajet est terminé.
-                      </div>
-                    {% endif %}
-                    
+
+                      {# ✅ Trajet terminé & conditions OK => avis + signalement #}
+                      {% if canReviewOrReport %}
+                        <a href="{{ path('app_review_new', { id: trajet.id }) }}"
+                           class="btn btn-success py-3 rounded-pill">
+                          ⭐ Laisser un avis sur {{ trajet.conducteur.prenom }}
+                        </a>
+
+                        <a href="{{ path('trajet_signaler', { id: trajet.id }) }}"
+                           class="btn btn-outline-danger py-3 rounded-pill">
+                          ⚠ Signaler le trajet / conducteur
+                        </a>
+                      {% endif %}
+
+                      {% if isFinished and not canReviewOrReport %}
+                        <div class="alert alert-success rounded-4 shadow-sm mb-0">
+                          Ce trajet est terminé.
+                        </div>
+                      {% endif %}
+
                     {# ===================== VISITEUR / NON PASSAGER ===================== #}
                     {% else %}
-                    
-                      {# Si trajet terminé => pas de réservation #}
+
                       {% if isFinished %}
                         <div class="alert alert-success rounded-4 shadow-sm mb-0">
                           Ce trajet est terminé.
@@ -291,9 +284,8 @@
                           Réserver ce trajet
                         </a>
                       {% endif %}
-                    
+
                     {% endif %}
-                    
 
                   </div>
                 </div>

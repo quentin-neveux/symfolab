@@ -208,43 +208,55 @@ class RechercheController extends AbstractController
         $reviewRepo = $em->getRepository(Review::class);
         $averageRating = $reviewRepo->getAverageRatingForUser($trajet->getConducteur()->getId());
         $reviews = $reviewRepo->getReviewsForUser($trajet->getConducteur()->getId());
+// --------------------------------------------------
+// RÉSERVATION
+// --------------------------------------------------
+$reservation = $em->getRepository(TrajetPassager::class)->findOneBy([
+    'trajet'   => $trajet,
+    'passager' => $user
+]);
 
-        // --------------------------------------------------
-        // RÉSERVATION
-        // --------------------------------------------------
-        $reservation = $em->getRepository(TrajetPassager::class)->findOneBy([
-            'trajet'   => $trajet,
-            'passager' => $user
-        ]);
+// --------------------------------------------------
+// PASSAGERS (pour la liste côté Twig)
+// --------------------------------------------------
+$passagers = $em->getRepository(TrajetPassager::class)->findBy([
+    'trajet' => $trajet
+]);
 
-        $canConfirmEnd = false;
-        $canReview = false;
+$canConfirmEnd = false;
+$canReview = false;
 
-        if ($reservation) {
-            if (!$reservation->isPassagerConfirmeFin() && $trajet->isFinished()) {
-                $canConfirmEnd = true;
-            }
+if ($reservation) {
 
-            if ($trajet->isFinished() && $user !== $trajet->getConducteur()) {
-                $existingReview = $reviewRepo->findOneBy([
-                    'author' => $user,
-                    'target' => $trajet->getConducteur(),
-                    'trajet' => $trajet,
-                ]);
-
-                if (!$existingReview) {
-                    $canReview = true;
-                }
-            }
-        }
-
-        return $this->render('trajet/detail.html.twig', [
-            'trajet'        => $trajet,
-            'averageRating' => $averageRating,
-            'reviews'       => $reviews,
-            'reservation'   => $reservation,
-            'canConfirmEnd' => $canConfirmEnd,
-            'canReview'     => $canReview,
-        ]);
+    // ✅ le passager peut confirmer la fin si le conducteur a confirmé (et lui pas encore)
+    if (!$reservation->isPassagerConfirmeFin() && $trajet->isConducteurConfirmeFin()) {
+        $canConfirmEnd = true;
     }
+
+    // ✅ avis uniquement quand le trajet est VRAIMENT terminé (finished=true)
+    if ($trajet->isFinished() && $user !== $trajet->getConducteur()) {
+
+        $existingReview = $reviewRepo->findOneBy([
+            'author' => $user,
+            'target' => $trajet->getConducteur(),
+            'trajet' => $trajet,
+        ]);
+
+        if (!$existingReview) {
+            $canReview = true;
+        }
+    }
+}
+
+return $this->render('trajet/detail.html.twig', [
+    'trajet'        => $trajet,
+    'averageRating' => $averageRating,
+    'reviews'       => $reviews,
+    'reservation'   => $reservation,
+    'passagers'     => $passagers,
+    'canConfirmEnd' => $canConfirmEnd,
+    'canReview'     => $canReview,
+]);
+
+}
 }

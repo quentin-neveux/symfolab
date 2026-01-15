@@ -424,7 +424,7 @@ public function annulerTrajetConducteur(
 #[Route('/trajet/{id}/arrivee', name: 'trajet_arrivee', methods: ['POST'])]
 public function arriveeDestination(
     Trajet $trajet,
-    \Symfony\Component\HttpFoundation\Request $request,
+    Request $request,
     EntityManagerInterface $em,
     MailerService $mailer
 ): Response {
@@ -435,34 +435,32 @@ public function arriveeDestination(
         return $this->redirectToRoute('trajet_historique');
     }
 
-    // (optionnel mais recommandé) CSRF aussi ici
-    // if (!$this->isCsrfTokenValid('arrivee_trajet_' . $trajet->getId(), (string) $request->request->get('_token'))) {
-    //     $this->addFlash('danger', 'Token CSRF invalide.');
-    //     return $this->redirectToRoute('trajet_historique');
-    // }
-
     $trajet->setConducteurConfirmeFin(true);
+
+    // ✅ Si le passager a déjà confirmé → on clôture
+    if ($trajet->isPassagerConfirmeFin()) {
+        $trajet->setFinished(true);
+    }
+
     $em->flush();
 
-    // $mailer->notifyTrajetClosedToPassengers($trajet);
-
-    $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
-    return $this->redirectToRoute('trajet_historique');
+    return $this->redirectToRoute('app_trajet_detail', [
+        'id' => $trajet->getId()
+    ]);
 }
 
 
+
     // ==========================================================
-// ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
-// ==========================================================
-#[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
+    // ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
+    // ==========================================================
+    #[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
 public function confirmerFinPassager(
     TrajetPassager $reservation,
     EntityManagerInterface $em,
     DisputeRepository $disputeRepo,
     MailerService $mailer
 ): Response {
-
-    error_log('[CONFIRM_FIN] START tp=' . $reservation->getId());
 
     $user = $this->getUser();
 
@@ -481,10 +479,8 @@ public function confirmerFinPassager(
     $trajet = $reservation->getTrajet();
     $chauffeur = $trajet?->getConducteur();
 
-    // sécurité
     if (!$trajet || !$chauffeur) {
         $em->flush();
-        $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
         return $this->redirectToRoute('trajet_historique');
     }
 
@@ -526,24 +522,25 @@ public function confirmerFinPassager(
         $em->persist($tx);
     }
 
-    $em->flush();
-    error_log('[CONFIRM_FIN] AFTER_FLUSH tp=' . $reservation->getId());
+    // ✅ Si le conducteur a déjà confirmé → on clôture
+    if ($trajet->isConducteurConfirmeFin()) {
+        $trajet->setFinished(true);
+    }
 
-    // ✅ IMPORTANT : l’appel mail doit être après flush + sans entité doctrine
+    $em->flush();
+
     if (!$already && $amount > 0) {
         $hasActiveDispute = method_exists($disputeRepo, 'countActiveForTrajet')
             ? ((int) $disputeRepo->countActiveForTrajet($trajetId) > 0)
             : false;
 
         if (!$hasActiveDispute) {
-            // ⚠️ on envoie que des scalaires pour éviter lazy-load / recursion
             $mailer->notifyPayoutReleased($trajet, $amount);
         }
     }
 
-    error_log('[CONFIRM_FIN] BEFORE_REDIRECT tp=' . $reservation->getId());
-
-    $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
-    return $this->redirectToRoute('trajet_historique');
+    return $this->redirectToRoute('app_trajet_detail', [
+        'id' => $trajet->getId()
+    ]);
 }
 }

@@ -33,25 +33,32 @@ class HistoriqueController extends AbstractController
 
         $isConducteur = ($trajet->getConducteur()?->getId() === $user->getId());
 
-        // 🔒 Cette page historique ne doit être visible que si tu as un lien avec le trajet
-        if (!$isConducteur && !$reservation) {
-            throw $this->createAccessDeniedException();
-        }
+ // 🔒 Cette page historique ne doit être visible que si tu as un lien avec le trajet
+if (!$isConducteur && !$reservation) {
+    throw $this->createAccessDeniedException();
+}
 
-        $passagers = $em->getRepository(TrajetPassager::class)->findBy([
-            'trajet' => $trajet
-        ]);
+// ✅ Si trajet terminé -> on renvoie vers la page détail (notation / signalement)
+if ($trajet->isFinished()) {
+    return $this->redirectToRoute('app_trajet_detail', [
+        'id' => $trajet->getId(),
+    ]);
+}
 
-        $averageRating = $reviewRepo->getAverageRatingForUser(
-            $trajet->getConducteur()->getId()
-        );
+$passagers = $em->getRepository(TrajetPassager::class)->findBy([
+    'trajet' => $trajet
+]);
 
-        return $this->render('historique/trajet_show.html.twig', [
-            'trajet'        => $trajet,
-            'reservation'   => $reservation,
-            'passagers'     => $passagers,
-            'averageRating' => $averageRating,
-            'isConducteur'  => $isConducteur,
-        ]);
+$averageRating = $reviewRepo->getAverageRatingForUser(
+    $trajet->getConducteur()->getId()
+);
+
+return $this->render('historique/trajet_show.html.twig', [
+    'trajet'        => $trajet,
+    'reservation'   => $reservation,
+    'passagers'     => $passagers,
+    'averageRating' => $averageRating,
+    'isConducteur'  => $isConducteur,
+]);
     }
 }
