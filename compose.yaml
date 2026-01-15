@@ -25,7 +25,7 @@ services:
       APP_DEBUG: 0
       APP_SECRET: a71dc8a032995e9fdffdb7146b4492f9
       DATABASE_URL: "mysql://symfo:symfo@mariadb:3306/symfo?charset=utf8mb4"
-      MAILER_DSN: smtp://mailpit:1025
+      MAILER_DSN: smtp://symfolab_mailpit:1025
       DEFAULT_URI: https://ecoride-app-studi.duckdns.org
       TRUSTED_PROXIES: 127.0.0.1,172.18.0.0/16
       TRUSTED_HOSTS: '^ecoride-app-studi\.duckdns\.org$'

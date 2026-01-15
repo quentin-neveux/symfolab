@@ -3,6 +3,8 @@ framework:
     session: true
     mailer:
         dsn: '%env(MAILER_DSN)%'
+    router:
+        default_uri: '%env(resolve:APP_URL)%'
     trusted_proxies: '%env(TRUSTED_PROXIES)%'
     trusted_headers:
         - x-forwarded-for

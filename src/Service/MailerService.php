@@ -12,10 +12,16 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class MailerService
 {
+    private Address $from;
+
     public function __construct(
-        private MailerInterface $mailer,
-        private UrlGeneratorInterface $urlGenerator
-    ) {}
+        private readonly MailerInterface $mailer,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        string $fromEmail = 'noreply@ecoride.fr',
+        string $fromName = 'EcoRide'
+    ) {
+        $this->from = new Address($fromEmail, $fromName);
+    }
 
     // =========================================================
     // 🆕 INSCRIPTION UTILISATEUR
@@ -26,55 +32,45 @@ class MailerService
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($user->getEmail())
             ->subject('Bienvenue sur EcoRide 🌿')
             ->htmlTemplate('emails/passager/inscription_confirmation.html.twig')
             ->context([
-                'prenom' => $user->getPrenom(),
+                'prenom' => (string) ($user->getPrenom() ?? ''),
             ]);
-
 
         $this->mailer->send($email);
     }
 
     // =========================================================
     // 🚗 TRAJET CRÉÉ — mail conducteur
-    // (dans ton arbo : templates/emails/conducteur/trajet_created.html.twig)
     // =========================================================
     public function notifyTrajetCreated(Trajet $trajet): void
-{
-    $conducteur = $trajet->getConducteur();
-    if (!$conducteur || !$conducteur->getEmail()) {
-        return;
+    {
+        $conducteur = $trajet->getConducteur();
+        if (!$conducteur || !$conducteur->getEmail()) {
+            return;
+        }
+
+        $trajetId = (int) $trajet->getId();
+
+        $email = $this->createEmail()
+            ->to($conducteur->getEmail())
+            ->subject('Votre trajet est en ligne 🚗')
+            ->htmlTemplate('emails/conducteur/trajet_created.html.twig')
+            ->context([
+                'conducteurPrenom' => (string) ($conducteur->getPrenom() ?? ''),
+                'trajetId'         => $trajetId,
+                'villeDepart'      => (string) ($trajet->getVilleDepart() ?? ''),
+                'villeArrivee'     => (string) ($trajet->getVilleArrivee() ?? ''),
+                'dateDepart'       => $trajet->getDateDepart()?->format('d/m/Y H:i'),
+                'tokenCost'        => (int) ($trajet->getTokenCost() ?? 0),
+                'trajetUrl'        => $this->generateTrajetUrl($trajet),
+            ]);
+
+        $this->mailer->send($email);
     }
-
-    $trajetId = (int) $trajet->getId();
-
-    $email = (new TemplatedEmail())
-        ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
-        ->to($conducteur->getEmail())
-        ->subject('Votre trajet est en ligne 🚗')
-        ->htmlTemplate('emails/conducteur/trajet_created.html.twig')
-        ->context([
-            // scalaires uniquement
-            'conducteurPrenom' => $conducteur->getPrenom(),
-            'trajetId'         => $trajetId,
-            'villeDepart'      => (string) ($trajet->getVilleDepart() ?? ''),
-            'villeArrivee'     => (string) ($trajet->getVilleArrivee() ?? ''),
-            'dateDepart'       => $trajet->getDateDepart()?->format('d/m/Y H:i'),
-            'tokenCost'        => (int) ($trajet->getTokenCost() ?? 0),
-            'trajetUrl'        => $this->urlGenerator->generate(
-                'app_trajet_detail',
-                ['id' => $trajetId],
-                UrlGeneratorInterface::ABSOLUTE_URL
-            ),
-        ]);
-
-    $this->mailer->send($email);
-}
-
 
     // =========================================================
     // 💳 RÉSERVATION + PAIEMENT — mail passager
@@ -85,8 +81,7 @@ class MailerService
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($passager->getEmail())
             ->subject('Réservation confirmée — EcoRide')
             ->htmlTemplate('emails/passager/paiement_reservation_confirmation.html.twig')
@@ -130,8 +125,7 @@ class MailerService
                 continue;
             }
 
-            $email = (new TemplatedEmail())
-                ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+            $email = $this->createEmail()
                 ->to($passager->getEmail())
                 ->subject('Trajet terminé — EcoRide')
                 ->htmlTemplate('emails/passager/trajet_closed.html.twig')
@@ -145,38 +139,29 @@ class MailerService
         }
     }
 
-// =========================================================
-// 💰 PAIEMENT LIBÉRÉ — mail conducteur (TOKENS)
-// =========================================================
-public function notifyPayoutReleased(Trajet $trajet, int $amount): void
-{
-    $conducteur = $trajet->getConducteur();
+    // =========================================================
+    // 💰 PAIEMENT LIBÉRÉ — mail conducteur (TOKENS)
+    // =========================================================
+    public function notifyPayoutReleased(Trajet $trajet, int $amount): void
+    {
+        $conducteur = $trajet->getConducteur();
 
-    if (!$conducteur || !$conducteur->getEmail()) {
-        return; // pas d'email conducteur => on ne bloque pas le flow
+        if (!$conducteur || !$conducteur->getEmail()) {
+            return;
+        }
+
+        $email = $this->createEmail()
+            ->to($conducteur->getEmail())
+            ->subject('Paiement libéré — EcoRide')
+            ->htmlTemplate('emails/conducteur/payout_released.html.twig')
+            ->context([
+                'trajet' => $trajet,
+                'amount' => $amount,
+                'url'    => $this->generateTrajetUrl($trajet),
+            ]);
+
+        $this->mailer->send($email);
     }
-
-    $url = $this->urlGenerator->generate(
-    'app_trajet_detail',
-    ['id' => $trajet->getId()],
-    UrlGeneratorInterface::ABSOLUTE_URL
-);
-
-
-    $email = (new TemplatedEmail())
-        ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
-        ->to($conducteur->getEmail())
-        ->subject('Paiement libéré — EcoRide')
-        ->htmlTemplate('emails/conducteur/payout_released.html.twig')
-        ->context([
-            'trajet'  => $trajet,          // si tu veux afficher départ/arrivée/date
-            'amount'  => $amount,
-            'url'     => $url,
-        ]);
-
-    $this->mailer->send($email);
-}
-
 
     // =========================================================
     // ❌ ANNULATION PAR PASSAGER
@@ -185,8 +170,7 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
     {
         // Mail PASSAGER
         if ($passager->getEmail()) {
-            $email = (new TemplatedEmail())
-                ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+            $email = $this->createEmail()
                 ->to($passager->getEmail())
                 ->subject('Réservation annulée — EcoRide')
                 ->htmlTemplate('emails/passager/reservation_annulee.html.twig')
@@ -219,8 +203,7 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
 
         // Mail CONDUCTEUR
         if ($conducteur && $conducteur->getEmail()) {
-            $email = (new TemplatedEmail())
-                ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+            $email = $this->createEmail()
                 ->to($conducteur->getEmail())
                 ->subject('Trajet annulé — EcoRide')
                 ->htmlTemplate('emails/conducteur/trajet_annule_conducteur.html.twig')
@@ -241,8 +224,7 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
                 continue;
             }
 
-            $email = (new TemplatedEmail())
-                ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+            $email = $this->createEmail()
                 ->to($passager->getEmail())
                 ->subject('Trajet annulé par le conducteur — EcoRide')
                 ->htmlTemplate('emails/passager/trajet_annule_par_conducteur.html.twig')
@@ -258,19 +240,17 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
 
     // =========================================================
     // 🚨 DISPUTE — confirmation au reporter
-    // (rangé côté passager : templates/emails/passager/dispute_created.html.twig)
     // =========================================================
     public function notifyDisputeCreated(Dispute $dispute): void
     {
         $reporter = $dispute->getReporter();
-        $trajet = $dispute->getTrajet();
+        $trajet   = $dispute->getTrajet();
 
         if (!$reporter || !$trajet || !$reporter->getEmail()) {
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($reporter->getEmail())
             ->subject('Signalement envoyé — EcoRide')
             ->htmlTemplate('emails/passager/dispute_created.html.twig')
@@ -288,7 +268,6 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
 
     // =========================================================
     // 🚨 DISPUTE — notification employé (interne)
-    // (rangé côté admin : templates/emails/admin/new_dispute.html.twig)
     // =========================================================
     public function notifyEmployeNewDispute(Dispute $dispute, string $toEmployeEmail): void
     {
@@ -298,8 +277,7 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($toEmployeEmail)
             ->subject('Nouveau signalement à traiter — EcoRide')
             ->htmlTemplate('emails/admin/new_dispute.html.twig')
@@ -320,19 +298,17 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
 
     // =========================================================
     // 🚨 DISPUTE — statut mis à jour (reporter)
-    // (rangé côté passager : templates/emails/passager/dispute_status_changed.html.twig)
     // =========================================================
     public function notifyDisputeStatusChanged(Dispute $dispute): void
     {
         $reporter = $dispute->getReporter();
-        $trajet = $dispute->getTrajet();
+        $trajet   = $dispute->getTrajet();
 
         if (!$reporter || !$trajet || !$reporter->getEmail()) {
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($reporter->getEmail())
             ->subject('Mise à jour de votre signalement — EcoRide')
             ->htmlTemplate('emails/passager/dispute_status_changed.html.twig')
@@ -349,22 +325,40 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
     }
 
     // =========================================================
-    // 🧠 UTILITAIRE — mail conducteur
+    // 📩 CONTACT — ENVOI GÉNÉRIQUE
     // =========================================================
-    private function sendToConducteur(
-        Trajet $trajet,
-        string $subject,
-        string $template,
-        array $context = []
-    ): void {
+    public function send(string $to, string $subject, string $template, array $context = []): void
+    {
+        if (trim($to) === '') {
+            return;
+        }
+
+        $email = $this->createEmail()
+            ->to($to)
+            ->subject($subject)
+            ->htmlTemplate($template)
+            ->context($context);
+
+        $this->mailer->send($email);
+    }
+
+    // =========================================================
+    // 🧠 UTILITAIRES
+    // =========================================================
+    private function createEmail(): TemplatedEmail
+    {
+        return (new TemplatedEmail())->from($this->from);
+    }
+
+    private function sendToConducteur(Trajet $trajet, string $subject, string $template, array $context = []): void
+    {
         $conducteur = $trajet->getConducteur();
 
         if (!$conducteur || !$conducteur->getEmail()) {
             return;
         }
 
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
+        $email = $this->createEmail()
             ->to($conducteur->getEmail())
             ->subject($subject)
             ->htmlTemplate($template)
@@ -381,27 +375,8 @@ public function notifyPayoutReleased(Trajet $trajet, int $amount): void
     {
         return $this->urlGenerator->generate(
             'app_trajet_detail',
-            ['id' => $trajet->getId()],
+            ['id' => (int) $trajet->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
-    }
-
-    // =========================================================
-    // 📩 CONTACT — ENVOI GÉNÉRIQUE
-    // =========================================================
-    public function send(
-        string $to,
-        string $subject,
-        string $template,
-        array $context = []
-    ): void {
-        $email = (new TemplatedEmail())
-            ->from(new Address('noreply@ecoride.fr', 'EcoRide'))
-            ->to($to)
-            ->subject($subject)
-            ->htmlTemplate($template)
-            ->context($context);
-
-        $this->mailer->send($email);
     }
 }
