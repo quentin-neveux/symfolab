@@ -115,7 +115,7 @@ public function proposer(
         $mailer->notifyTrajetCreated($trajet);
 
         $this->addFlash('success', 'Bravo, ton trajet a bien été publié ✅');
-        return $this->redirectToRoute('trajet_historique');
+        return $this->redirectToRoute('app_historique');
     }
 
     return $this->render('trajet/proposer.html.twig', [
