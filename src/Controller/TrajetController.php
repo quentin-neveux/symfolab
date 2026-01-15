@@ -41,6 +41,10 @@ public function proposer(
 
     $trajet = new Trajet();
     $trajet->setConducteur($user);
+    $trajet->setConducteurConfirmeFin(false);
+    if (method_exists($trajet, 'setDateArrivee')) {
+        $trajet->setDateArrivee(null);
+    }
 
     $form = $this->createForm(TrajetType::class, $trajet, ['user' => $user]);
     $form->handleRequest($request);
@@ -459,26 +463,22 @@ public function arriveeDestination(
         return $this->redirectToRoute('trajet_historique');
     }
 
+    // ✅ Le conducteur confirme la fin (flag métier)
     $trajet->setConducteurConfirmeFin(true);
-
-    // ✅ Si le passager a déjà confirmé → on clôture
-    if ($trajet->isPassagerConfirmeFin()) {
-        $trajet->setFinished(true);
-    }
 
     $em->flush();
 
+    $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
     return $this->redirectToRoute('app_trajet_detail', [
         'id' => $trajet->getId()
     ]);
 }
 
 
-
-    // ==========================================================
-    // ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
-    // ==========================================================
-    #[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
+// ==========================================================
+// ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
+// ==========================================================
+#[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
 public function confirmerFinPassager(
     TrajetPassager $reservation,
     EntityManagerInterface $em,
@@ -493,20 +493,27 @@ public function confirmerFinPassager(
         return $this->redirectToRoute('trajet_historique');
     }
 
-    if ($reservation->isPassagerConfirmeFin()) {
-        $this->addFlash('info', 'Tu as déjà confirmé ce trajet.');
-        return $this->redirectToRoute('trajet_historique');
-    }
-
-    $reservation->setPassagerConfirmeFin(true);
-
     $trajet = $reservation->getTrajet();
     $chauffeur = $trajet?->getConducteur();
 
     if (!$trajet || !$chauffeur) {
-        $em->flush();
+        $this->addFlash('danger', 'Trajet introuvable.');
         return $this->redirectToRoute('trajet_historique');
     }
+
+    // ✅ Le passager ne peut confirmer que si le conducteur a confirmé avant
+    if (!$trajet->isConducteurConfirmeFin()) {
+        $this->addFlash('info', 'Le conducteur doit d’abord marquer le trajet comme terminé.');
+        return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+    }
+
+    if ($reservation->isPassagerConfirmeFin()) {
+        $this->addFlash('info', 'Tu as déjà confirmé ce trajet.');
+        return $this->redirectToRoute('app_trajet_detail', ['id' => $trajet->getId()]);
+    }
+
+    // ✅ Flag métier côté réservation
+    $reservation->setPassagerConfirmeFin(true);
 
     if (!$reservation->isPaid()) {
         $reservation->setIsPaid(true);
@@ -546,11 +553,6 @@ public function confirmerFinPassager(
         $em->persist($tx);
     }
 
-    // ✅ Si le conducteur a déjà confirmé → on clôture
-    if ($trajet->isConducteurConfirmeFin()) {
-        $trajet->setFinished(true);
-    }
-
     $em->flush();
 
     if (!$already && $amount > 0) {
@@ -563,6 +565,7 @@ public function confirmerFinPassager(
         }
     }
 
+    $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
     return $this->redirectToRoute('app_trajet_detail', [
         'id' => $trajet->getId()
     ]);
