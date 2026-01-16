@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Dispute;
 use App\Entity\TokenTransaction;
 use App\Entity\Trajet;
 use App\Repository\DisputeRepository;
@@ -10,68 +9,112 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class PayoutService
 {
+    public const REASON_TRIP_PAYOUT = 'TRIP_PAYOUT';
+
     public function __construct(
-        private EntityManagerInterface $em,
-        private DisputeRepository $disputeRepo,
+        private readonly EntityManagerInterface $em,
+        private readonly DisputeRepository $disputeRepo,
+        private readonly MailerService $mailer,
     ) {}
 
     /**
-     * Tente de payer le conducteur si les conditions sont OK.
+     * Paiement conducteur en fin de trajet.
+     * Règle métier : payout UNIQUEMENT si
+     * - conducteur a confirmé la fin
+     * - et tous les passagers (réservations payées) ont confirmé la fin
      * Idempotent : si déjà payé, ne refait rien.
      */
     public function tryPayoutForTrajet(Trajet $trajet): void
     {
-        // 1) conducteur ?
+        $trajetId = (int) $trajet->getId();
+        if ($trajetId <= 0) {
+            return;
+        }
+
         $conducteur = $trajet->getConducteur();
         if (!$conducteur) {
             return;
         }
 
-        // 2) déjà payé ? (évite double crédit)
-        $already = $this->em->getRepository(TokenTransaction::class)->findOneBy([
-            'reason' => 'TRIP_PAYOUT',
-            'trajet' => $trajet, // si ton TokenTransaction n’a pas trajet, enlève ce critère
-        ]);
+        // 1) Condition métier : conducteur confirme la fin
+        if (!$trajet->isConducteurConfirmeFin()) {
+            return;
+        }
 
+        // 2) Condition métier : tous les passagers payés doivent avoir confirmé la fin
+        foreach ($trajet->getPassagers() as $reservation) {
+            if (!$reservation->isPaid()) {
+                continue;
+            }
+            if (!$reservation->isPassagerConfirmeFin()) {
+                return;
+            }
+        }
+
+        // 3) Idempotence : déjà payé ?
+        $already = $this->em->getRepository(TokenTransaction::class)->findOneBy([
+            'reason'   => self::REASON_TRIP_PAYOUT,
+            'trajetId' => $trajetId,
+            'type'     => 'CREDIT',
+        ]);
         if ($already) {
             return;
         }
 
-        // 3) si dispute active => on bloque
-        $active = $this->disputeRepo->countActiveForTrajet($trajet->getId());
+        // 4) Disputes : si active => on bloque et on marque DISPUTED
+        $active = (int) $this->disputeRepo->countActiveForTrajet($trajetId);
         if ($active > 0) {
+            $trajet->setPayoutStatus('DISPUTED');
+            $this->em->flush();
             return;
         }
 
-        // 4) si dispute existe et résolue "contre" le conducteur => on ne paye pas (règle actuelle)
-        // (optionnel : uniquement si tu veux bloquer définitivement quand RESOLVED)
-        $resolvedAgainst = $this->disputeRepo->countResolvedForTrajet($trajet->getId());
+        // 5) Si résolue "contre" conducteur => pas de payout (règle actuelle)
+        $resolvedAgainst = (int) $this->disputeRepo->countResolvedForTrajet($trajetId);
         if ($resolvedAgainst > 0) {
             return;
         }
 
-        // 5) montant à payer (à adapter)
-        // Exemple : conducteur gagne tokenCost * nbPassagers
-        $nbPassagers = $trajet->getTrajetPassagers()?->count() ?? 0; // adapte si tu as un getter différent
-        $amount = (int) ($trajet->getTokenCost() * $nbPassagers);
+        // 6) Montant = somme des tokenCostCharged des réservations payées (sans frais plateforme)
+        $amount = 0;
+        foreach ($trajet->getPassagers() as $reservation) {
+            if (!$reservation->isPaid()) {
+                continue;
+            }
+            $amount += (int) $reservation->getTokenCostCharged();
+        }
 
         if ($amount <= 0) {
             return;
         }
 
-        // 6) crédit tokens + transaction
-        $conducteur->setTokens($conducteur->getTokens() + $amount);
+        // 7) Transaction atomique : crédit + trace + statut trajet
+        $this->em->beginTransaction();
 
-        $tx = new TokenTransaction();
-        $tx->setUser($conducteur);
-        $tx->setAmount($amount);
-        $tx->setType('CREDIT');
-        $tx->setReason('TRIP_PAYOUT');
+        try {
+            $conducteur->setTokens($conducteur->getTokens() + $amount);
 
-        // si tu as un lien trajet dans TokenTransaction, fais-le :
-        // $tx->setTrajet($trajet);
+            $tx = new TokenTransaction();
+            $tx->setUser($conducteur);
+            $tx->setAmount($amount);
+            $tx->setType('CREDIT');
+            $tx->setReason(self::REASON_TRIP_PAYOUT);
+            $tx->setTrajetId($trajetId);
 
-        $this->em->persist($tx);
-        $this->em->flush();
+            $trajet->setPayoutStatus('RELEASED');
+            $trajet->setPayoutAmount((string) $amount);
+
+            $this->em->persist($tx);
+            $this->em->flush();
+            $this->em->commit();
+
+        } catch (\Throwable $e) {
+            $this->em->rollback();
+            throw $e;
+        }
+
+        // 8) Mails après commit
+        $this->mailer->notifyPayoutReleased($trajet, $amount);
+        $this->mailer->notifyPayoutReleasedToPassengers($trajet, $amount);
     }
 }

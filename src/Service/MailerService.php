@@ -164,6 +164,38 @@ class MailerService
     }
 
     // =========================================================
+    // 💰 PAIEMENT LIBÉRÉ — mail passagers (INFO)
+    // =========================================================
+    public function notifyPayoutReleasedToPassengers(Trajet $trajet, int $amount): void
+    {
+        foreach ($trajet->getPassagers() as $reservation) {
+            $passager = $reservation->getPassager();
+
+            if (!$passager || !$passager->getEmail()) {
+                continue;
+            }
+
+            // Notifier uniquement les réservations payées
+            if (method_exists($reservation, 'isPaid') && !$reservation->isPaid()) {
+                continue;
+            }
+
+            $email = $this->createEmail()
+                ->to($passager->getEmail())
+                ->subject('Paiement libéré au conducteur — EcoRide')
+                ->htmlTemplate('emails/passager/payout_released_info.html.twig')
+                ->context([
+                    'trajet'    => $trajet,
+                    'passager'  => $passager,
+                    'amount'    => $amount,
+                    'trajetUrl' => $this->generateTrajetUrl($trajet),
+                ]);
+
+            $this->mailer->send($email);
+        }
+    }
+
+    // =========================================================
     // ❌ ANNULATION PAR PASSAGER
     // =========================================================
     public function notifyCancellationByPassenger(Trajet $trajet, User $passager): void

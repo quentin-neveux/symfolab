@@ -296,7 +296,7 @@ private function flattenTrajetForView(Trajet $trajet, string $role, ?TrajetPassa
 
         'role' => $role,
 
-        'conducteurConfirme	                 imeFin' => $conducteurConfirmeFin,
+        'conducteurConfirmeFin' => $conducteurConfirmeFin,
         'passagerConfirmeFin'   => $passagerConfirmeFin,
 
         // ✅ Statut centralisé pour le Twig (ne dépend plus du temps)
@@ -447,14 +447,14 @@ public function annulerTrajetConducteur(
 
 
 // ==========================================================
-// 🏁 ARRIVÉE À DESTINATION (CONDUCTEUR)
+// 🏁 ARRIVÉE À DESTINATION (CONDUCTEUR) + PAYOUT RELEASED
 // ==========================================================
 #[Route('/trajet/{id}/arrivee', name: 'trajet_arrivee', methods: ['POST'])]
 public function arriveeDestination(
     Trajet $trajet,
     Request $request,
     EntityManagerInterface $em,
-    MailerService $mailer
+    PayoutService $payoutService
 ): Response {
     $user = $this->getUser();
 
@@ -465,27 +465,29 @@ public function arriveeDestination(
 
     // ✅ Le conducteur confirme la fin (flag métier)
     $trajet->setConducteurConfirmeFin(true);
-
     $em->flush();
 
-    $this->addFlash('success', 'Trajet marqué comme terminé. Les passagers peuvent maintenant confirmer la fin.');
+    // ✅ Payout "released" (idempotent) + mails conducteur + passagers
+    $payoutService->tryPayoutForTrajet($trajet);
+
+    
+
+    $this->addFlash('success', 'Trajet marqué comme terminé. Le paiement conducteur est traité si éligible.');
     return $this->redirectToRoute('app_trajet_detail', [
         'id' => $trajet->getId()
     ]);
 }
 
 
+
 // ==========================================================
-// ✅ CONFIRMATION FIN DE TRAJET (PASSAGER) + PAYOUT CONDUCTEUR
+// ✅ CONFIRMATION FIN DE TRAJET (PASSAGER)
 // ==========================================================
 #[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
 public function confirmerFinPassager(
     TrajetPassager $reservation,
-    EntityManagerInterface $em,
-    DisputeRepository $disputeRepo,
-    MailerService $mailer
+    EntityManagerInterface $em
 ): Response {
-
     $user = $this->getUser();
 
     if (!$user || $reservation->getPassager() !== $user) {
@@ -494,9 +496,7 @@ public function confirmerFinPassager(
     }
 
     $trajet = $reservation->getTrajet();
-    $chauffeur = $trajet?->getConducteur();
-
-    if (!$trajet || !$chauffeur) {
+    if (!$trajet) {
         $this->addFlash('danger', 'Trajet introuvable.');
         return $this->redirectToRoute('trajet_historique');
     }
@@ -515,55 +515,13 @@ public function confirmerFinPassager(
     // ✅ Flag métier côté réservation
     $reservation->setPassagerConfirmeFin(true);
 
+    // Sécurité : ne devrait jamais être false si réservé via payment, mais on garde
     if (!$reservation->isPaid()) {
         $reservation->setIsPaid(true);
         $reservation->setPaidAt(new \DateTimeImmutable());
     }
 
-    $trajetId = (int) $trajet->getId();
-    $amount   = max(0, (int) $trajet->getTokenCost());
-    $reason   = 'PAYOUT_TP_' . $reservation->getId();
-
-    $txRepo = $em->getRepository(TokenTransaction::class);
-
-    $already = $txRepo->findOneBy([
-        'reason'   => $reason,
-        'trajetId' => $trajetId,
-    ]);
-
-    if (!$already && $amount > 0) {
-
-        $hasActiveDispute = method_exists($disputeRepo, 'countActiveForTrajet')
-            ? ((int) $disputeRepo->countActiveForTrajet($trajetId) > 0)
-            : false;
-
-        $tx = new TokenTransaction();
-        $tx->setUser($chauffeur);
-        $tx->setAmount($amount);
-        $tx->setReason($reason);
-        $tx->setTrajetId($trajetId);
-
-        if ($hasActiveDispute) {
-            $tx->setType('PENDING');
-        } else {
-            $tx->setType('CREDIT');
-            $chauffeur->setTokens($chauffeur->getTokens() + $amount);
-        }
-
-        $em->persist($tx);
-    }
-
     $em->flush();
-
-    if (!$already && $amount > 0) {
-        $hasActiveDispute = method_exists($disputeRepo, 'countActiveForTrajet')
-            ? ((int) $disputeRepo->countActiveForTrajet($trajetId) > 0)
-            : false;
-
-        if (!$hasActiveDispute) {
-            $mailer->notifyPayoutReleased($trajet, $amount);
-        }
-    }
 
     $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
     return $this->redirectToRoute('app_trajet_detail', [

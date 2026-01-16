@@ -1,0 +1,22 @@
+{% extends 'emails/_layout.html.twig' %}
+
+{% block content %}
+  <h2>Paiement libéré au conducteur</h2>
+
+  <p>
+    Bonjour {{ passager.prenom ?? 'à vous' }},
+  </p>
+
+  <p>
+    Le trajet <strong>{{ trajet.villeDepart }} → {{ trajet.villeArrivee }}</strong> est maintenant terminé.
+    Le paiement du conducteur vient d’être libéré ({{ amount }} token(s)).
+  </p>
+
+  <p>
+    Merci d’avoir voyagé avec EcoRide 🌿
+  </p>
+
+  <p>
+    <a href="{{ trajetUrl }}">Voir le trajet</a>
+  </p>
+{% endblock %}
