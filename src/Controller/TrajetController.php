@@ -524,6 +524,8 @@ public function confirmerFinPassager(
 
     $em->flush();
 
+    $payoutService->tryPayoutForTrajet($trajet);
+
     $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
     return $this->redirectToRoute('app_trajet_detail', [
         'id' => $trajet->getId()
