@@ -487,7 +487,8 @@ public function arriveeDestination(
 #[Route('/trajet-passager/{id}/confirmer-fin', name: 'trajet_passager_confirmer_fin', methods: ['POST'])]
 public function confirmerFinPassager(
     TrajetPassager $reservation,
-    EntityManagerInterface $em
+    EntityManagerInterface $em,
+    PayoutService $payoutService
 ): Response {
     $user = $this->getUser();
 
@@ -524,6 +525,7 @@ public function confirmerFinPassager(
 
     $em->flush();
 
+    // ✅ Re-try payout : si c'était le dernier passager manquant, ça paye maintenant
     $payoutService->tryPayoutForTrajet($trajet);
 
     $this->addFlash('success', 'Merci, ta confirmation a bien été prise en compte.');
