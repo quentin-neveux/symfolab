@@ -25,14 +25,22 @@
       </thead>
       <tbody>
       {% for d in disputes %}
+        {# ✅ IMPORTANT : d.trajet peut être un proxy cassé si le trajet a été supprimé #}
+        {% set t = d.trajet is defined ? d.trajet : null %}
+
         <tr>
           <td class="fw-semibold">#{{ d.id }}</td>
 
           <td>
-            <span class="fw-semibold">#{{ d.trajet.id }}</span><br>
-            <small class="text-muted">
-              {{ d.trajet.villeDepart ?? '' }} → {{ d.trajet.villeArrivee ?? '' }}
-            </small>
+            {% if t %}
+              <span class="fw-semibold">#{{ t.id }}</span><br>
+              <small class="text-muted">
+                {{ t.villeDepart ?? '' }} → {{ t.villeArrivee ?? '' }}
+              </small>
+            {% else %}
+              <span class="fw-semibold text-muted">Trajet supprimé</span><br>
+              <small class="text-muted">#{{ d.trajetId ?? '—' }}</small>
+            {% endif %}
           </td>
 
           <td>

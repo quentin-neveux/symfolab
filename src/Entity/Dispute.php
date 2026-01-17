@@ -11,10 +11,10 @@ use App\Entity\Review;
 #[ORM\Entity(repositoryClass: DisputeRepository::class)]
 class Dispute
 {
-    public const STATUS_OPEN = 'OPEN';
+    public const STATUS_OPEN      = 'OPEN';
     public const STATUS_IN_REVIEW = 'IN_REVIEW';
-    public const STATUS_RESOLVED = 'RESOLVED';
-    public const STATUS_REJECTED = 'REJECTED';
+    public const STATUS_RESOLVED  = 'RESOLVED';
+    public const STATUS_REJECTED  = 'REJECTED';
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -25,40 +25,31 @@ class Dispute
     private string $status = self::STATUS_OPEN;
 
     #[ORM\Column(length: 50)]
-    private string $reason;
+    private string $reason = '';
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $message = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private User $reporter;
+    private ?User $reporter = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
-    private User $target;
+    private ?User $target = null;
+
+    // ✅ IMPORTANT: peut être NULL si le trajet a été supprimé
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?Trajet $trajet = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
-    private Trajet $trajet;
-
-    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?Review $review = null;
 
     #[ORM\Column(type: 'integer')]
     private int $reporterTokensPaid = 0;
 
-    public function getReporterTokensPaid(): int
-    {
-        return $this->reporterTokensPaid;
-    }
-
-    public function setReporterTokensPaid(int $tokens): self
-    {
-        $this->reporterTokensPaid = $tokens;
-        return $this;
-    }
-    
     #[ORM\Column]
     private \DateTimeImmutable $createdAt;
 
@@ -68,17 +59,23 @@ class Dispute
         $this->status = self::STATUS_OPEN;
     }
 
-    public function getId(): ?int { return $this->id; }
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
 
-    public function getStatus(): string { return $this->status; }
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
     public function setStatus(string $status): self
     {
-        // garde-fou léger (optionnel mais safe)
         if (!in_array($status, [
             self::STATUS_OPEN,
             self::STATUS_IN_REVIEW,
             self::STATUS_RESOLVED,
-            self::STATUS_REJECTED
+            self::STATUS_REJECTED,
         ], true)) {
             throw new \InvalidArgumentException('Invalid dispute status');
         }
@@ -87,10 +84,22 @@ class Dispute
         return $this;
     }
 
-    public function getReason(): string { return $this->reason; }
-    public function setReason(string $reason): self { $this->reason = $reason; return $this; }
+    public function getReason(): string
+    {
+        return $this->reason;
+    }
 
-    public function getMessage(): ?string { return $this->message; }
+    public function setReason(string $reason): self
+    {
+        $this->reason = $reason;
+        return $this;
+    }
+
+    public function getMessage(): ?string
+    {
+        return $this->message;
+    }
+
     public function setMessage(?string $message): self
     {
         $msg = $message !== null ? trim($message) : null;
@@ -98,17 +107,71 @@ class Dispute
         return $this;
     }
 
-    public function getReporter(): User { return $this->reporter; }
-    public function setReporter(User $user): self { $this->reporter = $user; return $this; }
+    public function getReporter(): ?User
+    {
+        return $this->reporter;
+    }
 
-    public function getTarget(): User { return $this->target; }
-    public function setTarget(User $user): self { $this->target = $user; return $this; }
+    public function setReporter(?User $user): self
+    {
+        if (!$user) {
+            throw new \InvalidArgumentException('Reporter cannot be null');
+        }
 
-    public function getTrajet(): Trajet { return $this->trajet; }
-    public function setTrajet(Trajet $trajet): self { $this->trajet = $trajet; return $this; }
+        $this->reporter = $user;
+        return $this;
+    }
 
-    public function getReview(): ?Review { return $this->review; }
-    public function setReview(?Review $review): self { $this->review = $review; return $this; }
+    public function getTarget(): ?User
+    {
+        return $this->target;
+    }
 
-    public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    public function setTarget(?User $user): self
+    {
+        if (!$user) {
+            throw new \InvalidArgumentException('Target cannot be null');
+        }
+
+        $this->target = $user;
+        return $this;
+    }
+
+    public function getTrajet(): ?Trajet
+    {
+        return $this->trajet;
+    }
+
+    public function setTrajet(?Trajet $trajet): self
+    {
+        $this->trajet = $trajet;
+        return $this;
+    }
+
+    public function getReview(): ?Review
+    {
+        return $this->review;
+    }
+
+    public function setReview(?Review $review): self
+    {
+        $this->review = $review;
+        return $this;
+    }
+
+    public function getReporterTokensPaid(): int
+    {
+        return $this->reporterTokensPaid;
+    }
+
+    public function setReporterTokensPaid(int $tokens): self
+    {
+        $this->reporterTokensPaid = max(0, $tokens);
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
 }
