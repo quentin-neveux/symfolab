@@ -4,9 +4,6 @@
 
 <h2 class="text-success fw-bold mb-4">Signalement #{{ dispute.id }}</h2>
 
-{# <div class="alert alert-danger">DEBUG TEMPLATE V2</div> #}
-
-
 <div class="card shadow-sm rounded-4 p-4">
 
   <div class="row g-3">
@@ -24,36 +21,49 @@
 
     <div class="col-md-6">
       <div class="p-3 bg-light rounded-4">
-        <div class="mb-1"><strong>Reporter :</strong> {{ dispute.reporter.email ?? '—' }}</div>
 
-      {# ✅ Tokens payés par le reporter (stockés si dispo, sinon fallback calcul) #}
-      {% set trajet = dispute.trajet %}
-      {% set computed = null %}
-      
-      {% if trajet and dispute.reporter %}
-        {% if trajet.conducteur and trajet.conducteur.id == dispute.reporter.id %}
-          {% set computed = 0 %}
-        {% else %}
-          {% set computed = (trajet.tokenCost ?? 0) + 2 %}
-        {% endif %}
-      {% endif %}
-      
-      {% set paid = dispute.reporterTokensPaid is not null ? dispute.reporterTokensPaid : computed %}
-      
-      <div class="mb-1">
-        <strong>Payé :</strong>
-        {% if paid is not null %}
-          {{ paid }} ECR
-          {% if trajet %}
-            <span class="text-muted small">(trajet {{ trajet.tokenCost ?? 0 }} + frais 2)</span>
+        <div class="mb-1">
+          <strong>Reporter :</strong> {{ dispute.reporter.email ?? '—' }}
+        </div>
+
+        <div class="mb-1">
+          <strong>Cible :</strong>
+          {% if dispute.target %}
+            {{ dispute.target.email }}
+          {% else %}
+            —
           {% endif %}
-        {% else %}
-          —
+        </div>
+
+        {# ================= TOKENS ================= #}
+        {% set trajet = dispute.trajet %}
+        {% set computed = null %}
+        
+        {% if trajet and dispute.reporter %}
+          {% if trajet.conducteur and trajet.conducteur.id == dispute.reporter.id %}
+            {% set computed = 0 %}
+          {% else %}
+            {% set computed = (trajet.tokenCost ?? 0) + 2 %}
+          {% endif %}
         {% endif %}
+        
+        {% set paid = dispute.reporterTokensPaid is not null ? dispute.reporterTokensPaid : computed %}
+        
+        <div class="mb-1">
+          <strong>Payé :</strong>
+          {% if paid is not null %}
+            {{ paid }} ECR
+            {% if trajet %}
+              <span class="text-muted small">(trajet {{ trajet.tokenCost ?? 0 }} + frais 2)</span>
+            {% endif %}
+          {% else %}
+            —
+          {% endif %}
+        </div>
+
       </div>
     </div>
   </div>
-</div>
 
   <hr class="my-4">
 
