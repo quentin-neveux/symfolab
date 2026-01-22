@@ -115,13 +115,6 @@
           <button type="submit" class="btn btn-ecoride w-100 submit-loader-btn mb-3">
             Créer un compte
           </button>
-
-          <p class="text-center mt-3 mb-0 text-muted">
-            Déjà un compte ?
-            <a href="{{ path('app_connexion', redirect ? {redirect: redirect} : {}) }}" class="text-success fw-semibold">
-              Se connecter
-            </a>
-          </p>
           
           <section class="mb-3">
             <div class="alert alert-success mb-3 text-align-center" role="alert">
@@ -130,6 +123,13 @@
           </section>
 
           {{ form_end(registrationForm) }}
+
+          <p class="text-center mt-3 mb-0 text-muted">
+            Déjà un compte ?
+            <a href="{{ path('app_connexion', redirect ? {redirect: redirect} : {}) }}" class="text-success fw-semibold">
+              Se connecter
+            </a>
+          </p>
 
         </div>
 
