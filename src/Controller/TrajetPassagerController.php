@@ -33,7 +33,7 @@ class TrajetPassagerController extends AbstractController
     }
 
     // ----------------------------------------------------------
-    // 🟢 RÉSERVER UN TRAJET → REDIRECT PAIEMENT (SANS BDD)
+    // 🟢 RÉSERVER UN TRAJET → REDIRECT PAIEMENT
     // ----------------------------------------------------------
     #[IsGranted('ROLE_USER')]
     #[Route('/trajet/{id}/reserver', name: 'trajet_reserver', methods: ['POST'])]
@@ -46,7 +46,6 @@ class TrajetPassagerController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        // 🔒 déjà réservé (peu importe payé ou non : on évite doublon)
         if ($tpRepo->findOneBy([
             'trajet'   => $trajet,
             'passager' => $user
@@ -57,7 +56,6 @@ class TrajetPassagerController extends AbstractController
             ]);
         }
 
-        // 🔒 complet
         if ($trajet->getPlacesDisponibles() <= 0) {
             $this->addFlash('danger', 'Ce trajet est complet.');
             return $this->redirectToRoute('app_trajet_detail', [
@@ -65,16 +63,13 @@ class TrajetPassagerController extends AbstractController
             ]);
         }
 
-        // 🔒 Solde tokens : coût trajet + fee plateforme
-        $totalCost = $trajet->getTotalTokenCost(); // tokenCost + 2
+        $totalCost = $trajet->getTotalTokenCost();
         if ($user->getTokens() < $totalCost) {
             $this->addFlash(
                 'warning',
                 sprintf(
-                    'Solde de tokens insuffisant. Coût total : %d tokens (trajet %d + plateforme %d).',
-                    $totalCost,
-                    $trajet->getTokenCost(),
-                    Trajet::PLATFORM_FEE_TOKENS
+                    'Solde insuffisant (%d tokens requis).',
+                    $totalCost
                 )
             );
             return $this->redirectToRoute('app_trajet_detail', [
@@ -82,14 +77,13 @@ class TrajetPassagerController extends AbstractController
             ]);
         }
 
-        // ➜ paiement géré dans PaymentController (il doit débiter TOTAL et créer TrajetPassager)
         return $this->redirectToRoute('trajet_payment', [
             'id' => $trajet->getId()
         ]);
     }
 
     // ----------------------------------------------------------
-    // ❌ ANNULER UNE RÉSERVATION (PASSAGER) + CSRF + POST ONLY + REDIRECT DYNAMIQUE
+    // ❌ ANNULER UNE RÉSERVATION (PASSAGER)
     // ----------------------------------------------------------
     #[IsGranted('ROLE_USER')]
     #[Route('/trajet/{id}/annuler', name: 'trajet_annuler', methods: ['POST'])]
@@ -104,7 +98,6 @@ class TrajetPassagerController extends AbstractController
             throw $this->createAccessDeniedException();
         }
 
-        // ✅ CSRF
         $token = (string) $request->request->get('_token');
         if (!$this->isCsrfTokenValid('annuler_trajet_' . $trajet->getId(), $token)) {
             throw $this->createAccessDeniedException('Token CSRF invalide.');
@@ -132,7 +125,6 @@ class TrajetPassagerController extends AbstractController
         $em->beginTransaction();
 
         try {
-            // 💳 remboursement UNIQUEMENT si payé
             if ($reservation->isPaid()) {
                 $refundAmount = $reservation->getTotalTokensCharged();
 
@@ -147,7 +139,6 @@ class TrajetPassagerController extends AbstractController
                 $em->persist($refund);
             }
 
-            // ➕ place libérée (capée à la capacité passagers du véhicule)
             $maxPassagers = max(0, $trajet->getVehicle()->getPlaces() - 1);
             $newPlaces = min($maxPassagers, $trajet->getPlacesDisponibles() + 1);
             $trajet->setPlacesDisponibles($newPlaces);
@@ -161,7 +152,7 @@ class TrajetPassagerController extends AbstractController
             throw $e;
         }
 
-        // ✉️ mails
+        // ✉️ mails d’annulation uniquement
         $this->mailerService->notifyCancellationByPassenger($trajet, $user);
 
         $this->addFlash(
@@ -171,7 +162,6 @@ class TrajetPassagerController extends AbstractController
                 : 'Réservation annulée.'
         );
 
-        // ✅ Redirect dynamique (fourni par le form) sinon home
         $redirect = (string) $request->request->get('redirect', '');
         if ($redirect) {
             return $this->redirect($redirect);

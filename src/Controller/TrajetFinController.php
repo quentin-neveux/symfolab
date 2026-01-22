@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Trajet;
 use App\Entity\TrajetPassager;
+use App\Service\MailerService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,6 +12,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class TrajetFinController extends AbstractController
 {
+    public function __construct(
+        private readonly MailerService $mailerService
+    ) {}
+
     // ----------------------------------------------------------
     // 🟢 1) Le conducteur confirme la fin du trajet
     // ----------------------------------------------------------
@@ -36,12 +41,14 @@ class TrajetFinController extends AbstractController
 
         $trajet->setConducteurConfirmeFin(true);
 
-        // Tentative de déclenchement automatique du paiement
         foreach ($trajet->getPassagers() as $reservation) {
             $this->tryToProcessPayment($reservation, $em);
         }
 
         $em->flush();
+
+        // ✉️ Mail conducteur terminé
+        $this->mailerService->notifyTrajetClosedToConducteur($trajet, $this->getUser());
 
         $this->addFlash('success', 'Fin du trajet confirmée (conducteur).');
 
@@ -90,10 +97,12 @@ class TrajetFinController extends AbstractController
 
         $reservation->setPassagerConfirmeFin(true);
 
-        // Tentative de déclenchement automatique du paiement
         $this->tryToProcessPayment($reservation, $em);
 
         $em->flush();
+
+        // ✉️ Mail passager terminé
+        $this->mailerService->notifyTrajetPassagerFinished($trajet, $user);
 
         $this->addFlash('success', 'Fin du trajet confirmée (passager).');
 
@@ -117,11 +126,9 @@ class TrajetFinController extends AbstractController
             && $reservation->isPassagerConfirmeFin()
             && !$reservation->isPaid()
         ) {
-            // Marque la réservation comme payée
             $reservation->setIsPaid(true);
             $reservation->setPaidAt(new \DateTimeImmutable());
 
-            // Crédit des tokens chauffeur
             $chauffeur = $trajet->getConducteur();
             $gainChauffeur = 2;
 

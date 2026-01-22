@@ -2,7 +2,6 @@
 
 namespace App\Service;
 
-use App\Entity\Dispute;
 use App\Entity\Trajet;
 use App\Entity\User;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -24,7 +23,7 @@ class MailerService
     }
 
     // =========================================================
-    // 🆕 INSCRIPTION UTILISATEUR
+    // INSCRIPTION UTILISATEUR
     // =========================================================
     public function sendInscriptionConfirmation(User $user): void
     {
@@ -34,7 +33,7 @@ class MailerService
 
         $email = $this->createEmail()
             ->to($user->getEmail())
-            ->subject('Bienvenue sur EcoRide 🌿')
+            ->subject('Bienvenue sur EcoRide')
             ->htmlTemplate('emails/passager/inscription_confirmation.html.twig')
             ->context([
                 'prenom' => (string) ($user->getPrenom() ?? ''),
@@ -44,7 +43,7 @@ class MailerService
     }
 
     // =========================================================
-    // 🚗 TRAJET CRÉÉ — mail conducteur
+    // TRAJET CRÉÉ — mail conducteur
     // =========================================================
     public function notifyTrajetCreated(Trajet $trajet): void
     {
@@ -57,7 +56,7 @@ class MailerService
 
         $email = $this->createEmail()
             ->to($conducteur->getEmail())
-            ->subject('Votre trajet est en ligne 🚗')
+            ->subject('Votre trajet est en ligne !')
             ->htmlTemplate('emails/conducteur/trajet_created.html.twig')
             ->context([
                 'conducteurPrenom' => (string) ($conducteur->getPrenom() ?? ''),
@@ -73,7 +72,7 @@ class MailerService
     }
 
     // =========================================================
-    // 💳 RÉSERVATION + PAIEMENT — mail passager
+    // RÉSERVATION + PAIEMENT — mail passager
     // =========================================================
     public function notifyReservationConfirmed(Trajet $trajet, User $passager): void
     {
@@ -95,7 +94,7 @@ class MailerService
     }
 
     // =========================================================
-    // 👤 NOUVEAU PASSAGER — mail conducteur
+    // NOUVEAU PASSAGER — mail conducteur
     // =========================================================
     public function notifyNewPassenger(Trajet $trajet, User $passager): void
     {
@@ -114,7 +113,55 @@ class MailerService
     }
 
     // =========================================================
-    // 🏁 TRAJET CLÔTURÉ — mail passagers
+    // ✅ TRAJET TERMINÉ — mail passager (CIBLÉ : 1 passager)
+    // =========================================================
+    public function notifyTrajetPassagerFinished(Trajet $trajet, User $passager): void
+    {
+        if (!$passager->getEmail()) {
+            return;
+        }
+
+        $email = $this->createEmail()
+            ->to($passager->getEmail())
+            ->subject('Trajet terminé — EcoRide')
+            ->htmlTemplate('emails/passager/trajet_passager_finished.html.twig')
+            ->context([
+                'trajet'    => $trajet,
+                'passager'  => $passager,
+                'trajetUrl' => $this->generateTrajetUrl($trajet),
+            ]);
+
+        $this->mailer->send($email);
+    }
+
+    // =========================================================
+    // ✅ TRAJET TERMINÉ — mail conducteur
+    // (nom conservé car tu l’appelles déjà dans TrajetFinController)
+    // =========================================================
+    public function notifyTrajetClosedToConducteur(Trajet $trajet, ?User $conducteur = null): void
+    {
+        $conducteur = $conducteur ?? $trajet->getConducteur();
+
+        if (!$conducteur || !$conducteur->getEmail()) {
+            return;
+        }
+
+        $email = $this->createEmail()
+            ->to($conducteur->getEmail())
+            ->subject('Trajet terminé — EcoRide')
+            ->htmlTemplate('emails/conducteur/trajet_conducteur_finished.html.twig')
+            ->context([
+                'trajet'      => $trajet,
+                'conducteur'  => $conducteur,
+                'trajetUrl'   => $this->generateTrajetUrl($trajet),
+            ]);
+
+        $this->mailer->send($email);
+    }
+
+    // =========================================================
+    // TRAJET CLÔTURÉ — mail passagers (TOUS)
+    // (utile si tu veux notifier tout le monde 1 seule fois)
     // =========================================================
     public function notifyTrajetClosedToPassengers(Trajet $trajet): void
     {
@@ -125,22 +172,12 @@ class MailerService
                 continue;
             }
 
-            $email = $this->createEmail()
-                ->to($passager->getEmail())
-                ->subject('Trajet terminé — EcoRide')
-                ->htmlTemplate('emails/passager/trajet_closed.html.twig')
-                ->context([
-                    'trajet'    => $trajet,
-                    'passager'  => $passager,
-                    'trajetUrl' => $this->generateTrajetUrl($trajet),
-                ]);
-
-            $this->mailer->send($email);
+            $this->notifyTrajetPassagerFinished($trajet, $passager);
         }
     }
 
     // =========================================================
-    // 💰 PAIEMENT LIBÉRÉ — mail conducteur (TOKENS)
+    // PAIEMENT LIBÉRÉ — mail conducteur
     // =========================================================
     public function notifyPayoutReleased(Trajet $trajet, int $amount): void
     {
@@ -164,7 +201,7 @@ class MailerService
     }
 
     // =========================================================
-    // 💰 PAIEMENT LIBÉRÉ — mail passagers (INFO)
+    // PAIEMENT LIBÉRÉ — mail passagers (INFO)
     // =========================================================
     public function notifyPayoutReleasedToPassengers(Trajet $trajet, int $amount): void
     {
@@ -196,7 +233,7 @@ class MailerService
     }
 
     // =========================================================
-    // ❌ ANNULATION PAR PASSAGER
+    // ANNULATION PAR PASSAGER
     // =========================================================
     public function notifyCancellationByPassenger(Trajet $trajet, User $passager): void
     {
@@ -227,7 +264,7 @@ class MailerService
     }
 
     // =========================================================
-    // ❌ ANNULATION PAR CONDUCTEUR
+    // ANNULATION PAR CONDUCTEUR
     // =========================================================
     public function notifyCancellationByConducteur(Trajet $trajet): void
     {
@@ -271,93 +308,7 @@ class MailerService
     }
 
     // =========================================================
-    // 🚨 DISPUTE — confirmation au reporter
-    // =========================================================
-    public function notifyDisputeCreated(Dispute $dispute): void
-    {
-        $reporter = $dispute->getReporter();
-        $trajet   = $dispute->getTrajet();
-
-        if (!$reporter || !$trajet || !$reporter->getEmail()) {
-            return;
-        }
-
-        $email = $this->createEmail()
-            ->to($reporter->getEmail())
-            ->subject('Signalement envoyé — EcoRide')
-            ->htmlTemplate('emails/passager/dispute_created.html.twig')
-            ->context([
-                'dispute'   => $dispute,
-                'trajet'    => $trajet,
-                'user'      => $reporter,
-                'reporter'  => $reporter,
-                'target'    => $dispute->getTarget(),
-                'trajetUrl' => $this->generateTrajetUrl($trajet),
-            ]);
-
-        $this->mailer->send($email);
-    }
-
-    // =========================================================
-    // 🚨 DISPUTE — notification employé (interne)
-    // =========================================================
-    public function notifyEmployeNewDispute(Dispute $dispute, string $toEmployeEmail): void
-    {
-        $trajet = $dispute->getTrajet();
-
-        if (!$trajet || trim($toEmployeEmail) === '') {
-            return;
-        }
-
-        $email = $this->createEmail()
-            ->to($toEmployeEmail)
-            ->subject('Nouveau signalement à traiter — EcoRide')
-            ->htmlTemplate('emails/admin/new_dispute.html.twig')
-            ->context([
-                'dispute'  => $dispute,
-                'trajet'   => $trajet,
-                'reporter' => $dispute->getReporter(),
-                'target'   => $dispute->getTarget(),
-                'adminUrl' => $this->urlGenerator->generate(
-                    'admin_dispute_show',
-                    ['id' => $dispute->getId()],
-                    UrlGeneratorInterface::ABSOLUTE_URL
-                ),
-            ]);
-
-        $this->mailer->send($email);
-    }
-
-    // =========================================================
-    // 🚨 DISPUTE — statut mis à jour (reporter)
-    // =========================================================
-    public function notifyDisputeStatusChanged(Dispute $dispute): void
-    {
-        $reporter = $dispute->getReporter();
-        $trajet   = $dispute->getTrajet();
-
-        if (!$reporter || !$trajet || !$reporter->getEmail()) {
-            return;
-        }
-
-        $email = $this->createEmail()
-            ->to($reporter->getEmail())
-            ->subject('Mise à jour de votre signalement — EcoRide')
-            ->htmlTemplate('emails/passager/dispute_status_changed.html.twig')
-            ->context([
-                'dispute'   => $dispute,
-                'trajet'    => $trajet,
-                'user'      => $reporter,
-                'reporter'  => $reporter,
-                'target'    => $dispute->getTarget(),
-                'trajetUrl' => $this->generateTrajetUrl($trajet),
-            ]);
-
-        $this->mailer->send($email);
-    }
-
-    // =========================================================
-    // 📩 CONTACT — ENVOI GÉNÉRIQUE
+    // CONTACT — ENVOI GÉNÉRIQUE
     // =========================================================
     public function send(string $to, string $subject, string $template, array $context = []): void
     {
@@ -375,7 +326,7 @@ class MailerService
     }
 
     // =========================================================
-    // 🧠 UTILITAIRES
+    // UTILITAIRES
     // =========================================================
     private function createEmail(): TemplatedEmail
     {
