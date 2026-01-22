@@ -17,7 +17,7 @@ use Symfony\Component\String\Slugger\SluggerInterface;
 final class ProfilController extends AbstractController
 {
     // =========================================================
-    // 🔵 PAGE PROFIL (vue principale)
+    // PAGE PROFIL (vue principale)
     // =========================================================
     #[Route('/profil', name: 'app_profil')]
     public function index(
@@ -35,11 +35,16 @@ final class ProfilController extends AbstractController
         // Véhicules du user
         $vehicles = $vehicleRepo->findByUser($user);
 
-        // ⭐ Avis reçus (le user est la "target")
-        $reviews = $reviewRepo->findBy(
-            ['target' => $user],
-            ['createdAt' => 'DESC']
-        );
+        // ⭐ Avis reçus (SAFE) : on filtre ceux dont le trajet existe vraiment
+        // (évite EntityNotFoundException si un trajet a été supprimé)
+        $reviews = $reviewRepo->createQueryBuilder('r')
+            ->innerJoin('r.trajet', 't')     // ✅ si le trajet n’existe plus -> l’avis n’est pas renvoyé
+            ->addSelect('t')                // ✅ évite du lazy-loading surprise dans Twig
+            ->where('r.target = :u')
+            ->setParameter('u', $user)
+            ->orderBy('r.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('profil/profil.html.twig', [
             'user'          => $user,
@@ -50,7 +55,7 @@ final class ProfilController extends AbstractController
     }
 
     // =========================================================
-    // 👀 PROFIL PUBLIC D'UN UTILISATEUR
+    // PROFIL PUBLIC D'UN UTILISATEUR
     // =========================================================
     #[Route(
         '/profil/utilisateur/{id}',
@@ -67,11 +72,15 @@ final class ProfilController extends AbstractController
         $average  = $reviewRepo->getAverageRatingForUser($user->getId());
         $vehicles = $vehicleRepo->findByUser($user);
 
-        // Avis reçus par cet utilisateur
-        $reviews = $reviewRepo->findBy(
-            ['target' => $user],
-            ['createdAt' => 'DESC']
-        );
+        // Avis reçus (SAFE)
+        $reviews = $reviewRepo->createQueryBuilder('r')
+            ->innerJoin('r.trajet', 't')
+            ->addSelect('t')
+            ->where('r.target = :u')
+            ->setParameter('u', $user)
+            ->orderBy('r.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('profil/details_informations.html.twig', [
             'user'          => $user,
@@ -82,7 +91,7 @@ final class ProfilController extends AbstractController
     }
 
     // =========================================================
-    // ⚙️ PAGE D’INFOS DU COMPTE
+    // PAGE D’INFOS DU COMPTE
     // =========================================================
     #[Route('/profil/compte', name: 'app_profil_compte')]
     public function compte(): Response
@@ -93,7 +102,7 @@ final class ProfilController extends AbstractController
     }
 
     // =========================================================
-    // ✏️ EDITION DU PROFIL
+    // EDITION DU PROFIL
     // =========================================================
     #[Route('/profil/edit', name: 'app_profil_edit')]
     public function edit(
