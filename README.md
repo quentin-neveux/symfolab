@@ -1,99 +1,99 @@
 EcoRide (Symfolab)
 
-EcoRide est une application de covoiturage à vocation éco-responsable, développée avec Symfony, dans le cadre du projet long du Titre Professionnel Développeur Web & Web Mobile.
+EcoRide est une application de covoiturage à vocation éco‑responsable, développée avec **Symfony** dans le cadre d’un projet long de formation (*Titre Professionnel Développeur Web & Web Mobile*).
 
-L’application est déployée sur une infrastructure AWS, avec résolution de domaine via DuckDNS, afin de permettre une consultation publique dans un cadre pédagogique.
+Le projet est actuellement **en développement** et fonctionne uniquement **en local**, via Docker. Il n’est **pas encore déployé en production**.
 
-Présentation
+---
 
-EcoRide propose une plateforme complète de covoiturage intégrant :
+## Présentation générale
 
-inscription et authentification des utilisateurs,
+L’objectif d’EcoRide est de mettre en place une plateforme de covoiturage réaliste, avec des parcours utilisateurs complets : inscription, recherche de trajets, réservation, gestion des rôles, et système de crédits internes (tokens).
 
-gestion des rôles (passager, conducteur, administrateur),
+Le projet sert avant tout de support technique pour travailler :
 
-recherche et réservation de trajets,
+* l’architecture Symfony moderne,
+* la conception et l’évolution d’une base de données relationnelle,
+* la logique métier côté back‑end,
+* et un environnement de développement Dockerisé cohérent.
 
-gestion des véhicules,
+---
 
-système de crédits internes (tokens),
+## État actuel du projet
 
-espace d’administration,
+* Application fonctionnelle en **local**
+* Environnement **Docker** opérationnel
+* Base de données **MariaDB**
+* Administration via **phpMyAdmin**
+* Gestion des emails en local avec **Mailpit**
 
-gestion des emails transactionnels.
+Le projet a volontairement été maintenu sur MariaDB à ce stade. Aucune migration PostgreSQL n’est utilisée actuellement.
 
-Le projet met l’accent sur la cohérence de l’architecture, la logique métier et la sécurité des accès.
+---
 
-Accès de démonstration (jury)
+## Stack technique
 
-Les services suivants sont accessibles pour la démonstration du projet :
+* **Back‑end** : PHP 8.x, Symfony 7.x
+* **Front‑end** : Twig, Bootstrap, JavaScript
+* **Base de données** : MariaDB 11
+* **Serveur** : Nginx
+* **Conteneurisation** : Docker & Docker Compose
+* **Outils annexes** : phpMyAdmin, Mailpit
 
-🌍 Application EcoRide
-https://ecoride-app-studi.duckdns.org
+---
 
-📧 Mailpit (emails de test)
-http://ecoride-app-studi.duckdns.org:8026
+## Lancement du projet en local
 
-🗄️ Base de données (phpMyAdmin)
-http://ecoride-app-studi.duckdns.org:8082
+### Prérequis
 
-Ces accès sont fournis uniquement dans un cadre pédagogique et de démonstration.
+* Docker
+* Docker Compose
 
-État du projet
+### Installation
 
-Application fonctionnelle
+1. Cloner le dépôt
+2. Copier le fichier `.env` si nécessaire et ajuster les variables
+3. Lancer les conteneurs :
 
-Déploiement Docker sur serveur AWS
+```bash
+docker compose up -d --build
+```
 
-Domaine dynamique via DuckDNS
+4. Installer les dépendances PHP :
 
-Base de données MariaDB
+```bash
+docker compose exec php composer install
+```
 
-Gestion des emails via Mailpit
+5. Lancer les migrations si besoin :
 
-Sécurité Symfony (authentification, rôles, contrôle d’accès)
+```bash
+docker compose exec php php bin/console doctrine:migrations:migrate
+```
 
-Interface d’administration dédiée
+---
 
-Stack technique
+## Accès aux services
 
-PHP 8.x — Symfony 7.x
+* Application : [http://localhost:8888](http://localhost:8888)
+* phpMyAdmin : [http://localhost:8082](http://localhost:8082)
+* Mailpit : [http://localhost:8025](http://localhost:8025)
 
-Twig, Bootstrap, JavaScript
+---
 
-MariaDB 11
+## Notes importantes
 
-Nginx
+* Le projet n’est **pas finalisé** et évolue régulièrement.
+* Il n’existe pas encore de version de production.
+* Certaines fonctionnalités peuvent être en cours de refactorisation.
 
-Docker & Docker Compose
+Ce dépôt reflète l’état réel du travail, sans maquillage.
 
-Hébergement : AWS (EC2)
+---
 
-DNS : DuckDNS
+## Contexte
+EcoRide est développé comme projet fil rouge dans un cadre de formation, avec une attention particulière portée à la compréhension des mécanismes plutôt qu’à la seule livraison rapide.
+Il est amené à évoluer, techniquement comme fonctionnellement.
 
-Positionnement pédagogique
-
-EcoRide est un projet de formation, conçu pour démontrer :
-
-la maîtrise d’un framework back-end moderne,
-
-la structuration d’une application web complète,
-
-la mise en place d’une logique métier réaliste,
-
-la gestion d’une base de données relationnelle,
-
-la sécurisation d’une application web,
-
-et le déploiement d’une application fonctionnelle.
-
-Remarque importante
-
-Ce projet n’a pas vocation à être exploité en production commerciale.
-Il représente un travail pédagogique long, évolutif et volontairement transparent.
-
-Auteur
-
-Quentin Neveux
-Développeur Web & Web Mobile
-Projet EcoRide — 2025-2026
+Quentin N. — Développeur Web & Web Mobile
+Projet "EcoRide", 2025-2026.
