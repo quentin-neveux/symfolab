@@ -44,13 +44,13 @@
           {% endif %}
         </div>
 
-        {# Nom + statut + note (étoiles à côté du nom) #}
+        {# Nom + statut + note #}
         <div class="flex-grow-1">
-
           <div class="d-flex align-items-center gap-3 flex-wrap">
             <h3 class="mb-1 d-flex align-items-center gap-2 flex-wrap">
               <span>{{ app.user.prenom }} {{ app.user.nom }}</span>
             </h3>
+
             <div class="d-flex align-items-center">
               {% if averageRating %}
                 {% set avg = averageRating|round(0, 'floor') %}
@@ -73,9 +73,8 @@
           </p>
         </div>
 
-        {# Tokens / gains #}
+        {# Tokens #}
         <div class="token-box ms-md-auto mt-4 mt-md-0">
-
           <div class="d-flex align-items-center justify-content-md-end mb-3">
             <i class="bi bi-coin text-success fs-3"></i>
 
@@ -87,21 +86,6 @@
               </span>
             </div>
           </div>
-
-          {# <div class="d-flex align-items-center justify-content-md-end">
-            <i class="bi bi-cash-stack text-success fs-3"></i> #}
-
-            {# <div class="ms-3">
-              <span class="text-success fw-bold small">Gains EcoRide</span><br>
-              <span class="fs-5">
-                <strong class="text-primary">
-                  {{ app.user.earnings|number_format(0, ',', ' ') }}
-                </strong>
-                <span class="text-muted small">ECR</span>
-              </span>
-            </div> #}
-          {# </div> #}
-
         </div>
 
       </div>
@@ -284,8 +268,13 @@
 
                   <hr class="my-2">
 
+                  {# ✅ PROTECTION : trajet supprimé => pas de 500 #}
                   <p class="text-muted small mb-0">
-                    {{ review.trajet.villeDepart }} → {{ review.trajet.villeArrivee }}
+                    {% if review.trajet is defined and review.trajet %}
+                      {{ review.trajet.villeDepart }} → {{ review.trajet.villeArrivee }}
+                    {% else %}
+                      <span class="fst-italic">Trajet supprimé</span>
+                    {% endif %}
                   </p>
                 </div>
               {% endfor %}
@@ -334,8 +323,13 @@
 
                   <hr class="my-2">
 
+                  {# ✅ PROTECTION : trajet supprimé => pas de 500 #}
                   <p class="text-muted small mb-0">
-                    {{ review.trajet.villeDepart }} → {{ review.trajet.villeArrivee }}
+                    {% if review.trajet is defined and review.trajet %}
+                      {{ review.trajet.villeDepart }} → {{ review.trajet.villeArrivee }}
+                    {% else %}
+                      <span class="fst-italic">Trajet supprimé</span>
+                    {% endif %}
                   </p>
                 </div>
               {% endfor %}
