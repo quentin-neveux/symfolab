@@ -25,12 +25,16 @@
             <p class="text-muted">Accès à votre compte EcoRide</p>
           </div>
 
-          <form method="post" action="{{ path('app_connexion') }}">
+          <form method="post" action="{{ path('app_connexion', redirect ? {redirect: redirect} : {}) }}">
+          {% if redirect %}
+            <input type="hidden" name="redirect" value="{{ redirect }}">
+          {% endif %}
+
 
             {# 🔐 IMPORTANT : conservation du target path #}
-            <input type="hidden"
+            {# <input type="hidden"
                    name="_target_path"
-                   value="{{ app.request.get('_target_path') }}">
+                   value="{{ app.request.get('_target_path') }}"> #}
 
             <!-- EMAIL -->
             <div class="mb-3">
@@ -90,7 +94,7 @@
 
             <p class="text-center mt-4 mb-0 text-muted">
               Pas encore de compte ?
-              <a href="{{ path('app_inscription') }}" class="text-success fw-semibold">
+              <a href="{{ path('app_inscription', redirect ? {redirect: redirect} : {}) }}" class="text-success fw-semibold">
                 Inscrivez-vous
               </a>
             </p>

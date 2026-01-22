@@ -272,10 +272,11 @@
           Ce trajet est terminé.
         </div>
       {% else %}
-        <a href="{{ path('trajet_reserver_confirm', { id: trajet.id }) }}"
+        <a href="{{ path('app_connexion', { redirect: app.request.requestUri }) }}"
            class="btn btn-ecoride py-3 rounded-pill w-100">
           Réserver ce trajet
         </a>
+                
       {% endif %}
 
     {% endif %}
