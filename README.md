@@ -38,7 +38,8 @@ L'application est déployée sur une infrastructure AWS, avec résolution de dom
 **Contexte** — Projet pédagogique 2025-2026 | Titre Professionnel Développeur Web & Web Mobile
 
 *Ce projet n'a pas vocation à être exploité en production commerciale.*
-Il est amené à évoluer, techniquement comme fonctionnellement.
+<<<<<<< HEAD
+=======
 
 Quentin N. — Développeur Web & Web Mobile
 Projet "EcoRide", 2025-2026.
