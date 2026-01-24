@@ -36,10 +36,3 @@ L'application est déployée sur une infrastructure AWS, avec résolution de dom
 ## À propos
 **Auteur** — Quentin Neveux  
 **Contexte** — Projet pédagogique 2025-2026 | Titre Professionnel Développeur Web & Web Mobile
-
-*Ce projet n'a pas vocation à être exploité en production commerciale.*
-<<<<<<< HEAD
-=======
-
-Quentin N. — Développeur Web & Web Mobile
-Projet "EcoRide", 2025-2026.
